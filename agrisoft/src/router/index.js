@@ -33,8 +33,8 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !loggedIn) {
     next({ name: 'Login' })
   } else if (to.meta.roles && !to.meta.roles.includes(userRol)) {
-    alert('Acceso denegado: no tienes permisos')
-    next({ name: 'Login' })
+    //alert('Acceso denegado: no tienes permisos')
+     next({ name: 'Dashboard' })
   } else if (to.name === 'Login' && loggedIn) {
     next({ name: 'Dashboard' })
   } else {
