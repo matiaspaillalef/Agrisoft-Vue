@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../components/Login.vue'
 import Dashboard from '../components/Dashboard.vue'
+import AccessDenied from '@/components/AccessDenied.vue'
 
 const routes = [
   {
@@ -10,12 +11,18 @@ const routes = [
     meta: { requiresAuth: false },
   },
   {
+    path: '/access-denied',
+    name: 'AccessDenied',
+    component: AccessDenied,
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: Dashboard,
     meta: {
       requiresAuth: true,
-      roles: [1, 2], // Solo pueden entrar usuarios con rol 1 o 2 (por ejemplo)
+      roles: [1, 2],
     },
   },
 ]
@@ -28,13 +35,14 @@ const router = createRouter({
 // Middleware
 router.beforeEach((to, from, next) => {
   const loggedIn = localStorage.getItem('loggedIn') === 'true'
-  const userRol = parseInt(localStorage.getItem('rol')) // ← importante: convertir a número
+  const userRol = parseInt(localStorage.getItem('rol'))
 
   if (to.meta.requiresAuth && !loggedIn) {
     next({ name: 'Login' })
   } else if (to.meta.roles && !to.meta.roles.includes(userRol)) {
     //alert('Acceso denegado: no tienes permisos')
-     next({ name: 'Dashboard' })
+    next({ name: 'AccessDenied' }) //Vista denegada
+    //next({ name: 'Dashboard' })
   } else if (to.name === 'Login' && loggedIn) {
     next({ name: 'Dashboard' })
   } else {
