@@ -1,0 +1,12 @@
+@media screen and (max-width: 768px) {
+  .nevmenu-top a > *:not(svg),
+  .nevmenu-top button > *:not(svg){
+    display: none;
+  }
+  .nevmenu-top ul{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    gap: 45px;
+  }
+}

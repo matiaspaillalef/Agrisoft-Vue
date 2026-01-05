@@ -1,0 +1,51 @@
+.sidenav {
+  border-right: 1px solid #e2e8f0;
+  transform: all 0.3s ease-in-out;
+}
+
+.sidenav.collapsed {
+  min-width: 100px;
+  width: 100px;
+  padding-inline: 25px !important;
+}
+
+.sidenav.collapsed .first-level button span span,
+.sidenav.collapsed .second-level .truncate,
+.sidenav.collapsed .third-level .truncate,
+.sidenav.collapsed .first-level .solitary {
+  transform: scale(0);
+  width: 0;
+  visibility: hidden;
+  opacity: 0;
+  display: none;
+  transition:
+    transform 0.3s ease,
+    visibility 0s linear 0.3s,
+    opacity 0.3s ease;
+}
+
+.sidenav .first-level button span span,
+.sidenav .second-level .truncate,
+.sidenav .third-level .truncate,
+.sidenav .first-level .solitary {
+  transform: scale(1);
+  width: auto;
+  visibility: visible;
+  opacity: 1;
+  transition:
+    transform 0.3s ease,
+    visibility 0s linear 0s,
+    opacity 0.3s ease;
+}
+
+.sidenav .first-level button {
+  gap: 7px;
+}
+
+.sidenav.collapsed button {
+  gap: 7px !important;
+}
+
+.sidenav.collapsed button > span {
+  gap: 0 !important;
+}

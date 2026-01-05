@@ -17,7 +17,14 @@ export async function login(usuario, password) {
     throw new Error('Credenciales incorrectas')
   }
 
-  // Guardar datos en localStorage
+  // Guardar token
+  if (data.token) {
+    localStorage.setItem('token', data.token)
+  } else {
+    throw new Error('Token no recibido desde el servidor')
+  }
+
+  // Guardar otros datos del usuario
   localStorage.setItem('loggedIn', 'true')
   localStorage.setItem('userId', data.userId)
   localStorage.setItem('userName', data.nombre)

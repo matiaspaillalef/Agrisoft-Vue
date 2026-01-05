@@ -1,0 +1,134 @@
+.center-column .dx-data-row>td,
+.center-column .dx-header-row>td {
+  text-align: center !important;
+  vertical-align: middle !important;
+  font-size: 9px;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid-content .dx-datagrid-table .dx-row>td,
+.dx-swatch-agrisoft-scheme .dx-datagrid-content .dx-datagrid-table .dx-row>tr>td {
+  vertical-align: middle !important;
+  font-size: 13px !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid-content .dx-datagrid-action {
+  text-align: center !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid-rowsview.dx-datagrid-sticky-columns .dx-data-row:not(.dx-row-lines, .dx-edit-row, .dx-selection, .dx-row-focused, .dx-row-removed)>td:not(.dx-editor-cell, .dx-master-detail-cell) {
+  padding-top: 5px !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid .dx-column-lines>td {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid-borders>.dx-datagrid-filter-panel,
+.dx-swatch-agrisoft-scheme .dx-datagrid-borders>.dx-datagrid-headers {
+  border-top: none !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid-borders>.dx-datagrid-headers {
+  font-weight: 900 !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-datagrid-borders>.dx-datagrid-headers,
+.dx-swatch-agrisoft-scheme .dx-datagrid-borders>.dx-datagrid-rowsview,
+.dx-swatch-agrisoft-scheme .dx-datagrid-borders>.dx-datagrid-total-footer {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.dx-swatch-agrisoft-scheme .dx-texteditor.dx-editor-outlined {
+  background: #f5f5f5;
+  border: 1px solid #dedede;
+  box-shadow: 1px 1px 10px 4px #00000012;
+  border-radius: 60px !important;
+}
+
+.icon-grid path {
+  fill: transparent !important;
+  stroke: var(--color-blue-950) !important;
+}
+
+.dark .icon-grid path {
+  stroke: white !important;
+}
+
+.dark button:hover .icon-grid path {
+  stroke: var(--color-blue-950) !important;
+}
+
+.icon-grid.icon-start path {
+  stroke: var(--color-green-600) !important;
+}
+
+.icon-grid.icon-end path {
+  stroke: var(--color-red-600) !important;
+}
+
+[class*='status-'] {
+  background-color: var(--color-gray-200);
+  color: #000000;
+  display: inline-flex;
+  padding-inline: 12px;
+  height: 25px;
+  border-radius: 60px;
+  font-size: 12px;
+}
+
+[class*='status-'] svg path {
+  color: white;
+  stroke: #000000 !important;
+}
+
+.status-entregado {
+  background-color: var(--color-green-500);
+  color: white;
+}
+
+.status-en-transito {
+  background-color: var(--color-orange-400);
+  color: white;
+}
+
+.status-cancelado {
+  background-color: #000000;
+  color: white;
+}
+
+.status-entregado svg path,
+.status-en-transito svg path,
+.status-cancelado svg path {
+  stroke: white !important;
+}
+
+
+.dark .dx-datagrid-headers .dx-header-row,
+.dark .dx-datagrid-table {
+  background-color: #2b4775 !important;
+  color: white;
+}
+
+.dark .dx-swatch-agrisoft-scheme .dx-datagrid .dx-row-alt>td,
+.dark .dx-swatch-agrisoft-scheme .dx-datagrid .dx-row-alt>tr>td {
+  background-color: #0b1437 !important;
+}
+
+.dx-icon-edit::before{
+   content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' d='m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10'/></svg>") !important;
+}
+.dx-icon-trash::before {
+  content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' d='m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0'/></svg>") !important;
+}
+
+.dx-icon-custom-view::before {
+  content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' d='M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z'/><path stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'/></svg>");
+}
+
+@media screen and (max-width: 768px) {
+  [class*='status-'] svg {
+    display: none;
+  }
+}

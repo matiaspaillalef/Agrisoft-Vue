@@ -1,7 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../components/Login.vue'
-import Dashboard from '../components/Dashboard.vue'
+import MainLayout from '@/layouts/MainLayout.vue'
+import Login from '@/pages/Login.vue'
+import Dashboard from '@/pages/DashboardPage.vue'
 import AccessDenied from '@/components/AccessDenied.vue'
+
+import Warehouses from '@/pages/operations/WarehousesPage.vue'
+import Transit from '@/pages/operations/TransitPage.vue'
+import Products from '@/pages/operations/ProductsPage.vue'
+import Resume from '@/pages/operations/ResumePage.vue'
 
 const routes = [
   {
@@ -17,13 +23,54 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
-    meta: {
-      requiresAuth: true,
-      roles: [1, 2],
-    },
+    path: '/',
+    component: MainLayout,
+    meta: { requiresAuth: true }, // Aplica a todos los hijos
+    children: [
+      //Dashboard de entrada
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+
+      //Páginas operaciones
+      {
+        path: 'dashboard/operations/warehouses',
+        name: 'Warehouses',
+        component: Warehouses,
+        meta: {
+          roles: [1, 2, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/transit',
+        name: 'Transit',
+        component: Transit,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/products',
+        name: 'Products',
+        component: Products,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/resume',
+        name: 'Resume',
+        component: Resume,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+    ],
   },
 ]
 

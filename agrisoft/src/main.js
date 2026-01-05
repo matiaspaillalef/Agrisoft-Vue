@@ -1,8 +1,9 @@
 import './assets/main.css'
-import './assets/styles/login.css'
+import './assets/styles/main.css'
+import 'devextreme/dist/css/dx.light.css'
+
 import './assets/styles/dx.generic.agrisoft-scheme.css' // Custom theme for DevExtreme
 import './style.css'
-
 
 import { createApp } from 'vue'
 import App from './App.vue'

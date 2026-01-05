@@ -10,6 +10,7 @@
 export default {
   name: 'AccessDenied',
 }
+//localStorage.clear()
 </script>
 
 <style scoped>

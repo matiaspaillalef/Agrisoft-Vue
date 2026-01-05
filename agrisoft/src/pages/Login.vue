@@ -74,8 +74,12 @@
     <!--dark mode button -->
     <div class="absolute top-4 right-4 z-10">
       <button @click="toggleDarkMode" class="p-2 rounded-md bg-gray-200 dark:bg-gray-800">
-        <span v-if="isDarkMode"><MoonIcon class="h-6 w-6 text-white" /></span>
-        <span v-else><SunIcon class="h-6 w-6 text-white" /></span>
+        <span v-if="isDarkMode">
+          <MoonIcon class="h-6 w-6 text-white" />
+        </span>
+        <span v-else>
+          <SunIcon class="h-6 w-6 text-white" />
+        </span>
       </button>
     </div>
   </div>
@@ -84,8 +88,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { login } from '@/services/authService.js'
-import SliderLateral from './SliderLateral/SliderLateral.vue'
+import { login } from '@/api/auth.services'
+import SliderLateral from '@/components/SliderLateral/SliderLateral.vue'
 import { useDarkMode } from '@/plugins/darkMode.js'
 
 // Icons
@@ -102,6 +106,7 @@ async function handleLogin() {
   errorMessage.value = ''
   try {
     await login(usuario.value, password.value)
+
     router.push({ name: 'Dashboard' })
   } catch (err) {
     errorMessage.value = err.message || 'Error al iniciar sesión'

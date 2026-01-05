@@ -13,6 +13,15 @@ export default defineConfig({
     vueJsx(),
     vueDevTools(),
     tailwindcss(),
+    {
+      name: 'watch-tailwind-config',
+      handleHotUpdate({ file, server }) {
+        if (file.includes('tailwind.config.js')) {
+          // Fuerza recarga de todo el CSS
+          server.ws.send({ type: 'full-reload' })
+        }
+      }
+    }
   ],
   resolve: {
     alias: {
