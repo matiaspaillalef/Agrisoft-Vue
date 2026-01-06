@@ -24,6 +24,10 @@
     opacity 0.3s ease;
 }
 
+.sidenav.no-collapsed {
+  transition: all 0.3s ease-in-out;
+}
+
 .sidenav .first-level button span span,
 .sidenav .second-level .truncate,
 .sidenav .third-level .truncate,
@@ -48,4 +52,8 @@
 
 .sidenav.collapsed button > span {
   gap: 0 !important;
+}
+
+.sidenav .menu-item.second-level .truncate{
+  white-space: normal;
 }

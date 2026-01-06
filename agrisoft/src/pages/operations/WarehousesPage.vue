@@ -8,12 +8,25 @@
     </div>
   </div>
   <div
-    class="relative mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-[#2b4775] py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-11/12 mx-auto">
+    class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-gray-200 py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-11/12 mx-auto">
     <div class="warehouses">
+
       <div class="datagrid-container">
         <DxDataGrid :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
           :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
           @saving="onSaving" ref="mainGridRef">
+
+     <DxLoadPanel
+     v-model:visible="loading"
+      :enabled="true"
+      :showPane="true"
+      :indicator-src="logoGif"
+      shading-color="transparent"
+      :height="'100%'"
+      :width="'100%'"
+      class="custom-loadpanel"
+    />
+
           <!-- Panel adaptable -->
           <DxColumnChooser v-if="columnChooser" :enabled="true" mode="select" />
           <DxColumnFixing :enabled="true" />
@@ -88,14 +101,41 @@ import {
   DxItem,
   DxSearchPanel,
   DxSelection,
-  DxFilterRow
+  DxFilterRow,
+  DxLoadPanel
 } from 'devextreme-vue/data-grid'
 
+
+import { loadMessages, locale } from 'devextreme/localization'
 import axios from 'axios'
 import { ref, computed } from 'vue'
 import conexionApi from '@/services/conexionApi.js'
 
 import { statusCellTemplate } from '@/utils/herlpers'
+import logoGif from '@/assets/img/agrisoft_logo.png'
+const loading = ref(true) 
+
+loadMessages({
+  es: {
+    // Popup edición DataGrid
+    'dxDataGrid-editingSaveRowChanges': 'Guardar',
+    'dxDataGrid-editingCancelRowChanges': 'Cancelar',
+
+    // Confirmación eliminar
+    'dxDataGrid-editingConfirmDeleteMessage':
+      '¿Está seguro que desea eliminar este registro?',
+
+    'dxDataGrid-columnChooserTitle': 'Seleccionar columnas',
+    'dxDataGrid-columnChooserCancel': 'Cerrar',
+    'dxDataGrid-columnChooserEmptyText': 'No hay columnas para mostrar',
+    Yes: 'Sí',
+    No: 'No',
+    Save: 'Guardar',
+    Cancel: 'Cancelar',
+    Loading: 'Cargando...',
+  },
+})
+locale('es')
 
 const rolID = Number(localStorage.getItem('rol')) || ''
 let companyID = Number(localStorage.getItem('userIdCompany')) || ''
@@ -208,7 +248,7 @@ const onUsersSelectionChanged = (e) => {
   const grid = mainGridRef.value?.instance
   if (!grid) return
 
-  // 🧠 SOLO FORZAR CAMBIO SI ES UPDATE
+  // SOLO FORZAR CAMBIO SI ES UPDATE
   if (formData.value.id) {
     grid.option('editing.changes', [{
       key: formData.value.id,
@@ -224,16 +264,13 @@ const onSaving = (e) => {
 
   const change = e.changes[0]
 
-  // 🆕 INSERT
   if (change.type === 'insert') {
     change.data.users = [...(formData.value?.users || [])]
     console.log('🆕 INSERT USERS:', change.data.users)
   }
 
-  // ✏️ UPDATE (ya estaba bien)
   if (change.type === 'update') {
     change.data.users = [...(formData.value?.users || [])]
-    console.log('🟢 UPDATE USERS:', change.data.users)
   }
 }
 
@@ -245,8 +282,6 @@ const onUsersGridReady = () => {
     ? [...formData.value.users]
     : []
 
-  console.log('🔵 PRESELECT USERS:', selectedUsers)
-
   isPreselectingUsers.value = true
 
   grid.clearSelection()
@@ -257,6 +292,8 @@ const onUsersGridReady = () => {
     isPreselectingUsers.value = false
   }, 0)
 }
+
+
 
 
 </script>

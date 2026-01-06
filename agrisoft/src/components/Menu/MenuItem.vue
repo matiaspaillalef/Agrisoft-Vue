@@ -3,7 +3,7 @@
     <div v-if="hasChildren">
       <button
         @click="toggleOpen"
-        class="flex items-center gap-2 text-sm py-2 cursor-pointer w-full !bg-transparent !text-blue-950 !pl-0 !pr-0 group"
+        class="flex items-center gap-2 text-[13px] py-2 cursor-pointer w-full !bg-transparent !text-blue-950 !pl-0 !pr-0 group"
       >
         <span class="inline-flex items-center gap-2 w-full">
           <component :is="iconComponent" class="h-5 w-5" v-if="iconComponent" />
@@ -22,14 +22,14 @@
       </button>
 
       <!-- Submenú -->
-      <ul v-show="isOpen" class="pl-4 flex flex-col gap-2">
+      <ul v-show="isOpen" class="pl-4 flex flex-col gap-0">
         <MenuItem v-for="child in item.children" :key="child.id" :item="child" :level="level + 1" />
       </ul>
     </div>
 
     <!-- Ítem sin hijos -->
     <div v-else>
-      <a :href="item.url" class="flex items-center gap-2 text-sm py-2 group">
+      <a :href="item.url" class="flex items-center gap-2 text-[13px] py-2 group">
         <component :is="iconComponent" class="h-5 w-5" v-if="iconComponent" />
         <span class="relative">
           <span :class="{ truncate: level === 2 || level === 3, solitary: level === 1 }">{{

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, defineProps, defineEmits, computed } from 'vue'
+import { ref, onMounted, defineProps, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumbs.vue'
 //import TitlePage from './TitlePage.vue'
@@ -19,12 +19,12 @@ const { isDarkMode, toggleDarkMode } = useDarkMode()
 const props = defineProps({
   isCollapsed: Boolean,
 })
-
+/*
 const emit = defineEmits(['toggle-sidenav'])
 
 function onToggle() {
   emit('toggle-sidenav')
-}
+}*/
 
 const nombre = ref('')
 const apellido = ref('')
@@ -33,7 +33,6 @@ const router = useRouter()
 const rolId = localStorage.getItem('rol') || ''
 
 //console.log(rolId)
-
 onMounted(() => {
   nombre.value = localStorage.getItem('userName') || ''
   apellido.value = localStorage.getItem('userLastname') || ''
@@ -44,13 +43,7 @@ onMounted(async () => {
   try {
     const rolId = localStorage.getItem('rol') || '1'
     const res = await MenuService.getMenuByRol(Number(rolId))
-
-    console.log('📦 MENÚ RAW DESDE API:', res)
-
     menu.value = res || []
-
-    console.log('📦 MENÚ GUARDADO EN STATE:', menu.value)
-
   } catch (err) {
      console.error('❌ ERROR MENU:', err)
     error.value = err.response?.data?.message || 'No se pudo cargar el menú'
@@ -89,13 +82,14 @@ onMounted(() => {
   <div class="header flex items-center justify-between mb-[25px] md:mb-[45px] flex-col-reverse md:flex-row gap-2 max-w-11/12 mx-auto">
     <div class="ml-[0px] w-full md:w-auto">
       <div class="pt-1">
+        <!--
         <button type="button" @click="onToggle"
           :class="`inline-flex items-center gap-2 text-blue-950 cursor-pointer transition-all duration-300 absolute w-auto! ${isCollapsed ? 'left-[67px]' : 'left-[135px]'} top-[20px] rounded-tr-none! rounded-br-none!`"
           v-if="![8, 9].includes(Number(rolId))">
           <ChevronDoubleLeftIcon class="h-3 w-3" :class="{ 'rotate-180': isCollapsed }" />
           <span :class="`text-[12px] ${isCollapsed ? 'hidden' : ''}`">Contraer Menú</span>
         </button>
-
+        -->
         <div
           class="nevmenu-top relative mt-[3px] flex h-[61px] w-full flex-grow items-center justify-around gap-2 rounded-full bg-white py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 dark:bg-blue-950 px-5 md:px-10"
           v-if="[8, 9].includes(Number(rolId))">
