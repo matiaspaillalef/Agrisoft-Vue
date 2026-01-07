@@ -80,6 +80,7 @@ import { useRouter } from 'vue-router'
 import { login } from '@/api/auth.services'
 import SliderLateral from '@/components/SliderLateral/SliderLateral.vue'
 import { useDarkMode } from '@/plugins/darkMode.js'
+import conexionApi from '@/services/conexionApi.js'
 
 // Icons
 import { MoonIcon, SunIcon } from '@heroicons/vue/24/solid'
@@ -104,8 +105,10 @@ onMounted(() => {
 async function handleLogin() {
   errorMessage.value = ''
   try {
+    // 1️⃣ Login normal
     await login(usuario.value, password.value)
 
+    // 2️⃣ Guardar usuario y contraseña si "remember me"
     if (rememberMe.value) {
       localStorage.setItem('rememberedUser', usuario.value)
       localStorage.setItem('rememberedPass', password.value)
@@ -114,9 +117,34 @@ async function handleLogin() {
       localStorage.removeItem('rememberedPass')
     }
 
+    // 3️⃣ Obtener companyID y userID de localStorage
+    const companyID = localStorage.getItem('userIdCompany')
+    const userID = localStorage.getItem('userId')
+
+    console.log('Iniciando fetch de bodegas para companyID:', companyID, 'y userID:', userID)
+
+    // 4️⃣ Fetch de bodegas asignadas al usuario
+    const response = await conexionApi.get(`/warehouses/getWarehouses/${companyID}?users=${userID}`)
+    console.log('Respuesta de bodegas:', response)
+    const data = response.data
+
+    if (data.code === 'OK' && Array.isArray(data.warehouses)) {
+      // 5️⃣ Guardar cada bodega en localStorage
+      const warehousesToSave = data.warehouses.map(w => ({ id: w.id, name: w.name }))
+      localStorage.setItem('userWarehouses', JSON.stringify(warehousesToSave))
+      console.log('Bodegas guardadas:', warehousesToSave)
+    } else {
+      console.warn('No se encontraron bodegas para este usuario.')
+      localStorage.removeItem('userWarehouses')
+    }
+
+    // 6️⃣ Redirigir a Dashboard
     router.push({ name: 'Dashboard' })
+
   } catch (err) {
+    console.error(err)
     errorMessage.value = err.message || 'Error al iniciar sesión'
   }
 }
+
 </script>

@@ -443,3 +443,4 @@ const productsCatalog = [
 
 
 </script>
+

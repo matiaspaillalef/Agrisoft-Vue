@@ -16,16 +16,8 @@
           :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
           @saving="onSaving" ref="mainGridRef">
 
-     <DxLoadPanel
-     v-model:visible="loading"
-      :enabled="true"
-      :showPane="true"
-      :indicator-src="logoGif"
-      shading-color="transparent"
-      :height="'100%'"
-      :width="'100%'"
-      class="custom-loadpanel"
-    />
+          <DxLoadPanel v-model:visible="loading" :enabled="true" :showPane="true" :indicator-src="logoGif"
+            shading-color="transparent" :height="'100%'" :width="'100%'" class="custom-loadpanel" />
 
           <!-- Panel adaptable -->
           <DxColumnChooser v-if="columnChooser" :enabled="true" mode="select" />
@@ -113,7 +105,7 @@ import conexionApi from '@/services/conexionApi.js'
 
 import { statusCellTemplate } from '@/utils/herlpers'
 import logoGif from '@/assets/img/agrisoft_logo.png'
-const loading = ref(true) 
+const loading = ref(true)
 
 loadMessages({
   es: {

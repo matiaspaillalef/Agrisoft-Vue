@@ -8,6 +8,22 @@ export function formatDate(date) {
   return `${day}/${month}/${year}`;
 }
 
+export const formatDateHrs = (dateString) => {
+  if (!dateString) return '-'
+
+  const date = new Date(dateString)
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${day}/${month}/${year}, ${hours}:${minutes} hrs.`
+}
+
+
 // Traducir status
 export function formatStatus(status) {
   const map = {
@@ -39,7 +55,7 @@ export function statusCellTemplate(cellElement, cellInfo) {
   // SVG
   span.innerHTML = `
     ${isActive ? activeSvg() : inactiveSvg()}
-    <span>${isActive ? 'Activa' : 'Inactiva'}</span>
+    <span>${isActive ? 'Activo' : 'Inactivo'}</span>
   `
 
   cellElement.appendChild(span)

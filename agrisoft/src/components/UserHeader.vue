@@ -64,8 +64,14 @@ const filteredChildren = computed(() => {
   return []
 })
 
-function logout() {
-  localStorage.clear()
+const logout = () => {
+  //localStorage.clear()
+  const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses']
+  Object.keys(localStorage).forEach(key => {
+    if (sessionKeys.includes(key)) {
+      localStorage.removeItem(key)
+    }
+  })
   router.push({ name: 'Login' })
 }
 

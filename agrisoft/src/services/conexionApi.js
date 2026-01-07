@@ -34,7 +34,7 @@ warehousesApi.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             // Token expirado: limpiar sesión y redirigir
             //localStorage.clear() 
-            const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail']
+            const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses']
             Object.keys(localStorage).forEach(key => {
                 if (sessionKeys.includes(key)) {
                     localStorage.removeItem(key)
