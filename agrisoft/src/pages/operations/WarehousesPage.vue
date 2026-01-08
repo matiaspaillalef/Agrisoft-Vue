@@ -107,28 +107,6 @@ import { statusCellTemplate } from '@/utils/herlpers'
 import logoGif from '@/assets/img/agrisoft_logo.png'
 const loading = ref(true)
 
-loadMessages({
-  es: {
-    // Popup edición DataGrid
-    'dxDataGrid-editingSaveRowChanges': 'Guardar',
-    'dxDataGrid-editingCancelRowChanges': 'Cancelar',
-
-    // Confirmación eliminar
-    'dxDataGrid-editingConfirmDeleteMessage':
-      '¿Está seguro que desea eliminar este registro?',
-
-    'dxDataGrid-columnChooserTitle': 'Seleccionar columnas',
-    'dxDataGrid-columnChooserCancel': 'Cerrar',
-    'dxDataGrid-columnChooserEmptyText': 'No hay columnas para mostrar',
-    Yes: 'Sí',
-    No: 'No',
-    Save: 'Guardar',
-    Cancel: 'Cancelar',
-    Loading: 'Cargando...',
-  },
-})
-locale('es')
-
 const rolID = Number(localStorage.getItem('rol')) || ''
 let companyID = Number(localStorage.getItem('userIdCompany')) || ''
 

@@ -180,28 +180,6 @@ const canEdit = [1, 8].includes(userRol)
 const showViewModal = ref(false)
 const selectedItem = ref(null)
 
-loadMessages({
-  es: {
-    // Popup edición DataGrid
-    'dxDataGrid-editingSaveRowChanges': 'Guardar',
-    'dxDataGrid-editingCancelRowChanges': 'Cancelar',
-
-    // Confirmación eliminar
-    'dxDataGrid-editingConfirmDeleteMessage':
-      '¿Está seguro que desea eliminar este registro?',
-
-    'dxDataGrid-columnChooserTitle': 'Seleccionar columnas',
-    'dxDataGrid-columnChooserCancel': 'Cerrar',
-    'dxDataGrid-columnChooserEmptyText': 'No hay columnas para mostrar',
-    Yes: 'Sí',
-    No: 'No',
-    Save: 'Guardar',
-    Cancel: 'Cancelar',
-    Loading: 'Cargando...',
-  },
-})
-locale('es')
-
 function verRegistro(data) {
   selectedItem.value = data
   showViewModal.value = true

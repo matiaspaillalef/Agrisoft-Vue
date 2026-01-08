@@ -9,22 +9,23 @@
 
   <div
     class="relative mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-[#2b4775] py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-11/12 mx-auto">
-
     <div class="datagrid-container">
       <DxDataGrid :data-source="dataSource" :show-borders="true" :column-hiding-enabled="true" :width="'100%'"
-        @content-ready="onContentReady" @init-new-row="onInitNewRow" :default-sorting="{ column: 'date', desc: true }"
+        @content-ready="onContentReady" @init-new-row="onInitNewRow" :default-sorting="{ column: 'id', desc: true }"
         @onRowRemoving="customizeDeletePopup" @editor-preparing="onEditorPreparing" @saving="onSaving" ref="dataGrid">
+        <!-- FILTRO POR COLUMNA -->
+        <!--<DxFilterRow :visible="true" :apply-filter=" 'auto' " />-->
+        <!-- FILTRO DE ENCABEZADO -->
+        <DxHeaderFilter :visible="true" :allow-search="true" />
         <!--<DxColumnChooser :enabled="true" mode="select" />-->
         <DxColumnFixing :enabled="true" />
         <DxScrolling column-rendering-mode="virtual" />
         <DxSearchPanel :visible="true" placeholder="Buscar..." highlight-case-sensitive />
-        <DxPaging :page-size="15" />
-        <DxPager :show-page-size-selector="true" :allowed-page-sizes="[15, 30, 50, 100]" :show-info="true"
+        <DxPaging :page-size="25" />
+        <DxPager :show-page-size-selector="true" :allowed-page-sizes="[25, 50, 75, 100]" :show-info="true"
           :show-navigation-buttons="true" info-text="Página {0} de {1} ({2} registros)" />
-
         <DxEditing :allow-updating="true" :allow-adding="true" :allow-deleting="true" mode="popup" :use-icons="true"
           :texts="{ confirmDeleteMessage: '¿Está seguro que desea eliminar este registro?' }">
-
           <DxPopup :show-title="true" :width="700" :height="525" title="Editar tránsito" />
           <DxForm>
             <DxItem data-field="responsible_name" editor-type="dxTextBox"
@@ -34,25 +35,29 @@
             <DxItem data-field="status" editor-type="dxSelectBox"
               :editor-options="{ dataSource: transitStatus, valueExpr: 'id', displayExpr: 'name' }" />
             <DxSimpleItem data-field="date" editor-type="dxDateBox" />
-
             <DxItem data-field="origin_id" editor-type="dxSelectBox" :set-cell-value="setOriginValue" />
-
             <DxItem data-field="destiny_id" editor-type="dxSelectBox" />
             <!--<DxItem data-field="products" editor-type="dxTextArea" :editor-options="{ height: 90 }" />-->
-
             <DxSelectBox :data-source="availableProducts" display-expr="display" value-expr="id"
               placeholder="Buscar producto por SKU, nombre o componente activo" search-enabled search-mode="contains"
               @value-changed="onProductSelected" />
             <!-- Productos -->
             <DxItem item-type="simple" caption="Productos" :col-span="2">
               <template #default>
-                <DxDataGrid :data-source="filteredProducts" key-expr="id" height="320" :show-borders="true"
-                  ref="productsGridRef" @editor-preparing="onProductsEditorPreparing" :editing="{
-                    mode: 'batch',
-                    allowUpdating: true,
-                    allowAdding: false,
-                    allowDeleting: false
-                  }">
+                <DxDataGrid
+  :data-source="filteredProducts"
+  key-expr="id"
+  height="320"
+  :show-borders="true"
+  ref="productsGridRef"
+  @cell-value-changed="onProductCellChanged"
+  :editing="{
+    mode: 'batch',
+    allowUpdating: true,
+    allowAdding: false,
+    allowDeleting: false
+  }"
+>
                   <DxSearchPanel :visible="true" placeholder="Buscar producto..." />
 
                   <DxColumn data-field="sku" caption="SKU" css-class="!text-left" :allow-editing="false" />
@@ -69,17 +74,24 @@
             </DxItem>
           </DxForm>
         </DxEditing>
-
-        <!-- Columnas -->
         <DxColumn data-field="id_transito" caption="# Tránsito" :cell-template="trackingCellTemplate"
-          css-class="!text-left" :editor-options="{ readOnly: currentUser.role != 1 }" />
-        <DxColumn data-field="origin_id" caption="Origen" css-class="!text-left" :lookup="originLookup" />
-        <DxColumn data-field="destiny_id" caption="Destino" css-class="!text-left" :lookup="destinyLookup" />
-        <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-left" />
-        <DxColumn data-field="responsible_name" caption="Responsable" css-class="!text-left" />
-        <DxColumn data-field="received_by" caption="Recibido por" css-class="!text-left" />
-        <DxColumn data-field="date" caption="Fecha" data-type="date" format="dd/MM/yyyy" css-class="!text-left" />
-        <DxColumn type="buttons" width="140" :buttons="customButtons" />
+          css-class="!text-left" :editor-options="{ readOnly: currentUser.role != 1 }" alignment="right"
+          :hiding-priority="0" />
+        <DxColumn data-field="origin_id" caption="Origen" css-class="!text-left" :lookup="originLookup"
+          alignment="right" :hiding-priority="0" />
+        <DxColumn caption="" width="60" :cell-template="statusIconTemplate" :hiding-priority="1" />
+        <DxColumn data-field="destiny_id" caption="Destino" css-class="!text-left" :lookup="destinyLookup"
+          alignment="right" :hiding-priority="6" />
+        <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate"
+          :lookup="{ dataSource: transitStatus, valueExpr: 'id', displayExpr: 'name' }" css-class="!text-left"
+          alignment="right" :hiding-priority="2" :editor-options="{ readOnly: currentUser.role != 1 }" />
+        <DxColumn data-field="responsible_name" caption="Responsable" css-class="!text-left" alignment="right"
+          :hiding-priority="3" />
+        <DxColumn data-field="received_by" caption="Recibido por" css-class="!text-left" alignment="right"
+          :hiding-priority="4" />
+        <DxColumn data-field="date" caption="Fecha" data-type="date" format="dd/MM/yyyy" css-class="!text-left"
+          alignment="right" :hiding-priority="5" />
+        <DxColumn type="buttons" width="140" :buttons="customButtons" alignment="left" :hiding-priority="0" />
       </DxDataGrid>
     </div>
   </div>
@@ -90,7 +102,6 @@
       class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto">
       <h2 class="text-xl mb-4">Detalles del tránsito <span class="font-bold bg-gray-200 p-1 rounded-sm">{{
         selectedItem?.id_transito }}</span></h2>
-      {{ console.log('Selected Item en modal:', selectedItem) }}
       <p class="text-sm"><strong>Ruta:</strong> {{ getWarehouseName(selectedItem?.origin_id) }} → {{
         getWarehouseName(selectedItem?.destiny_id) }}</p>
       <p class="text-sm"><strong>Estado:</strong> {{ formatStatus(selectedItem?.status) }}</p>
@@ -124,7 +135,7 @@
 import CustomStore from 'devextreme/data/custom_store'
 import {
   DxDataGrid, DxColumn, DxSearchPanel, DxPager, DxPaging, DxColumnFixing, DxScrolling,
-  DxEditing, DxForm, DxItem
+  DxEditing, DxForm, DxItem, DxFilterRow, DxHeaderFilter, DxColumnChooser
 } from 'devextreme-vue/data-grid'
 import { DxSimpleItem } from 'devextreme-vue/form'
 import { DxPopup } from 'devextreme-vue/popup'
@@ -197,8 +208,8 @@ function formatStatus(status) {
   switch (status) {
     case 1: case '1': return 'Creada'
     case 2: case '2': return 'En tránsito'
-    case 3: case '3': return 'Entregado'
-    case 0: case '0': return 'Cancelado'
+    case 3: case '3': return 'Entregada'
+    case 0: case '0': return 'Cancelada'
     default: return 'Desconocido'
   }
 }
@@ -209,12 +220,17 @@ function formatDate(date) {
 }
 
 function onInitNewRow(e) {
-  const unique = Date.now().toString().slice(-8)
+  const unique = Date.now().toString()
   e.data.id_transito = `TRK-${companyID}-${unique}`
   e.data.date = new Date()
   e.data.status = 1
 
   e.data.products = []
+
+  //Resetear origen y destino y proiductos
+  /*selectedWarehouseId.value = null
+  selectedProducts.value = []
+  availableProducts.value = []*/
 
   e.data.origin_id = null
   e.data.destiny_id = null
@@ -230,7 +246,7 @@ function onInitNewRow(e) {
 
   if (currentUser.role === 8) {
     e.data.responsible_name = currentUser.name
-    e.data.responsible_id = currentUser.id // <<==== Agregar esto
+    e.data.responsible_id = currentUser.id 
   }
 }
 
@@ -348,6 +364,30 @@ const customButtons = [
     onClick: (e) => procesarTransito(e.row.data)
   },
   {
+    hint: 'Cancelar',
+    icon: 'custom-cancel',
+    cssClass: 'w-[25px]! h-[25px]! bg-red-400 rounded-full animate-pulse p-[4px]!',
+    visible: (e) =>
+      e.row?.data?.status === 2 &&
+      e.row?.data?.responsible_id === currentUser.id,
+    onClick: (e) => cancelarTransito(e.row.data)
+  },
+  {
+    hint: 'Recibir',
+    icon: 'custom-check',
+    cssClass: 'w-[25px]! h-[25px]! bg-green-400 rounded-full animate-pulse p-[4px]!',
+    visible: (e) => {
+      const status = e.row?.data?.status;
+      const destinyId = e.row?.data?.destiny_id;
+      const warehouses = userWarehouses.value;
+      const tieneWarehouse = warehouses?.some(w => w.id === destinyId);;
+      return status === 2 && tieneWarehouse;
+    },
+    onClick: (e) => {
+      recibirTransito(e.row.data);
+    }
+  },
+  {
     hint: 'Ver',
     icon: 'custom-view',
     onClick: (e) => verRegistro(e.row.data)
@@ -372,30 +412,7 @@ const customButtons = [
       e.component.deleteRow(e.row.rowIndex)
     }
   },
-  {
-    hint: 'Cancelar',
-    icon: 'custom-cancel',
-    cssClass: 'w-[25px]! h-[25px]! bg-red-400 rounded-full animate-pulse p-[4px]!',
-    visible: (e) =>
-      e.row?.data?.status === 2 &&
-      e.row?.data?.responsible_id === currentUser.id,
-    onClick: (e) => cancelarTransito(e.row.data)
-  },
-  {
-    hint: 'Recibir',
-    icon: 'custom-check',
-    cssClass: 'w-[25px]! h-[25px]! bg-green-400 rounded-full animate-pulse p-[4px]!',
-    visible: (e) => {
-      const status = e.row?.data?.status;
-      const destinyId = e.row?.data?.destiny_id;
-      const warehouses = userWarehouses.value;
-      const tieneWarehouse = warehouses?.some(w => w.id === destinyId);;
-      return status === 2 && tieneWarehouse;
-    },
-    onClick: (e) => {
-      recibirTransito(e.row.data);
-    }
-  }
+
 ]
 
 
@@ -420,6 +437,8 @@ const dataSource = new CustomStore({
           date: new Date(t.date),
           products: t.products.map(p => ({ Name: p.name, Quantity: p.quantity })),
         }))
+          //.sort((a, b) => b.id - a.id)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
       }
       return []
     } catch (err) {
@@ -646,8 +665,29 @@ async function procesarTransito(rowData) {
   }
 }
 
+function statusIconTemplate(cellElement, cellInfo) {
+  const status = cellInfo.data.status;
 
+  let svg = '';
 
+  if (status === 0 || status === '0') {
+    // Cancelado
+    svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 w-6 h-6 text-red-500">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    `;
+  } else {
+    // Cualquier otro estado
+    svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 w-6 h-6 text-green-500">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+      </svg>
+    `;
+  }
+
+  cellElement.innerHTML = svg;
+}
 
 
 </script>
