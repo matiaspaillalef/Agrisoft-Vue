@@ -31,9 +31,10 @@
             <DxItem data-field="responsible_name" editor-type="dxTextBox"
               :editor-options="{ readOnly: currentUser.role != 1 }" />
             <DxItem data-field="id" :visible="false" />
-            <DxItem data-field="id_transito" />
+            <DxItem data-field="id_transito" :visible="false" />
             <DxItem data-field="status" editor-type="dxSelectBox"
-              :editor-options="{ dataSource: transitStatus, valueExpr: 'id', displayExpr: 'name' }" />
+              :editor-options="{ dataSource: transitStatus, valueExpr: 'id', displayExpr: 'name' }"
+              :visible="role == 1" />
             <DxSimpleItem data-field="date" editor-type="dxDateBox" />
             <DxItem data-field="origin_id" editor-type="dxSelectBox" :set-cell-value="setOriginValue" />
             <DxItem data-field="destiny_id" editor-type="dxSelectBox" />
@@ -44,40 +45,31 @@
             <!-- Productos -->
             <DxItem item-type="simple" caption="Productos" :col-span="2">
               <template #default>
-                <DxDataGrid
-  :data-source="filteredProducts"
-  key-expr="id"
-  height="320"
-  :show-borders="true"
-  ref="productsGridRef"
-  @cell-value-changed="onProductCellChanged"
-  :editing="{
-    mode: 'batch',
-    allowUpdating: true,
-    allowAdding: false,
-    allowDeleting: false
-  }"
->
+                <DxDataGrid :data-source="filteredProducts" key-expr="id" height="320" :show-borders="true"
+                  ref="(el) => { if (el) productsGridRef = el }" :editing="{
+                    mode: 'batch',
+                    allowUpdating: true,
+                    allowAdding: false,
+                    allowDeleting: false
+                  }" @cell-value-changed="onCellValueChanged" @row-updated="onRowUpdated" @saving="onProductsSaving">
                   <DxSearchPanel :visible="true" placeholder="Buscar producto..." />
-
                   <DxColumn data-field="sku" caption="SKU" css-class="!text-left" :allow-editing="false" />
                   <DxColumn data-field="name" caption="Nombre" css-class="!text-left" :allow-editing="false" />
                   <DxColumn data-field="active_ingredient" caption="Componente activo" css-class="!text-left"
                     :allow-editing="false" />
                   <DxColumn data-field="quantity" caption="Stock" css-class="!text-left" :allow-editing="false" />
-
                   <DxColumn data-field="move_quantity" caption="Cantidad a mover" css-class="!text-left"
                     editor-type="dxNumberBox" :allow-editing="true" :show-editor-always="true" />
-
                 </DxDataGrid>
               </template>
             </DxItem>
+
           </DxForm>
         </DxEditing>
         <DxColumn data-field="id_transito" caption="# Tránsito" :cell-template="trackingCellTemplate"
           css-class="!text-left" :editor-options="{ readOnly: currentUser.role != 1 }" alignment="right"
           :hiding-priority="0" />
-        <DxColumn data-field="origin_id" caption="Origen" css-class="!text-left" :lookup="originLookup"
+        <DxColumn data-field="origin_id" caption="Origen" css-class="!text-left max-w-[130px]! w-[130px]!" :lookup="originLookup"
           alignment="right" :hiding-priority="0" />
         <DxColumn caption="" width="60" :cell-template="statusIconTemplate" :hiding-priority="1" />
         <DxColumn data-field="destiny_id" caption="Destino" css-class="!text-left" :lookup="destinyLookup"
@@ -132,51 +124,118 @@
 </template>
 
 <script setup>
+// ======================================================
+// 📦 IMPORTACIONES
+// ======================================================
+
+// DevExtreme - Data & Store
 import CustomStore from 'devextreme/data/custom_store'
+
+// DevExtreme - Componentes DataGrid
 import {
-  DxDataGrid, DxColumn, DxSearchPanel, DxPager, DxPaging, DxColumnFixing, DxScrolling,
-  DxEditing, DxForm, DxItem, DxFilterRow, DxHeaderFilter, DxColumnChooser
+  DxDataGrid,
+  DxColumn,
+  DxSearchPanel,
+  DxPager,
+  DxPaging,
+  DxColumnFixing,
+  DxScrolling,
+  DxEditing,
+  DxForm,
+  DxItem,
+  DxFilterRow,
+  DxHeaderFilter,
+  DxColumnChooser
 } from 'devextreme-vue/data-grid'
+
+// DevExtreme - Form & Popup
 import { DxSimpleItem } from 'devextreme-vue/form'
 import { DxPopup } from 'devextreme-vue/popup'
+
+// Vue
 import { ref, onMounted, watch, computed } from 'vue'
+
+// Servicios
 import conexionApi from '@/services/conexionApi.js'
 
-// --- Datos ---
+
+// ======================================================
+// 🧠 CONTEXTO DE USUARIO Y COMPAÑÍA
+// ======================================================
+
+// ID de la compañía
 const companyID = Number(localStorage.getItem('userIdCompany') || 0)
+
+// Usuario autenticado
 const currentUser = {
   id: Number(localStorage.getItem('userId') || 0),
   name: `${localStorage.getItem('userName') || ''} ${localStorage.getItem('userLastname') || ''}`,
   role: Number(localStorage.getItem('rol') || 0),
 }
 
-// Obtener bodegas asignadas al usuario desde localStorage
-const userWarehouses = ref(JSON.parse(localStorage.getItem('userWarehouses') || '[]'))
+// Bodegas asignadas al usuario
+const userWarehouses = ref(
+  JSON.parse(localStorage.getItem('userWarehouses') || '[]')
+)
+
+
+// ======================================================
+// 📦 ESTADOS PRINCIPALES (REACTIVE STATE)
+// ======================================================
+
+// Bodegas
 const bodegas = ref([])
 const originWarehouses = ref([])
+
+// UI / Modal
 const showViewModal = ref(false)
 const selectedItem = ref(null)
+
+// Referencia al DataGrid
 const dataGrid = ref(null)
 
-// --- Productos ---
-const allProducts = ref([])          // Todos los productos
-const filteredProducts = ref([])     // Productos filtrados por bodega
-const availableProducts = ref([])        // productos filtrados por bodega y no seleccionados
-const selectedProducts = ref([])
-const selectedWarehouseId = ref(null)
+// En tu script setup
+const productsGridRef = ref(null);
+
+
+// ======================================================
+// 📦 ESTADOS DE PRODUCTOS
+// ======================================================
+
+const allProducts = ref([])           // Todos los productos
+const filteredProducts = ref([])      // Productos filtrados por bodega
+const availableProducts = ref([])     // Productos disponibles (no usados)
+const selectedProducts = ref([])      // Productos seleccionados
+const selectedWarehouseId = ref(null) // Bodega seleccionada
+const productsChanged = ref(false)
+const productosEditados = ref([])
+
+
+
+// ======================================================
+// 🚀 ON MOUNTED – CARGA INICIAL
+// ======================================================
 
 onMounted(async () => {
-  // --- Bodegas ---
+  // ------------------------------
+  // 🏬 Cargar bodegas
+  // ------------------------------
   try {
     const { data } = await conexionApi.get(`/warehouses/getWarehouses/${companyID}`)
     if (data.code === 'OK') {
-      let allBodegas = data.warehouses.map(b => ({ id: b.id, name: b.name }))
+      const allBodegas = data.warehouses.map(b => ({
+        id: b.id,
+        name: b.name
+      }))
+
       bodegas.value = allBodegas
 
+      // Filtrar bodegas de origen según rol
       if ([7, 8, 9].includes(currentUser.role)) {
         const origins = allBodegas.filter(b =>
           userWarehouses.value.some(uw => uw.id === b.id)
         )
+
         originWarehouses.value = origins
         localStorage.setItem('userOriginWarehouses', JSON.stringify(origins))
       }
@@ -185,7 +244,9 @@ onMounted(async () => {
     console.error('Error cargando bodegas:', err)
   }
 
-  // --- Productos ---
+  // ------------------------------
+  // 📦 Cargar productos
+  // ------------------------------
   try {
     const res = await conexionApi.get(`/products/${companyID}`)
     if (res.data.code === 'OK') {
@@ -203,52 +264,74 @@ onMounted(async () => {
   }
 })
 
-// --- Funciones ---
+
+// ======================================================
+// 🔁 FORMATEADORES
+// ======================================================
+
 function formatStatus(status) {
   switch (status) {
-    case 1: case '1': return 'Creada'
-    case 2: case '2': return 'En tránsito'
-    case 3: case '3': return 'Entregada'
-    case 0: case '0': return 'Cancelada'
+    case 1:
+    case '1': return 'Creada'
+    case 2:
+    case '2': return 'En tránsito'
+    case 3:
+    case '3': return 'Entregada'
+    case 0:
+    case '0': return 'Cancelada'
     default: return 'Desconocido'
   }
 }
 
 function formatDate(date) {
   if (!date) return ''
-  return new Date(date).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
+  return new Date(date).toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
+
+// ======================================================
+// ➕ NUEVO REGISTRO (INIT NEW ROW)
+// ======================================================
+
 function onInitNewRow(e) {
+
+  productosEditados.value = [];
+  filteredProducts.value = filteredProducts.value.map(p => ({ ...p, move_quantity: 0 }));
+
   const unique = Date.now().toString()
+
   e.data.id_transito = `TRK-${companyID}-${unique}`
   e.data.date = new Date()
   e.data.status = 1
-
   e.data.products = []
-
-  //Resetear origen y destino y proiductos
-  /*selectedWarehouseId.value = null
-  selectedProducts.value = []
-  availableProducts.value = []*/
 
   e.data.origin_id = null
   e.data.destiny_id = null
 
+  // Asignación automática de origen según rol
   if ([7, 8, 9].includes(currentUser.role)) {
-    const origin = JSON.parse(localStorage.getItem('userOriginWarehouses') || '[]');
+    const origin = JSON.parse(localStorage.getItem('userOriginWarehouses') || '[]')
     if (origin.length === 1) {
-      //const nombreBodega = origin[0].name;
       e.data.origin_id = origin[0].id
       selectedWarehouseId.value = origin[0].id
     }
   }
 
+  // Responsable automático
   if (currentUser.role === 8) {
     e.data.responsible_name = currentUser.name
-    e.data.responsible_id = currentUser.id 
+    e.data.responsible_id = currentUser.id
   }
 }
+
+
+// ======================================================
+// 📌 ESTADOS DE TRÁNSITO
+// ======================================================
 
 const transitStatus = [
   { id: 1, name: 'Creada' },
@@ -257,9 +340,13 @@ const transitStatus = [
   { id: 0, name: 'Cancelado' }
 ]
 
+
+// ======================================================
+// ✏️ CONFIGURACIÓN DE EDITORES (EDITOR PREPARING)
+// ======================================================
+
 function onEditorPreparing(e) {
-  // Solo aplicamos a filas de datos
-  if (e.parentType !== 'dataRow') return;
+  if (e.parentType !== 'dataRow') return
 
   const row = e.row?.data
   if (!row) return
@@ -274,31 +361,31 @@ function onEditorPreparing(e) {
     return
   }
 
-  // 1. Configuración de ORIGEN (Solo Data Source y configuración visual)
+  // ORIGEN
   if (e.dataField === 'origin_id') {
-    e.editorOptions.dataSource = originWarehouses.value;
-    e.editorOptions.valueExpr = 'id';
-    e.editorOptions.displayExpr = 'name';
-    e.editorOptions.placeholder = 'Seleccione origen';
+    e.editorOptions.dataSource = originWarehouses.value
+    e.editorOptions.valueExpr = 'id'
+    e.editorOptions.displayExpr = 'name'
+    e.editorOptions.placeholder = 'Seleccione origen'
     e.editorOptions.onValueChanged = (args) => {
       e.setValue(args.value)
-      selectedWarehouseId.value = args.value // Limpiar productos al cambiar origen
+      selectedWarehouseId.value = args.value
     }
-    // ¡BORRA EL onValueChanged DE AQUÍ!
   }
 
-  // 2. Configuración de DESTINO
+  // DESTINO
   if (e.dataField === 'destiny_id') {
-    e.editorOptions.dataSource = bodegas.value;
-    e.editorOptions.valueExpr = 'id';
-    e.editorOptions.displayExpr = 'name';
-    e.editorOptions.placeholder = 'Seleccione destino';
-    // ¡BORRA EL onValueChanged DE AQUÍ!
+    e.editorOptions.dataSource = bodegas.value
+    e.editorOptions.valueExpr = 'id'
+    e.editorOptions.displayExpr = 'name'
+    e.editorOptions.placeholder = 'Seleccione destino'
   }
-
-
 }
 
+
+// ======================================================
+// 🧮 EDITOR DE PRODUCTOS
+// ======================================================
 
 function onProductsEditorPreparing(e) {
   if (e.parentType === 'dataRow' && e.dataField === 'move_quantity') {
@@ -318,6 +405,9 @@ function onProductsEditorPreparing(e) {
 }
 
 
+// ======================================================
+// 👁️ MODAL DE VISTA
+// ======================================================
 
 function verRegistro(data) {
   selectedItem.value = data
@@ -325,119 +415,164 @@ function verRegistro(data) {
 }
 
 function closeModals() {
+  productsChanged.value = false
   showViewModal.value = false
 }
 
-function customizeDeletePopup(e) {
-  e.component.getInstance()?.option('wrapperAttr', { class: 'dx-swatch-agrisoft-scheme' });
-}
 
-// --- Templates ---
+// ======================================================
+// 🎨 TEMPLATES DE CELDA
+// ======================================================
+
 function trackingCellTemplate(cellElement, cellInfo) {
   const trackingNumber = cellInfo.data.id_transito || ''
-  cellElement.innerHTML = `<span class="inline-flex items-center bg-gray-200 px-3 py-1 rounded-sm font-bold">${trackingNumber}</span>`
+  cellElement.innerHTML =
+    `<span class="inline-flex items-center bg-gray-200 px-3 py-1 rounded-sm font-bold">${trackingNumber}</span>`
 }
 
 function statusCellTemplate(cellElement, cellInfo) {
   const status = cellInfo.data.status
-  let color = ''
+  let color = 'bg-gray-400'
+
   if (status == 0) color = 'bg-red-400'
   else if (status == 1) color = 'bg-orange-400'
   else if (status == 2) color = 'bg-blue-400'
   else if (status == 3) color = 'bg-green-400'
-  else color = 'bg-gray-400'
-  cellElement.innerHTML = `<span class="rounded-full bg-gray-50 text-black font-[400] px-3 h-[23px] inline-flex items-center w-[100px] justify-start gap-1 border border-gray-100"><span class="w-[10px] h-[10px] rounded-full animate-pulse basis-[10px]! min-w-[10px]! min-h-[10px]! ${color}"></span><span>${formatStatus(status)}</span></span>`
+
+  cellElement.innerHTML = `
+    <span class="rounded-full  bg-gray-50 text-black font-[400] px-3 h-[23px] inline-flex items-center w-[100px] justify-start gap-1 border border-gray-100">
+      <span class="w-[10px] h-[10px] rounded-full animate-pulse ${color}"></span>
+      <span>${formatStatus(status)}</span>
+    </span>
+  `
 }
 
-// --- Custom Buttons ---
+// Icono de estado (usado como cellTemplate alternativo)
+function statusIconTemplate(cellElement, cellInfo) {
+  const status = cellInfo.data.status
+  let svg = ''
+
+  if (status === 0 || status === '0') {
+    // Cancelado
+    svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24" stroke-width="1.5"
+        stroke="currentColor"
+        class="w-6 h-6 text-red-500">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="m9.75 9.75 4.5 4.5
+             m0-4.5-4.5 4.5
+             M21 12a9 9 0 1 1-18 0
+             9 9 0 0 1 18 0Z" />
+      </svg>
+    `
+  } else {
+    // Cualquier otro estado
+    svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24" stroke-width="1.5"
+        stroke="currentColor"
+        class="w-6 h-6 text-green-500">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M17.25 8.25 21 12
+             m0 0-3.75 3.75
+             M21 12H3" />
+      </svg>
+    `
+  }
+
+  cellElement.innerHTML = svg
+}
+
+
+// ======================================================
+// 🔘 BOTONES PERSONALIZADOS
+// ======================================================
+
 const customButtons = [
   {
     hint: 'Procesar',
     icon: 'custom-truck',
     cssClass: 'w-[25px]! h-[25px]! bg-orange-400 rounded-full animate-pulse p-[4px]!',
-    visible: (e) => {
-      return (
-        e.row?.data?.status === 1 &&
-        e.row?.data?.responsible_id === currentUser.id
-      );
-    },
-    onClick: (e) => procesarTransito(e.row.data)
+    visible: e =>
+      e.row?.data?.status === 1 &&
+      e.row?.data?.responsible_id === currentUser.id,
+    onClick: e => procesarTransito(e.row.data)
   },
   {
     hint: 'Cancelar',
     icon: 'custom-cancel',
     cssClass: 'w-[25px]! h-[25px]! bg-red-400 rounded-full animate-pulse p-[4px]!',
-    visible: (e) =>
+    visible: e =>
       e.row?.data?.status === 2 &&
       e.row?.data?.responsible_id === currentUser.id,
-    onClick: (e) => cancelarTransito(e.row.data)
+    onClick: e => cancelarTransito(e.row.data)
   },
   {
     hint: 'Recibir',
     icon: 'custom-check',
     cssClass: 'w-[25px]! h-[25px]! bg-green-400 rounded-full animate-pulse p-[4px]!',
-    visible: (e) => {
-      const status = e.row?.data?.status;
-      const destinyId = e.row?.data?.destiny_id;
-      const warehouses = userWarehouses.value;
-      const tieneWarehouse = warehouses?.some(w => w.id === destinyId);;
-      return status === 2 && tieneWarehouse;
+    visible: e => {
+      const destinyId = e.row?.data?.destiny_id
+      return (
+        e.row?.data?.status === 2 &&
+        userWarehouses.value.some(w => w.id === destinyId)
+      )
     },
-    onClick: (e) => {
-      recibirTransito(e.row.data);
-    }
+    onClick: e => recibirTransito(e.row.data)
   },
   {
     hint: 'Ver',
     icon: 'custom-view',
-    onClick: (e) => verRegistro(e.row.data)
+    onClick: e => verRegistro(e.row.data)
   },
   {
     hint: 'Editar',
     icon: 'edit',
-    visible: (e) =>
+    /*visible: e =>
       e.row?.data?.status === 1 &&
-      e.row?.data?.responsible_id === currentUser.id,
-    onClick: (e) => {
-      e.component.editRow(e.row.rowIndex)
-    }
+      e.row?.data?.responsible_id === currentUser.id,*/
+    visible: e => false,
+    onClick: e => e.component.editRow(e.row.rowIndex)
   },
   {
     hint: 'Eliminar',
     icon: 'trash',
-    visible: (e) =>
+    visible: e =>
       e.row?.data?.status === 1 &&
       e.row?.data?.responsible_id === currentUser.id,
-    onClick: (e) => {
-      e.component.deleteRow(e.row.rowIndex)
-    }
-  },
-
+    onClick: e => e.component.deleteRow(e.row.rowIndex)
+  }
 ]
 
 
-// --- DataGrid principal ---
+// ======================================================
+// 📊 DATA SOURCE – GRID PRINCIPAL
+// ======================================================
+
 const dataSource = new CustomStore({
   key: 'id',
+
   load: async () => {
     try {
       const { data } = await conexionApi.get(`/transits/${companyID}`)
       if (data.code === 'OK') {
-        return data.transits.map(t => ({
-          id: t.id,
-          id_transito: t.id_transito,
-          origin_id: t.warehouse_origin,
-          destiny_id: t.warehouse_destiny,
-          status: t.status,
-          responsible_id: t.responsible_id,
-          responsible_name: t.responsible_name + ' ' + t.responsible_lastname,
-          received_by: t.received_name
-            ? t.received_name
-            : '—',
-          date: new Date(t.date),
-          products: t.products.map(p => ({ Name: p.name, Quantity: p.quantity })),
-        }))
-          //.sort((a, b) => b.id - a.id)
+        return data.transits
+          .map(t => ({
+            id: t.id,
+            id_transito: t.id_transito,
+            origin_id: t.warehouse_origin,
+            destiny_id: t.warehouse_destiny,
+            status: t.status,
+            responsible_id: t.responsible_id,
+            responsible_name: `${t.responsible_name} ${t.responsible_lastname}`,
+            received_by: t.received_name || '—',
+            date: new Date(t.date),
+            products: t.products.map(p => ({
+              Name: p.name,
+              Quantity: p.quantity
+            }))
+          }))
           .sort((a, b) => new Date(b.date) - new Date(a.date))
       }
       return []
@@ -446,144 +581,55 @@ const dataSource = new CustomStore({
       return []
     }
   },
+
   insert: async (values) => {
-    const warehouseOrigin = originWarehouses.value.find(
-      b => b.id === values.origin_id
-    )
+    return await procesarGuardadoTransit(values);
+  },
 
-    if (!warehouseOrigin) {
-      throw new Error('Bodega de origen inválida')
+  update: async (key, values) => {
+    // SI LA KEY ES TEMPORAL, ES UN INSERT DISFRAZADO
+    if (String(key).includes('_DX_KEY')) {
+      return await procesarGuardadoTransit(values);
     }
 
-    const warehouseDestiny = bodegas.value.find(
-      b => b.id === values.destiny_id
-    )
-
-    if (!warehouseDestiny) {
-      throw new Error('Bodega de destino inválida')
-    }
-
-    const productsToMove = filteredProducts.value.filter(
-      p => Number(p.move_quantity) > 0
-    )
-
-    if (!productsToMove.length) {
-      throw new Error('Debe agregar al menos un producto')
-    }
-
-
-    if (!productsToMove.length) {
-      throw new Error('Debe agregar al menos un producto')
-    }
-
-    const payload = {
-      company_id: companyID,
-      id_transito: values.id_transito,
-      warehouse_origin: warehouseOrigin.id,
-      warehouse_destiny: warehouseDestiny.id,
-      responsible_id: currentUser.id,
-      date: values.date
-        ? values.date.toISOString().slice(0, 19).replace('T', ' ')
-        : null,
-
-      products: productsToMove.map(p => ({
-        product_id: p.id,
-        quantity: p.move_quantity
-      }))
-    }
-
-    const { data } = await conexionApi.post('/transits', payload)
-
-    if (data.code !== 'OK') {
-      throw new Error(data.mensaje || 'Error al crear tránsito')
-    }
-
-    return {
-      id: data.transit_id,
-      ...values
+    // Aquí iría tu lógica normal de UPDATE para registros que ya existen en DB
+    try {
+      await conexionApi.put(`/transits/${key}`, values);
+    } catch (err) {
+      console.error(err);
     }
   },
-  update: async (key, values) => { try { await conexionApi.put(`/transits/${key}`, values) } catch (err) { console.error(err) } },
-  remove: async (key) => { try { await conexionApi.delete(`/transits/${key}`) } catch (err) { console.error(err) } },
+
+  remove: async (key) => {
+    try { await conexionApi.delete(`/transits/${key}`) }
+    catch (err) { console.error(err) }
+  }
 })
 
-function onProductSelected(e) {
-  const product = filteredProducts.value.find(p => p.id === e.value)
-  if (!product) return
 
-  if (!product.move_quantity) {
-    product.move_quantity = 0
-  }
-}
+// ======================================================
+// 🔄 WATCHERS & HELPERS
+// ======================================================
 
-// Asegúrate de que la función setOriginValue esté así:
-const setOriginValue = (newData, value) => {
-  console.log('🟢 ORIGEN CAMBIÓ:', value)
-  newData.origin_id = value
-
-  const warehouse = bodegas.value.find(b => b.id === value)
-
-  console.log('Bodega de origen seleccionada:', warehouse)
-
-  if (!warehouse) {
+watch(selectedWarehouseId, (warehouseId) => {
+  if (!warehouseId) {
     filteredProducts.value = []
     return
   }
 
-  const warehouseName = warehouse.name
+  const warehouse = bodegas.value.find(b => b.id === warehouseId)
+  selectedWarehouseId.value = warehouseId
+
+  if (!warehouse) return
 
   filteredProducts.value = allProducts.value
-    .filter(p =>
-      p.warehouses.some(w => w.warehouse_name === warehouseName)
-    )
+    .filter(p => p.warehouses?.some(w => w.warehouse_name === warehouse.name))
     .map(p => ({
       ...p,
-      quantity: p.warehouses.find(w => w.warehouse_name === warehouseName)?.quantity || 0,
+      quantity: p.warehouses.find(w => w.warehouse_name === warehouse.name)?.quantity || 0,
       move_quantity: 0
     }))
-
-}
-
-
-watch(selectedWarehouseId, (newWarehouseId) => {
-
-  if (!newWarehouseId) {
-    filteredProducts.value = []
-    return
-  }
-
-  const warehouse = bodegas.value.find(b => b.id === newWarehouseId)
-  if (!warehouse) {
-    filteredProducts.value = []
-    return
-  }
-
-  const warehouseName = warehouse.name
-
-  filteredProducts.value = allProducts.value
-    .filter(p =>
-      p.warehouses.some(w => w.warehouse_name === warehouseName)
-    )
-    .map(p => ({
-      ...p,
-      quantity: p.warehouses.find(w => w.warehouse_name === warehouseName)?.quantity || 0,
-      move_quantity: 0
-    }))
-
 })
-
-function onSaving(e) {
-  if (e.changes?.length) {
-    const productsToMove = filteredProducts.value.filter(
-      p => Number(p.move_quantity) > 0
-    )
-
-    e.changes[0].data = {
-      ...e.changes[0].data,
-      products: productsToMove
-    }
-  }
-}
 
 function getWarehouseName(id) {
   const warehouse = bodegas.value.find(b => b.id === id)
@@ -602,14 +648,16 @@ const destinyLookup = computed(() => ({
   displayExpr: 'name'
 }))
 
-// --- Funciones ---
+
+// ======================================================
+// ⚙️ ACCIONES DE NEGOCIO (CANCELAR / RECIBIR / PROCESAR)
+// ======================================================
+
 async function cancelarTransito(rowData) {
   if (!confirm('¿Está seguro que desea cancelar este tránsito y liberar los productos?')) return
-
   try {
     const { data } = await conexionApi.put(`/transits/${rowData.id}/cancel`)
-    if (data.code !== 'OK') throw new Error(data.mensaje || 'Error al cancelar tránsito')
-
+    if (data.code !== 'OK') throw new Error(data.mensaje)
     rowData.status = 0
     dataGrid.value.instance.refresh()
     alert('Tránsito cancelado y stock liberado')
@@ -620,74 +668,127 @@ async function cancelarTransito(rowData) {
 }
 
 async function recibirTransito(rowData) {
-  if (!confirm('¿Desea recibir este tránsito y mover los productos a la bodega destino?')) return;
-
+  if (!confirm('¿Desea recibir este tránsito y mover los productos a la bodega destino?')) return
   try {
-    const { data } = await conexionApi.put(
-      `/transits/${rowData.id}/receive`,
-      {
-        received_by: currentUser.id
-      }
-    );
-
-    if (data.code !== 'OK') throw new Error(data.mensaje || 'Error al recibir tránsito');
-
-    rowData.status = 3;
-    dataGrid.value.instance.refresh();
-    alert('Tránsito recibido y stock actualizado');
+    const { data } = await conexionApi.put(`/transits/${rowData.id}/receive`, {
+      received_by: currentUser.id
+    })
+    if (data.code !== 'OK') throw new Error(data.mensaje)
+    rowData.status = 3
+    dataGrid.value.instance.refresh()
+    alert('Tránsito recibido y stock actualizado')
   } catch (err) {
-    console.error(err);
-    alert(err.message || 'Error al recibir tránsito');
+    console.error(err)
+    alert(err.message || 'Error al recibir tránsito')
   }
 }
 
 async function procesarTransito(rowData) {
   try {
-    const response = await conexionApi.put(`/transits/${rowData.id}/process`)
-    const data = response.data
-
-    if (!data || data.code !== 'OK') {
-      console.error('Respuesta inesperada del servidor:', data)
-      return alert(data?.mensaje || 'Error al procesar el tránsito')
-    }
-
-    // Actualiza el status local
+    const { data } = await conexionApi.put(`/transits/${rowData.id}/process`)
+    if (data.code !== 'OK') throw new Error(data.mensaje)
     rowData.status = 2
-
-    // Refresca solo el grid usando el ref correcto
-    if (dataGrid.value) {
-      dataGrid.value.instance.refresh()
-    }
-
+    dataGrid.value.instance.refresh()
   } catch (err) {
-    console.error('Error en el request:', err)
+    console.error(err)
     alert('Error al procesar el tránsito')
   }
 }
 
-function statusIconTemplate(cellElement, cellInfo) {
-  const status = cellInfo.data.status;
-
-  let svg = '';
-
-  if (status === 0 || status === '0') {
-    // Cancelado
-    svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 w-6 h-6 text-red-500">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-      </svg>
-    `;
-  } else {
-    // Cualquier otro estado
-    svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 w-6 h-6 text-green-500">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
-      </svg>
-    `;
+// ======================================================
+// 🧩 UTILIDADES
+// ======================================================
+function onCellValueChanged(e) {
+  if (e.dataField === 'move_quantity') {
+    productsChanged.value = true
   }
-
-  cellElement.innerHTML = svg;
 }
 
+function onSaving(e) {
+  if (productsGridRef.value) {
+    const gridInstance = productsGridRef.value.instance || productsGridRef.value;
+    gridInstance.saveEditData();
+  }
+
+  if (e.changes.length > 0) {
+    const change = e.changes[0];
+    const isTempKey = String(change.key).includes('_DX_KEY');
+    if (change.type === 'insert' || isTempKey) {
+      change.data = {
+        ...change.data,
+        products: [...productosEditados.value]
+      };
+    }
+  }
+}
+
+function onProductsSaving(e) {
+  e.cancel = true;
+  const allRows = e.component.getVisibleRows().map(row => row.data);
+  productosEditados.value = allRows.filter(p => p.move_quantity > 0);
+}
+
+const onRowUpdated = (e) => {
+  const producto = e.data
+
+  const index = productosEditados.value.findIndex(
+    p => p.id === producto.id
+  )
+
+  if (index === -1) {
+    productosEditados.value.push({
+      id: producto.id,
+      move_quantity: producto.move_quantity
+    })
+  } else {
+    productosEditados.value[index].move_quantity = producto.move_quantity
+  }
+
+  productosEditados.value = [...productosEditados.value]
+  productsEditedSet.value.add(producto.id)
+  dataGrid.value.instance.saveEditData()
+
+  emitCambios()
+}
+
+const emit = defineEmits(['products-changed'])
+
+const emitCambios = () => {
+  emit('productos-cambiados', productosEditados.value)
+}
+
+// Función auxiliar para no repetir código
+async function procesarGuardadoTransit(values) {
+
+  const productsToMove = values.products || productosEditados.value;
+
+  if (!productsToMove?.length) {
+    throw new Error('Debe agregar productos con cantidad');
+  }
+
+  const unique = Date.now().toString()
+
+  const idTransit = `TRK-${companyID}-${unique}`
+
+  const payload = {
+    company_id: companyID,
+    id_transito: idTransit,
+    warehouse_origin: selectedWarehouseId.value,
+    warehouse_destiny: values.destiny_id,
+    responsible_id: currentUser.id,
+    date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+
+    products: productsToMove.map(p => ({
+      product_id: p.id,
+      quantity: p.move_quantity
+    }))
+  };
+
+  const { data } = await conexionApi.post('/transits', payload);
+  if (data.code !== 'OK') throw new Error(data.mensaje);
+
+  productosEditados.value = [];
+  return data;
+}
 
 </script>
