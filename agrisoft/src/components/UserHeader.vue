@@ -177,7 +177,7 @@ const filteredChildren = computed(() => {
 
 // Logout
 const logout = () => {
-  const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses']
+  const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses', 'userOriginWarehouses']
   Object.keys(localStorage).forEach(key => {
     if (sessionKeys.includes(key)) localStorage.removeItem(key)
   })
@@ -199,7 +199,7 @@ const toggleAlerts = () => {
 const fetchAlerts = async () => {
   try {
     const userId = localStorage.getItem('userId') || ''
-    const { data } = await conexionApi.get(`/${userId}`)
+    const { data } = await conexionApi.get(`/alerts/user/${userId}`)
     alerts.value = data.alerts || []
     unreadAlertsCount.value = alerts.value.filter(a => a.is_read === 0).length
   } catch (err) {
@@ -215,7 +215,7 @@ const markAsRead = async (alertId: number) => {
 
   try {
     const userId = localStorage.getItem('userId') || ''
-    await conexionApi.put(`/${alertId}/read`, { user_id: userId })
+    await conexionApi.put(`/alerts/${alertId}/read`, { user_id: userId })
   } catch (err) {
     console.error('Error marcando alerta como leída', err)
   }

@@ -9,6 +9,14 @@ import Transit from '@/pages/operations/TransitPage.vue'
 import Products from '@/pages/operations/ProductsPage.vue'
 import Resume from '@/pages/operations/ResumePage.vue'
 
+import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
+import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
+import SuppliersPage from '@/pages/operations/procurement/SuppliersPage.vue'
+
+import PurchaseOrderItemsPage from '@/pages/operations/procurement/orders/[id]/items/PurchaseOrderItemsPage.vue'
+import PurchaseReceiptNewPage from '@/pages/operations/procurement/orders/[id]/receipts/new/PurchaseReceiptNewPage.vue'
+
+
 const routes = [
   {
     path: '/',
@@ -68,6 +76,46 @@ const routes = [
         component: Resume,
         meta: {
           roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/purchase-requests',
+        name: 'PurchaseRequests',
+        component: PurchaseRequestsPage,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/purchase-orders',
+        name: 'PurchaseOrders',
+        component: PurchaseOrdersPage,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/orders/:id/items',
+        name: 'PurchaseOrderItems',
+        component: PurchaseOrderItemsPage,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/orders/:id/receipts/new',
+        name: 'PurchaseOrderReceiptNew',
+        component: PurchaseReceiptNewPage,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/suppliers',
+        name: 'Suppliers',
+        component: SuppliersPage,
+        meta: {
+          roles: [1, 2, 7, 8],
         },
       },
     ],

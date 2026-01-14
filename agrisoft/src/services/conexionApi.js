@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useCompanyStore } from '@/stores/companyStore'
 
-const warehousesApi = axios.create({
+const conexionApi = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL}/api/v1`,
     headers: {
         'Content-Type': 'application/json'
@@ -11,7 +11,7 @@ const warehousesApi = axios.create({
 /* =====================
    REQUEST INTERCEPTOR
 ===================== */
-warehousesApi.interceptors.request.use(config => {
+conexionApi.interceptors.request.use(config => {
     const token = localStorage.getItem('token')
     if (token) {
         config.headers['X-API-KEY'] = token
@@ -28,13 +28,13 @@ warehousesApi.interceptors.request.use(config => {
 /* =====================
    🔁 INTERCEPTOR RESPUESTA PARA 401
 ===================== */
-warehousesApi.interceptors.response.use(
+conexionApi.interceptors.response.use(
     response => response,
     error => {
         if (error.response && error.response.status === 401) {
             // Token expirado: limpiar sesión y redirigir
             //localStorage.clear() 
-            const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses']
+            const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses', 'userOriginWarehouses']
             Object.keys(localStorage).forEach(key => {
                 if (sessionKeys.includes(key)) {
                     localStorage.removeItem(key)
@@ -54,7 +54,7 @@ const { onCompanyChange } = useCompanyStore()
 
 onCompanyChange(() => {
     // 🔥 forzamos que axios "cambie"
-    warehousesApi.defaults.headers.common['X-REFRESH'] = Date.now()
+    conexionApi.defaults.headers.common['X-REFRESH'] = Date.now()
 })
 
-export default warehousesApi
+export default conexionApi

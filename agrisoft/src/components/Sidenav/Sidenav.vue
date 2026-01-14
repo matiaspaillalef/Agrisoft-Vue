@@ -182,7 +182,7 @@ const changeCompany = async () => {
 ===================== */
 const logout = () => {
   //localStorage.clear()
-  const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses']
+  const sessionKeys = ['token', 'loggedIn', 'userId', 'rol', 'userIdCompany', 'userName', 'userLastname', 'userEmail', 'userWarehouses', 'userOriginWarehouses']
   Object.keys(localStorage).forEach(key => {
     if (sessionKeys.includes(key)) {
       localStorage.removeItem(key)

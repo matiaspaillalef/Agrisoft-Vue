@@ -12,7 +12,8 @@
     <div class="datagrid-container">
       <DxDataGrid :data-source="dataSource" :show-borders="true" :column-hiding-enabled="true" :width="'100%'"
         @content-ready="onContentReady" @init-new-row="onInitNewRow" :default-sorting="{ column: 'id', desc: true }"
-        @onRowRemoving="customizeDeletePopup" @editor-preparing="onEditorPreparing" @saving="onSaving" ref="dataGrid">
+        @onRowRemoving="customizeDeletePopup" @editor-preparing="onEditorPreparing" @saving="onSaving" ref="dataGrid"
+        :css-class="'text-[12px]!'">
         <!-- FILTRO POR COLUMNA -->
         <!--<DxFilterRow :visible="true" :apply-filter=" 'auto' " />-->
         <!-- FILTRO DE ENCABEZADO -->
@@ -67,22 +68,22 @@
           </DxForm>
         </DxEditing>
         <DxColumn data-field="id_transito" caption="# Tránsito" :cell-template="trackingCellTemplate"
-          css-class="!text-left" :editor-options="{ readOnly: currentUser.role != 1 }" alignment="right"
-          :hiding-priority="0" />
-        <DxColumn data-field="origin_id" caption="Origen" css-class="!text-left max-w-[130px]! w-[130px]!" :lookup="originLookup"
-          alignment="right" :hiding-priority="0" />
-        <DxColumn caption="" width="60" :cell-template="statusIconTemplate" :hiding-priority="1" />
+          css-class="!text-left text-[12px]!" :editor-options="{ readOnly: currentUser.role != 1 }" alignment="right"
+          :hiding-priority="7" />
+        <DxColumn data-field="origin_id" caption="Origen" css-class="!text-left max-w-[130px]! w-[130px]!"
+          :lookup="originLookup" alignment="right" :hiding-priority="6" />
+        <DxColumn caption="" width="60" :cell-template="statusIconTemplate" :hiding-priority="0" />
         <DxColumn data-field="destiny_id" caption="Destino" css-class="!text-left" :lookup="destinyLookup"
-          alignment="right" :hiding-priority="6" />
+          alignment="right" :hiding-priority="5" />
         <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate"
           :lookup="{ dataSource: transitStatus, valueExpr: 'id', displayExpr: 'name' }" css-class="!text-left"
-          alignment="right" :hiding-priority="2" :editor-options="{ readOnly: currentUser.role != 1 }" />
+          alignment="right" :hiding-priority="4" :editor-options="{ readOnly: currentUser.role != 1 }" />
         <DxColumn data-field="responsible_name" caption="Responsable" css-class="!text-left" alignment="right"
           :hiding-priority="3" />
         <DxColumn data-field="received_by" caption="Recibido por" css-class="!text-left" alignment="right"
-          :hiding-priority="4" />
+          :hiding-priority="2" />
         <DxColumn data-field="date" caption="Fecha" data-type="date" format="dd/MM/yyyy" css-class="!text-left"
-          alignment="right" :hiding-priority="5" />
+          alignment="right" :hiding-priority="1" />
         <DxColumn type="buttons" width="140" :buttons="customButtons" alignment="left" :hiding-priority="0" />
       </DxDataGrid>
     </div>
@@ -145,12 +146,13 @@ import {
   DxItem,
   DxFilterRow,
   DxHeaderFilter,
-  DxColumnChooser
+  DxColumnChooser,
+  DxPopup
 } from 'devextreme-vue/data-grid'
 
 // DevExtreme - Form & Popup
 import { DxSimpleItem } from 'devextreme-vue/form'
-import { DxPopup } from 'devextreme-vue/popup'
+//import { DxPopup } from 'devextreme-vue/popup'
 
 // Vue
 import { ref, onMounted, watch, computed } from 'vue'
@@ -231,13 +233,23 @@ onMounted(async () => {
       bodegas.value = allBodegas
 
       // Filtrar bodegas de origen según rol
-      if ([7, 8, 9].includes(currentUser.role)) {
+      if (currentUser.id === 1) {
+        // 🔑 Admin: todas las bodegas
+        originWarehouses.value = allBodegas
+        localStorage.setItem('userOriginWarehouses', JSON.stringify(allBodegas))
+
+      } else if ([7, 8, 9].includes(currentUser.role)) {
+        // 👤 Usuarios con bodegas asignadas
         const origins = allBodegas.filter(b =>
           userWarehouses.value.some(uw => uw.id === b.id)
         )
 
         originWarehouses.value = origins
         localStorage.setItem('userOriginWarehouses', JSON.stringify(origins))
+
+      } else {
+        // 🧩 Otros roles (opcional: todas o ninguna)
+        originWarehouses.value = allBodegas
       }
     }
   } catch (err) {
@@ -313,7 +325,7 @@ function onInitNewRow(e) {
   e.data.destiny_id = null
 
   // Asignación automática de origen según rol
-  if ([7, 8, 9].includes(currentUser.role)) {
+  if ([1, 7, 8, 9].includes(currentUser.role)) {
     const origin = JSON.parse(localStorage.getItem('userOriginWarehouses') || '[]')
     if (origin.length === 1) {
       e.data.origin_id = origin[0].id

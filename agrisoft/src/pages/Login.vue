@@ -120,23 +120,34 @@ async function handleLogin() {
     // 3️⃣ Obtener companyID y userID de localStorage
     const companyID = localStorage.getItem('userIdCompany')
     const userID = localStorage.getItem('userId')
+    const role = Number(localStorage.getItem('rol'))
 
-    console.log('Iniciando fetch de bodegas para companyID:', companyID, 'y userID:', userID)
+ let warehousesResponse
 
-    // 4️⃣ Fetch de bodegas asignadas al usuario
-    const response = await conexionApi.get(`/warehouses/getWarehouses/${companyID}?users=${userID}`)
-    console.log('Respuesta de bodegas:', response)
-    const data = response.data
+if (Number(userID) === 1) {
+  // 🔑 ADMIN → todas las bodegas de la empresa
+  warehousesResponse = await conexionApi.get(
+    `/warehouses/getWarehouses/${companyID}`
+  )
+} else {
+  // 👤 Usuario normal → solo sus bodegas
+  warehousesResponse = await conexionApi.get(
+    `/warehouses/getWarehouses/${companyID}?users=${userID}`
+  )
+}
 
-    if (data.code === 'OK' && Array.isArray(data.warehouses)) {
-      // 5️⃣ Guardar cada bodega en localStorage
-      const warehousesToSave = data.warehouses.map(w => ({ id: w.id, name: w.name }))
-      localStorage.setItem('userWarehouses', JSON.stringify(warehousesToSave))
-      console.log('Bodegas guardadas:', warehousesToSave)
-    } else {
-      console.warn('No se encontraron bodegas para este usuario.')
-      localStorage.removeItem('userWarehouses')
-    }
+    const data = warehousesResponse.data
+
+   if (data.code === 'OK' && Array.isArray(data.warehouses)) {
+  const warehousesToSave = data.warehouses.map(w => ({
+    id: w.id,
+    name: w.name
+  }))
+
+  localStorage.setItem('userWarehouses', JSON.stringify(warehousesToSave))
+} else {
+  localStorage.removeItem('userWarehouses')
+}
 
     // 6️⃣ Redirigir a Dashboard
     router.push({ name: 'Dashboard' })
