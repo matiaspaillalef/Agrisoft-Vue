@@ -27,11 +27,26 @@ export const formatDateHrs = (dateString) => {
 // Traducir status
 export function formatStatus(status) {
   const map = {
+    0: 'Cancelado',
     1: 'Pendiente',
     2: 'Aprobado',
     3: 'Rechazado'
   };
   return map[status] || status;
+}
+
+export function formatStatusv2(status) {
+  switch (status) {
+    case 1:
+    case '1': return 'Creada'
+    case 2:
+    case '2': return 'En tránsito'
+    case 3:
+    case '3': return 'Entregada'
+    case 0:
+    case '0': return 'Cancelada'
+    default: return 'Desconocido'
+  }
 }
 
 export function formatStatusText(status) {
@@ -70,7 +85,7 @@ export function statusCellTemplate(cellElement, cellInfo) {
 
   const span = document.createElement('span')
   span.className = isActive
-    ? 'rounded-full  bg-gray-50 text-black font-[400] px-3 h-[23px] inline-flex items-center w-[100px] justify-center gap-1 border border-gray-100'
+    ? 'rounded-full  bg-green-50 text-green-800 font-[400] px-3 h-[23px] inline-flex items-center w-[100px] justify-center gap-1 border border-gray-100'
     : 'rounded-full bg-gray-50 text-black font-[400] px-3 h-[23px] inline-flex items-center justify-center gap-1 w-[100px] border border-gray-100'
 
   // SVG
@@ -248,4 +263,54 @@ export const formatearRutConPuntos = (value) => {
   return body ? `${body}-${dv}` : dv
 }
 
+export function statusCellTemplatev2(cellElement, cellInfo) {
+  const status = cellInfo.data.status;
 
+  // 1. Configuración de estilos por Estado (Mapa)
+  const statusConfig = {
+    0: { 
+      bg: 'bg-red-50!', 
+      text: 'text-red-800', 
+      dot: 'bg-red-500',
+      border: 'border-red-100'
+    },
+    1: { 
+      bg: 'bg-blue-50', 
+      text: 'text-blue-800', 
+      dot: 'bg-blue-500',
+      border: 'border-blue-100'
+    },
+    2: { 
+      bg: 'bg-orange-50', 
+      text: 'text-orange-700', 
+      dot: 'bg-orange-500',
+      border: 'border-orange-100'
+    },
+    3: { 
+      bg: 'bg-green-50', 
+      text: 'text-green-700', 
+      dot: 'bg-green-500',
+      border: 'border-green-100'
+    }
+  };
+
+  // 2. Fallback (por si llega un estado desconocido)
+  const defaultConfig = { 
+    bg: 'bg-gray-50', 
+    text: 'text-gray-600', 
+    dot: 'bg-gray-400',
+    border: 'border-gray-200'
+  };
+
+  // Seleccionamos el estilo actual
+  const style = statusConfig[status] || defaultConfig;
+
+  // 3. Renderizado del HTML
+  // Nota: Usamos style.text para el color de la letra, no style.dot (que es bg)
+  cellElement.innerHTML = `
+    <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border w-[100px] ${style.bg} ${style.border} ${style.text}">
+      <span class="w-2 h-2 mr-1.5 rounded-full ${style.dot} animate-pulse"></span>
+      ${formatStatusv2(status)}
+    </div>
+  `;
+}

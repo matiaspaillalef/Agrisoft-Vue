@@ -75,12 +75,12 @@
         <DxColumn caption="" width="60" :cell-template="statusIconTemplate" :hiding-priority="0" />
         <DxColumn data-field="destiny_id" caption="Destino" css-class="!text-left" :lookup="destinyLookup"
           alignment="right" :hiding-priority="5" />
-        <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate"
+        <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplatev2"
           :lookup="{ dataSource: transitStatus, valueExpr: 'id', displayExpr: 'name' }" css-class="!text-left"
           alignment="right" :hiding-priority="4" :editor-options="{ readOnly: currentUser.role != 1 }" />
         <DxColumn data-field="responsible_name" caption="Responsable" css-class="!text-left" alignment="right"
           :hiding-priority="3" />
-        <DxColumn data-field="received_by" caption="Recibido por" css-class="!text-left" alignment="right"
+        <DxColumn data-field="received_by" caption="Recibido" css-class="!text-left" alignment="right"
           :hiding-priority="2" />
         <DxColumn data-field="date" caption="Fecha" data-type="date" format="dd/MM/yyyy" css-class="!text-left"
           alignment="right" :hiding-priority="1" />
@@ -149,16 +149,10 @@ import {
   DxColumnChooser,
   DxPopup
 } from 'devextreme-vue/data-grid'
-
-// DevExtreme - Form & Popup
 import { DxSimpleItem } from 'devextreme-vue/form'
-//import { DxPopup } from 'devextreme-vue/popup'
-
-// Vue
 import { ref, onMounted, watch, computed } from 'vue'
-
-// Servicios
 import conexionApi from '@/services/conexionApi.js'
+import {statusCellTemplatev2} from '@/utils/herlpers.js'
 
 
 // ======================================================
@@ -439,25 +433,10 @@ function closeModals() {
 function trackingCellTemplate(cellElement, cellInfo) {
   const trackingNumber = cellInfo.data.id_transito || ''
   cellElement.innerHTML =
-    `<span class="inline-flex items-center bg-gray-200 px-3 py-1 rounded-sm font-bold">${trackingNumber}</span>`
+    `<span class="inline-flex items-centerrounded-sm font-bold text-[12px]">${trackingNumber}</span>`
 }
 
-function statusCellTemplate(cellElement, cellInfo) {
-  const status = cellInfo.data.status
-  let color = 'bg-gray-400'
 
-  if (status == 0) color = 'bg-red-400'
-  else if (status == 1) color = 'bg-orange-400'
-  else if (status == 2) color = 'bg-blue-400'
-  else if (status == 3) color = 'bg-green-400'
-
-  cellElement.innerHTML = `
-    <span class="rounded-full  bg-gray-50 text-black font-[400] px-3 h-[23px] inline-flex items-center w-[100px] justify-start gap-1 border border-gray-100">
-      <span class="w-[10px] h-[10px] rounded-full animate-pulse ${color}"></span>
-      <span>${formatStatus(status)}</span>
-    </span>
-  `
-}
 
 // Icono de estado (usado como cellTemplate alternativo)
 function statusIconTemplate(cellElement, cellInfo) {

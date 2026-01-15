@@ -269,7 +269,7 @@ function quantityCellTemplate(cellElement: HTMLElement, cellInfo: any) {
 function trackingCellTemplate(cellElement: HTMLElement, cellInfo: any) {
   const trackingNumber = cellInfo.data.TrackingNumber
   if (!trackingNumber) return
-  cellElement.innerHTML = `<span class="inline-flex items-center bg-gray-200 px-3 py-1 rounded-sm font-bold dark:text-blue-950">${trackingNumber}</span>`
+  cellElement.innerHTML = `<span class="inline-flex items-center bg-gray-200 px-1 py-1 rounded-sm font-bold dark:text-blue-950 text-[11px]">${trackingNumber}</span>`
 }
 
 function routeCellTemplate(cellElement: HTMLElement, cellInfo: any) {

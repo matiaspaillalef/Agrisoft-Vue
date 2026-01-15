@@ -14,7 +14,7 @@
       <div class="datagrid-container">
         <DxDataGrid :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
           :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
-          @saving="onSaving" ref="mainGridRef">
+          @saving="onSaving" ref="mainGridRef" @cell-prepared="onCellPrepared">
 
           <DxLoadPanel v-model:visible="loading" :enabled="true" :showPane="true" :indicator-src="logoGif"
             shading-color="transparent" :height="'100%'" :width="'100%'" class="custom-loadpanel" />
@@ -49,6 +49,10 @@
                 displayExpr: 'text'
               }" />
               <DxItem data-field="__usersDirty" :visible="false" />
+              <DxItem data-field="is_distribution" caption="¿Bodega de distribución?" editor-type="dxCheckBox" :col-span="2" css-class="custom-distribution-item"
+                :editor-options="{ 
+                  text: 'Marcar como centro de distribución principal, sólo 1 bodega puede ser la principal, si marca esta opción en otra bodega, se desmarcará automáticamente en la anterior.',
+                }"/>
               <!-- 👤 RESPONSABLES -->
               <DxItem item-type="simple" caption="Responsables" :col-span="2">
                 <template #default>
@@ -72,6 +76,14 @@
           <DxColumn data-field="name" caption="Nombre" css-class="!text-left" />
 
           <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-left" />
+          <template #distributionTemplate="{ data }">
+  <div v-if="data.value === 1 || data.value === true" 
+       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+    <i class="fas fa-star mr-1 text-blue-500"></i> Principal
+  </div>
+  <span v-else class="text-gray-400 text-xs">-</span>
+</template>
+          <DxColumn data-field="is_distribution" caption="¿Bodega de distribución?" :visible="false" />
 
           <!-- 🔢 CANTIDAD DE RESPONSABLES -->
           <DxColumn data-field="users" caption="Responsables" :calculate-cell-value="usersLabel"
@@ -118,6 +130,7 @@ const usersGridRef = ref(null)
 const formData = ref(null)
 const mainGridRef = ref(null)
 const isPreselectingUsers = ref(false)
+const allWarehouses = ref([]);
 
 const onEditingStart = (e) => {
   if (!Array.isArray(e.data.users)) {
@@ -130,6 +143,7 @@ const onEditingStart = (e) => {
 const onInitNewRow = (e) => {
   e.data.users = []
   e.data.status = 1
+  e.data.is_distribution = false
   formData.value = e.data
 
   setTimeout(() => {
@@ -178,28 +192,40 @@ const dataSource = new CustomStore({
   key: 'id',
 
   load: async () => {
+    loading.value = true;
     const { data } = await conexionApi.get('/warehouses/getWarehouses/' + companyID)
-    //return data.warehouses
-    return data.warehouses.map(w => ({
+    const result = data.warehouses.map(w => ({
       ...w,
       users: Array.isArray(w.users) ? w.users : []
     }))
+    
+    allWarehouses.value = result; // <--- GUARDAMOS LOS DATOS AQUÍ
+    loading.value = false;
+    return result;
   },
 
   insert: async values => {
-    values.idCompany = companyID
-    values.users = values.users ?? []
+    values.idCompany = companyID; // Aseguramos que viaje el ID de empresa
+    values.users = values.users ?? [];
+    
+    // Si el check viene como undefined por alguna razón, enviamos 0
+    values.is_distribution = values.is_distribution ? 1 : 0;
 
     const { data } = await conexionApi.post(
       '/warehouses/createWarehouse',
       values
-    )
+    );
 
-    return { id: data.id, ...values }
+    return { id: data.id, ...values };
   },
 
   update: async (id, values) => {
-    await conexionApi.put(`/warehouses/${id}`, values)
+  // Agregamos idCompany para que el backend pueda resetear las otras bodegas
+    const payload = { ...values, idCompany: companyID };
+    await conexionApi.put(`/warehouses/${id}`, payload);
+    
+    // Opcional: Recargar el grid para actualizar allWarehouses
+    mainGridRef.value?.instance.refresh();
   },
 
   remove: async id => {
@@ -263,7 +289,36 @@ const onUsersGridReady = () => {
   }, 0)
 }
 
+const onRowPrepared = (e) => {
+  if (e.rowType === 'data' && (e.data.is_distribution === 1 || e.data.is_distribution === true)) {
+    // Aplicamos un estilo directo o una clase
+    e.rowElement.style.backgroundColor = '#cddc39'; 
+    e.rowElement.style.fontWeight = '700';
+  }
+}
 
+const onCellPrepared = (e) => {
 
+  if (e.rowType === 'data' && (e.data.is_distribution === 1 || e.data.is_distribution === true)) {
+    
+
+    //e.cellElement.style.backgroundColor = '#cddc39';
+    //e.cellElement.style.color = '#1a1a1a';
+    //e.cellElement.style.fontWeight = '700';
+
+    // 2. Obtener todas las columnas visibles para identificar extremos
+    const visibleColumns = e.component.getVisibleColumns();
+    const isFirstClickableColumn = e.column.index === visibleColumns[0].index;
+    const isLastClickableColumn = e.column.index === visibleColumns[visibleColumns.length - 2].index;
+
+    // 3. Aplicar border-radius condicional
+    if (isFirstClickableColumn) {
+      e.cellElement.classList.add('row-distribucion-first');
+      e.cellElement.style.borderRadius = '5px 0 0 5px';
+    } else if (isLastClickableColumn) {
+      e.cellElement.style.borderRadius = '0 5px 5px 0';
+    }
+  }
+};
 
 </script>
