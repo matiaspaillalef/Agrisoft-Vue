@@ -4,6 +4,8 @@ import Login from '@/pages/Login.vue'
 import Dashboard from '@/pages/DashboardPage.vue'
 import AccessDenied from '@/components/AccessDenied.vue'
 
+import Companies from '@/pages/enviroment/CompaniesPage.vue'
+
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
 import Products from '@/pages/operations/ProductsPage.vue'
@@ -42,6 +44,16 @@ const routes = [
         component: Dashboard,
         meta: {
           roles: [1, 2, 7, 8],
+        },
+      },
+
+      //Páginas cofiguración ambiente
+      {
+        path: 'dashboard/enviroment/company',
+        name: 'Companies',
+        component: Companies,
+        meta: {
+          roles: [1],
         },
       },
 

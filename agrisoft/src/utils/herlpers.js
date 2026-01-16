@@ -1,3 +1,6 @@
+import { StateCL } from '@/utils/dataState.js'
+import { ProvitionalCL } from '@/utils/dataProvitionals'
+
 // Formatear fechas a dd/mm/yyyy
 export function formatDate(date) {
   if (!date) return '';
@@ -59,7 +62,9 @@ export function formatStatusText(status) {
     PARTIAL_RECEIVED: 'Recibido P.',
     RECEIVED: 'Recibido',
     ACTIVE: 'Activo',
-    INACTIVE: 'Inactivo'
+    INACTIVE: 'Inactivo',
+    1: 'Activo',
+    2: 'Inactivo'
   }
   return map[status] || status
 }
@@ -183,11 +188,15 @@ export function getStatusMeta(status) {
       textColor = 'text-yellow-800'
       pulseColor = 'bg-yellow-400'
       break
+    case 1:
+    case '1':
     case 'APPROVED':
       bgColor = 'bg-green-50'
       textColor = 'text-green-800'
       pulseColor = 'bg-green-400'
       break
+    case 2:
+    case '2':  
     case 'REJECTED':
       bgColor = 'bg-red-50'
       textColor = 'text-red-800'
@@ -314,3 +323,17 @@ export function statusCellTemplatev2(cellElement, cellInfo) {
     </div>
   `;
 }
+
+
+export const getCompensationBoxName = (id) => {
+  if (!id) return 'N/A';
+  const box = ProvitionalCL.find(b => b.id === Number(id));
+  return box ? box.name : 'N/A';
+};
+
+// Obtener nombre de la Región por region_number
+export const getRegionName = (regionNumber) => {
+  if (!regionNumber) return 'N/A';
+  const region = StateCL.find(r => r.region_number === regionNumber);
+  return region ? region.region : regionNumber; // Si no lo encuentra, devuelve el valor original
+};
