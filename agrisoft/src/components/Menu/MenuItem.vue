@@ -5,10 +5,10 @@
         @click="toggleOpen"
         class="flex items-center gap-2 text-[13px] py-2 cursor-pointer w-full !bg-transparent !text-blue-950 !pl-0 !pr-0 group"
       >
-        <span class="inline-flex items-center gap-2 w-full">
+        <span class="inline-flex items-center text-left gap-2 w-full">
           <component :is="iconComponent" class="h-5 w-5" v-if="iconComponent" />
           <span class="relative">
-            <span :class="{ truncate: level === 2 || level === 3 }">{{ item.name }}</span>
+            <span :class="`text-left ${level === 2 || level === 3 ? 'truncate' : ''}`">{{ item.name }}</span>
             <!-- Línea animada -->
             <span
               class="absolute left-0 -bottom-0.5 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"

@@ -33056,3 +33056,17 @@
 .dx-swatch-agrisoft-scheme .dx-popup-bottom .dx-button:hover{
   opacity: .8;
 }
+
+.dx-invalid .dx-texteditor-input {
+  border: 2px solid #ef4444 !important;
+  background-color: #fff5f5;
+}
+
+.dx-invalid .dx-dropdowneditor-input-wrapper {
+  border: 2px solid #ef4444 !important;
+}
+
+.dx-invalid-message {
+  color: #ef4444;
+  font-size: 12px;
+}

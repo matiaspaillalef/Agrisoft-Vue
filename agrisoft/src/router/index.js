@@ -5,6 +5,12 @@ import Dashboard from '@/pages/DashboardPage.vue'
 import AccessDenied from '@/components/AccessDenied.vue'
 
 import Companies from '@/pages/enviroment/CompaniesPage.vue'
+import UserCreation from '@/pages/enviroment/UserPage.vue'
+
+import Grounds from '@/pages/production/parameterization/GroundPage.vue'
+import Sectors from '@/pages/production/parameterization/SectorPage.vue' 
+import Species from '@/pages/production/parameterization/SpeciesPage.vue'
+import Varieties from '@/pages/production/parameterization/VarietyPage.vue'
 
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
@@ -56,6 +62,49 @@ const routes = [
           roles: [1],
         },
       },
+      {
+        path: 'dashboard/enviroment/user-creation',
+        name: 'UserCreation',
+        component: UserCreation,
+        meta: {
+          roles: [1],
+        },
+      },
+
+      //Páginas producción
+      {
+        path: 'dashboard/production/parameterization-ground/ground',
+        name: 'Grounds',
+        component: Grounds,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-ground/sectors-barracks',
+        name: 'Sectors',
+        component: Sectors,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-ground/species',
+        name: 'Species',
+        component: Species,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-ground/varieties',
+        name: 'Varieties',
+        component: Varieties,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+     
 
       //Páginas operaciones
       {

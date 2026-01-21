@@ -62,116 +62,163 @@
         <DxPopup title="Gestión de Empresa" :show-title="true" :width="900" :height="750" />
 
         <DxForm :col-count="2">
+
+          <!-- ================= INFO CORPORATIVA ================= -->
           <DxSimpleItem item-type="group" caption="Información Corporativa" :col-span="2" :col-count="2">
-            <DxItem data-field="name_company" caption="Razón Social" />
+            <DxItem data-field="name_company" caption="Razón Social"
+              :validation-rules="[{ type: 'required', message: 'La razón social es obligatoria' }]" />
+
             <DxItem data-field="rut" caption="RUT Empresa" editor-type="dxTextBox" :editor-options="{
               valueChangeEvent: 'input',
-              onValueChanged(e) {
-                if (!e.value) return
-
-                const formatted = formatearRutConPuntos(e.value)
-
-                if (formatted !== e.value) {
-                  e.component.option('value', formatted)
-
-                  const form = e.component.option('form')
-                  form?.updateData('rut', formatted)
-                }
+              onInput(e) {
+                const formatted = formatearRutConPuntos(e.event.target.value)
+                e.component.option('value', formatted)
+                const form = e.component.option('form')
+                form?.updateData('rut', formatted)
               }
             }" :validation-rules="[
-                      { type: 'required', message: 'El RUT es obligatorio' },
-                      {
-                        type: 'custom',
-                        message: 'RUT chileno inválido',
-                        validationCallback: (e) => validarRutChileno(e.value)
-                      }
-                    ]" />
-            <DxItem data-field="giro" caption="Giro" />
-            <DxItem data-field="status" editor-type="dxSelectBox" :editor-options="{
+        { type: 'required', message: 'El RUT es obligatorio' },
+        {
+          type: 'custom',
+          message: 'RUT chileno inválido',
+          validationCallback: (e) => validarRutChileno(e.value)
+        }
+      ]" />
+
+            <DxItem data-field="giro" caption="Giro"
+              :validation-rules="[{ type: 'required', message: 'El giro es obligatorio' }]" />
+
+            <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox" :editor-options="{
               dataSource: [
                 { id: 1, text: 'Activa' },
                 { id: 0, text: 'Inactiva' }
               ],
               valueExpr: 'id',
               displayExpr: 'text'
-            }" />
-            <DxItem data-field="web" caption="Sitio Web" />
+            }" :validation-rules="[{ type: 'required', message: 'El estado es obligatorio' }]" />
+
+            <DxItem data-field="web" caption="Sitio Web" :validation-rules="[
+              { type: 'required', message: 'El sitio web es obligatorio' },
+              {
+                type: 'custom',
+                message: 'URL inválida (ej: https://empresa.cl)',
+                validationCallback: (e) => validarURL(e.value)
+              }
+            ]" />
+
             <DxItem data-field="compensation_box" caption="Caja Compensación" editor-type="dxSelectBox" :editor-options="{
               dataSource: ProvitionalCL,
               displayExpr: 'name',
               valueExpr: 'id',
               searchEnabled: true,
               noDataText: 'No hay opciones'
-            }" />
+            }" :validation-rules="[{ type: 'required', message: 'Debe seleccionar una caja de compensación' }]" />
           </DxSimpleItem>
 
+          <!-- ================= UBICACIÓN ================= -->
           <DxSimpleItem item-type="group" caption="Ubicación y Contacto" :col-span="2" :col-count="2">
-            <DxItem data-field="state" />
-            <DxItem data-field="city" editor-type="dxSelectBox" />
+            <DxItem data-field="state" caption="Región"
+              :validation-rules="[{ type: 'required', message: 'La región es obligatoria' }]" />
 
-            <DxItem data-field="address" caption="Dirección Completa" :col-span="2" />
-            <DxItem data-field="phone" caption="Teléfono Contacto" />
+            <DxItem data-field="city" caption="Ciudad" editor-type="dxSelectBox"
+              :validation-rules="[{ type: 'required', message: 'La ciudad es obligatoria' }]" />
+
+            <DxItem data-field="address" caption="Dirección Completa" :col-span="2"
+              :validation-rules="[{ type: 'required', message: 'La dirección es obligatoria' }]" />
+
+            <DxItem data-field="phone" caption="Teléfono Contacto" :validation-rules="[
+              { type: 'required', message: 'El teléfono es obligatorio' },
+              {
+                type: 'custom',
+                message: 'Debe contener 9 dígitos numéricos',
+                validationCallback: (e) => validarTelefonoCL(e.value)
+              }
+            ]" />
           </DxSimpleItem>
 
+          <!-- ================= REPRESENTANTE LEGAL ================= -->
           <DxSimpleItem item-type="group" caption="Representante Legal" :col-span="1" :col-count="1">
-            <DxItem data-field="legal_representative_name" caption="Nombre" />
+            <DxItem data-field="legal_representative_name" caption="Nombre"
+              :validation-rules="[{ type: 'required', message: 'El nombre es obligatorio' }]" />
+
             <DxItem data-field="legal_representative_rut" caption="RUT" editor-type="dxTextBox" :editor-options="{
-                        valueChangeEvent: 'input',
-                        onValueChanged(e) {
-                            if (!e.value) return
+              valueChangeEvent: 'input',
+              onInput(e) {
+                const formatted = formatearRutConPuntos(e.event.target.value)
+                e.component.option('value', formatted)
+                const form = e.component.option('form')
+                form?.updateData('legal_representative_rut', formatted)
+              }
+            }" :validation-rules="[
+        { type: 'required', message: 'El RUT es obligatorio' },
+        {
+          type: 'custom',
+          message: 'RUT chileno inválido',
+          validationCallback: (e) => validarRutChileno(e.value)
+        }
+      ]" />
 
-                            const formatted = formatearRutConPuntos(e.value)
+            <DxItem data-field="legal_representative_phone" caption="Teléfono" :validation-rules="[
+              { type: 'required', message: 'El teléfono es obligatorio' },
+              {
+                type: 'custom',
+                message: 'Debe contener 9 dígitos, solo números',
+                validationCallback: (e) => validarTelefonoCL(e.value)
+              }
+            ]" />
 
-                            if (formatted !== e.value) {
-                                e.component.option('value', formatted)
-
-                                const form = e.component.option('form')
-                                form?.updateData('rut', formatted)
-                            }
-                        }
-                    }" 
-                    :validation-rules="[
-                        { type: 'required', message: 'El RUT es obligatorio' },
-                        {
-                            type: 'custom',
-                            message: 'RUT chileno inválido',
-                            validationCallback: (e) => validarRutChileno(e.value)
-                        }
-                    ]" />
-            <DxItem data-field="legal_representative_phone" caption="Teléfono" />
-            <DxItem data-field="legal_representative_email" caption="Email" />
+            <DxItem data-field="legal_representative_email" caption="Email" :validation-rules="[
+              { type: 'required', message: 'El email es obligatorio' },
+              {
+                type: 'custom',
+                message: 'Email inválido',
+                validationCallback: (e) => validarEmail(e.value)
+              }
+            ]" />
           </DxSimpleItem>
 
+          <!-- ================= REPRESENTANTE SISTEMA ================= -->
           <DxSimpleItem item-type="group" caption="Representante de Sistema" :col-span="1" :col-count="1">
-            <DxItem data-field="system_representative_name" caption="Nombre" />
+            <DxItem data-field="system_representative_name" caption="Nombre"
+              :validation-rules="[{ type: 'required', message: 'El nombre es obligatorio' }]" />
 
             <DxItem data-field="system_representative_rut" caption="RUT" editor-type="dxTextBox" :editor-options="{
-                        valueChangeEvent: 'input',
-                        onValueChanged(e) {
-                            if (!e.value) return
+              valueChangeEvent: 'input',
+              onInput(e) {
+                const formatted = formatearRutConPuntos(e.event.target.value)
+                e.component.option('value', formatted)
+                const form = e.component.option('form')
+                form?.updateData('system_representative_rut', formatted)
+              }
+            }" :validation-rules="[
+        { type: 'required', message: 'El RUT es obligatorio' },
+        {
+          type: 'custom',
+          message: 'RUT chileno inválido',
+          validationCallback: (e) => validarRutChileno(e.value)
+        }
+      ]" />
 
-                            const formatted = formatearRutConPuntos(e.value)
+            <DxItem data-field="system_representative_phone" caption="Teléfono" :validation-rules="[
+              { type: 'required', message: 'El teléfono es obligatorio' },
+              {
+                type: 'custom',
+                message: 'Debe contener 9 dígitos, solo números',
+                validationCallback: (e) => validarTelefonoCL(e.value)
+              }
+            ]" />
 
-                            if (formatted !== e.value) {
-                                e.component.option('value', formatted)
-
-                                const form = e.component.option('form')
-                                form?.updateData('rut', formatted)
-                            }
-                        }
-                    }" 
-                    :validation-rules="[
-                        { type: 'required', message: 'El RUT es obligatorio' },
-                        {
-                            type: 'custom',
-                            message: 'RUT chileno inválido',
-                            validationCallback: (e) => validarRutChileno(e.value)
-                        }
-                    ]" />
-            <DxItem data-field="system_representative_phone" caption="Teléfono" />
-            <DxItem data-field="system_representative_email" caption="Email" />
+            <DxItem data-field="system_representative_email" caption="Email" :validation-rules="[
+              { type: 'required', message: 'El email es obligatorio' },
+              {
+                type: 'custom',
+                message: 'Email inválido',
+                validationCallback: (e) => validarEmail(e.value)
+              }
+            ]" />
           </DxSimpleItem>
         </DxForm>
+
       </DxEditing>
 
 
@@ -191,13 +238,12 @@
         <span class="font-bold rounded-sm">
           {{ selectedItem?.name_company || 'N/A' }}
         </span>
-        {{ console.log(selectedItem) }}
       </h2>
       <div class="max-h-96 overflow-y-scroll pr-2">
         <div class="space-y-2">
           <div
             class="w-24 h-24 rounded-md overflow-hidden mb-2 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center p-2">
-            <img :src="selectedItem?.logo" alt="Logo Empresa" class="w-full h-auto object-cover object-center " />
+            <img :src="selectedItem?.logo || noFoundImg" alt="Logo Empresa" class="object-contain w-full h-full" />
           </div>
 
           <p class="text-sm flex items-center gap-2">
@@ -311,10 +357,12 @@ import {
 } from 'devextreme-vue/form'
 
 import conexionApi from '@/services/conexionApi.js'
-import { statusCellTemplate, getStatusMeta, getCompensationBoxName, getRegionName, validarRutChileno, formatearRutConPuntos } from '@/utils/herlpers'
+import { statusCellTemplate, getStatusMeta, getCompensationBoxName, getRegionName, validarRutChileno, formatearRutConPuntos, validarEmail, validarTelefonoCL, validarURL } from '@/utils/herlpers'
 
 import { StateCL } from '@/utils/dataState.js'
 import { ProvitionalCL } from '@/utils/dataProvitionals'
+
+import noFoundImg from '@/assets/img/nofound.svg'
 
 const loading = ref(false)
 const mainGridRef = ref(null)
@@ -370,6 +418,7 @@ const dataSource = new CustomStore({
   },
   insert: async (values) => {
     const payload = { ...values, status: values.status ?? 1, logo: "" };
+    console.log(payload);
     const { data } = await conexionApi.post('/configuracion/empresas/createCompany', payload)
     if (data.code === "ERROR") throw new Error(data.mensaje)
   },

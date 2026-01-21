@@ -63,6 +63,7 @@ export function formatStatusText(status) {
     RECEIVED: 'Recibido',
     ACTIVE: 'Activo',
     INACTIVE: 'Inactivo',
+    0: 'Inactivo',
     1: 'Activo',
     2: 'Inactivo'
   }
@@ -86,7 +87,9 @@ export function priceFormatter(value) {
 export function statusCellTemplate(cellElement, cellInfo) {
   const isActive =
     cellInfo.data.status === 1 ||
-    cellInfo.data.status === true
+    cellInfo.data.status === '1' ||
+    cellInfo.data.status === true ||
+    cellInfo.data.id_state === 1;  //id_state por la columna de status de usuarios (mal nombrada) 
 
   const span = document.createElement('span')
   span.className = isActive
@@ -195,8 +198,8 @@ export function getStatusMeta(status) {
       textColor = 'text-green-800'
       pulseColor = 'bg-green-400'
       break
-    case 2:
-    case '2':  
+    case 0:
+    case '0':  
     case 'REJECTED':
       bgColor = 'bg-red-50'
       textColor = 'text-red-800'
@@ -337,3 +340,12 @@ export const getRegionName = (regionNumber) => {
   const region = StateCL.find(r => r.region_number === regionNumber);
   return region ? region.region : regionNumber; // Si no lo encuentra, devuelve el valor original
 };
+
+export const validarEmail = (v) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
+
+export const validarTelefonoCL = (v) =>
+  /^[0-9]{9}$/.test(v || '');
+
+export const validarURL = (v) =>
+  /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/.*)?$/.test(v || '');

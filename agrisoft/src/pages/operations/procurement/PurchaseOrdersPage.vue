@@ -1,7 +1,4 @@
 <template>
-  <!-- =========================
-       TÍTULO
-  ========================== -->
   <div class="max-w-11/12 mx-auto mb-6 pl-2 md:pl-5 flex items-start justify-between">
     <div>
       <h1 class="text-2xl font-light text-navy-700 dark:text-white">
@@ -12,7 +9,6 @@
       </p>
     </div>
 
-    <!-- Botón ayuda -->
     <button class="text-gray-400 hover:text-navy-600 transition max-w-fit" @click="showHelp = true"
       title="¿Qué hace cada acción?">
       <InformationCircleIcon class="w-6 h-6" />
@@ -25,20 +21,16 @@
       <DxHeaderFilter :visible="true" :allow-search="true" />
       <DxPaging :page-size="15" />
 
-      <!-- =========================
-           EDICIÓN
-      ========================== -->
       <DxEditing mode="popup" :allow-adding="false" :allow-updating="false" :allow-deleting="false" :use-icons="true">
         <DxPopup title="Orden de Compra" :show-title="true" :width="450" :height="320" />
 
         <DxForm :col-count="1">
-          <!-- SOLICITUD -->
+  
           <DxItem data-field="request_id" caption="Solicitud Aprobada" editor-type="dxSelectBox"
             :editor-options="approvedRequestsEditorOptions">
             <DxRequiredRule message="Debe seleccionar una solicitud" />
           </DxItem>
 
-          <!-- PROVEEDOR -->
           <DxItem data-field="supplier_id" caption="Proveedor" editor-type="dxSelectBox"
             :editor-options="suppliersEditorOptions">
             <DxRequiredRule message="Debe seleccionar un proveedor" />
@@ -46,9 +38,6 @@
         </DxForm>
       </DxEditing>
 
-      <!-- =========================
-           COLUMNAS
-      ========================== -->
       <DxColumn data-field="order_code" caption="#Orden de Compra" alignment="right" css-class="!text-left" />
       <DxColumn data-field="tracking_code" caption="Solicitud" alignment="right" css-class="!text-left" />
       <DxColumn data-field="supplier_name" caption="Proveedor" alignment="right" css-class="!text-left" />
@@ -61,7 +50,7 @@
       <DxColumn type="buttons" :buttons="customButtons" />
     </DxDataGrid>
   </div>
-  <!-- MODAL VER OC + ITEMS -->
+
   <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
     <div class="fixed inset-0 bg-black/30" @click="closeModals"></div>
 
