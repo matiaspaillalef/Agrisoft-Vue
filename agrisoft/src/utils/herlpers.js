@@ -26,6 +26,32 @@ export const formatDateHrs = (dateString) => {
   return `${day}/${month}/${year}, ${hours}:${minutes} hrs.`
 }
 
+export function formatDateCL(cellInfo) {
+  if (!cellInfo.value) return ''
+  return new Date(cellInfo.value).toLocaleDateString('es-CL', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+export const toMySQLDateTime = (value, endOfDay = false) => {
+  if (!value) return null;
+
+  // Si viene como ISO: 2026-01-01T12:00:00.000Z
+  if (typeof value === 'string' && value.includes('T')) {
+    const date = value.split('T')[0];
+    return `${date} ${endOfDay ? '23:59:59' : '00:00:00'}`;
+  }
+
+  // Si viene como Date object
+  const yyyy = value.getFullYear();
+  const mm = String(value.getMonth() + 1).padStart(2, '0');
+  const dd = String(value.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${endOfDay ? '23:59:59' : '00:00:00'}`;
+};
+
+
 
 // Traducir status
 export function formatStatus(status) {
@@ -85,25 +111,45 @@ export function priceFormatter(value) {
 
 //Cell template para status 
 export function statusCellTemplate(cellElement, cellInfo) {
-  const isActive =
-    cellInfo.data.status === 1 ||
-    cellInfo.data.status === '1' ||
-    cellInfo.data.status === true ||
-    cellInfo.data.id_state === 1;  //id_state por la columna de status de usuarios (mal nombrada) 
+  const status = cellInfo.data.status;
+  const idState = cellInfo.data.id_state;
 
-  const span = document.createElement('span')
-  span.className = isActive
-    ? 'rounded-full  bg-green-50 text-green-800 font-[400] px-3 h-[23px] inline-flex items-center w-[100px] justify-center gap-1 border border-gray-100'
-    : 'rounded-full bg-gray-50 text-black font-[400] px-3 h-[23px] inline-flex items-center justify-center gap-1 w-[100px] border border-gray-100'
+  let bgClass = '';
+  let textClass = '';
+  let label = '';
+  let svgContent = '';
 
-  // SVG
+  if (status === 1 || status === '1' || status === true || idState === 1) {
+    // Activo
+    bgClass = 'bg-green-50';
+    textClass = 'text-green-800';
+    label = 'Activo';
+    svgContent = activeSvg();
+  } else if (status === 2 || status === '2') {
+    // Cerrado
+    bgClass = 'bg-orange-50';
+    textClass = 'text-orange-500';
+    label = 'Cerrado';
+    svgContent = closedSvg(); // Aquí puedes definir un SVG para cerrado
+  } else {
+    // Inactivo
+    bgClass = 'bg-gray-50';
+    textClass = 'text-black';
+    label = 'Inactivo';
+    svgContent = inactiveSvg();
+  }
+
+  const span = document.createElement('span');
+  span.className = `rounded-full ${bgClass} ${textClass} font-[400] px-3 h-[23px] inline-flex items-center justify-center gap-1 w-[100px] border border-gray-100`;
+
   span.innerHTML = `
-    ${isActive ? activeSvg() : inactiveSvg()}
-    <span>${isActive ? 'Activo' : 'Inactivo'}</span>
-  `
+    ${svgContent}
+    <span>${label}</span>
+  `;
 
-  cellElement.appendChild(span)
+  cellElement.appendChild(span);
 }
+
 
 function activeSvg() {
   return `
@@ -114,6 +160,12 @@ function activeSvg() {
 function inactiveSvg() {
   return `
   <span class="w-[10px] h-[10px] bg-red-400 rounded-full animate-pulse"></span>
+  `
+}
+
+function closedSvg() {
+  return `
+  <span class="w-[10px] h-[10px] bg-orange-400 rounded-full animate-pulse"></span>
   `
 }
 
@@ -349,3 +401,46 @@ export const validarTelefonoCL = (v) =>
 
 export const validarURL = (v) =>
   /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/.*)?$/.test(v || '');
+
+
+export function formatNumberCL(value, decimals = 2) {
+  if (value === null || value === undefined || value === '') return '';
+  return Number(value).toLocaleString('es-CL', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals
+  });
+}
+
+export function seasonStatusCellTemplate(container, options) {
+  const seasons = options.component.option('columns')
+    .find(c => c.dataField === 'season')?.lookup?.dataSource?.store || []
+
+  const seasonId = options.value
+  const season = seasons.find(s => Number(s.id) === Number(seasonId))
+
+  const status = String(season?.status ?? '0')
+
+  const wrapper = document.createElement('div')
+  wrapper.className = 'flex items-center gap-2'
+
+  const dot = document.createElement('div')
+  dot.className = 'w-2.5 h-2.5 rounded-full flex-shrink-0'
+
+  if (status === '1') {
+    dot.classList.add('bg-green-500', 'animate-pulse')
+  } else if (status === '3') {
+    dot.classList.add('bg-orange-500', 'animate-pulse')
+  } else {
+    dot.classList.add('bg-red-500', 'animate-pulse')
+  }
+
+  const text = document.createElement('span')
+  text.textContent = season?.name || options.text || ''
+
+  wrapper.appendChild(dot)
+  wrapper.appendChild(text)
+  container.appendChild(wrapper)
+}
+
+
+

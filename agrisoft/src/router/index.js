@@ -11,11 +11,14 @@ import Grounds from '@/pages/production/parameterization/GroundPage.vue'
 import Sectors from '@/pages/production/parameterization/SectorPage.vue' 
 import Species from '@/pages/production/parameterization/SpeciesPage.vue'
 import Varieties from '@/pages/production/parameterization/VarietyPage.vue'
+import Quality from '@/pages/production/parameterization/QualityPage.vue'
+import SectorAttr from '@/pages/production/parameterization/SectorAttrPage.vue'
 
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
 import Products from '@/pages/operations/ProductsPage.vue'
 import Resume from '@/pages/operations/ResumePage.vue'
+import Season from '@/pages/production/parameterization/SeasonPage.vue'
 
 import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
@@ -104,7 +107,30 @@ const routes = [
           roles: [1, 2],
         },
       },
-     
+      {
+        path: 'dashboard/production/parameterization-ground/sector-attributes',
+        name: 'SectorAttr',
+        component: SectorAttr,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+     {
+        path: 'dashboard/production/parameterization-production/quality',
+        name: 'Quality',
+        component: Quality,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-production/season',
+        name: 'Season',
+        component: Season,
+        meta: {
+          roles: [1, 2],
+        },
+      },
 
       //Páginas operaciones
       {

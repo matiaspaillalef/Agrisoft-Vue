@@ -70,6 +70,65 @@
         </DxDataGrid>
     </div>
 
+    <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
+        <!-- Fondo -->
+        <div class="fixed inset-0 bg-[#0000003d] bg-opacity-50" @click="closeModals"></div>
+
+        <!-- Modal -->
+        <div
+            class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-xl mx-auto">
+            <h2 class="text-xl mb-4">
+                Detalles de la Especie
+                <span class="font-bold rounded-sm">
+                    {{ selectedItem?.name || 'N/A' }}
+                </span>
+            </h2>
+
+            <div class="max-h-[70vh] overflow-y-auto pr-2 space-y-4">
+                <!-- Estado -->
+                <p class="text-sm flex items-center gap-2">
+                    <span v-if="selectedItem?.status !== undefined"
+                        :class="`rounded-full ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor}
+              font-[400] px-3 h-[23px] inline-flex items-center w-[120px] justify-center gap-1 border border-gray-100`">
+                        <span v-if="getStatusMeta(selectedItem.status).pulseColor"
+                            :class="`w-[10px] h-[10px] ${getStatusMeta(selectedItem.status).pulseColor} rounded-full animate-pulse`"></span>
+                        <span>{{ getStatusMeta(selectedItem.status).text }}</span>
+                    </span>
+                </p>
+
+                <!-- VARIEDADES -->
+                <div>
+                    <h3 class="font-bold mb-2">Variedades asociadas</h3>
+
+                    <div v-if="loadingVarieties" class="text-sm text-gray-500">
+                        Cargando variedades...
+                    </div>
+
+                    <div v-else-if="!varieties.length" class="text-sm text-gray-400 italic">
+                        No existen variedades asociadas a esta especie.
+                    </div>
+
+                    <div v-else class="space-y-2">
+                        <div v-for="v in varieties" :key="v.id"
+                            class="flex items-center justify-between border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
+                            <span class="text-sm">{{ v.name }}</span>
+                            <span
+                                :class="`text-xs rounded-full px-2 py-[2px] ${getStatusMeta(v.status).bgColor} ${getStatusMeta(v.status).textColor}`">
+                                {{ getStatusMeta(v.status).text }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón cerrar -->
+            <button @click="closeModals"
+                class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg">
+                Cerrar
+            </button>
+        </div>
+    </div>
+
 </template>
 
 
@@ -102,34 +161,20 @@ import {
 } from 'devextreme-vue/form'
 
 import conexionApi from '@/services/conexionApi.js'
-import { statusCellTemplate, validarEmail } from '@/utils/herlpers'
+import { statusCellTemplate, getStatusMeta } from '@/utils/herlpers'
 
 const loading = ref(false)
 const mainGridRef = ref(null)
+const showViewModal = ref(false)
+const selectedItem = ref(null)
+const varieties = ref([])
+const loadingVarieties = ref(false)
+
 
 const companyID = Number(localStorage.getItem('userIdCompany')) || 0
 
 const userRol = Number(localStorage.getItem('rol')) || 0
 
-const grounds = shallowRef([])
-
-const loadGrounds = async () => {
-    try {
-        const { data } = await conexionApi.get('/configuracion/production/getGround/' + companyID)
-        grounds.value = [...(data.grounds || [])]
-    } catch (e) {
-        console.error('Error cargando campos', e)
-    }
-}
-loadGrounds()
-
-watch(grounds, () => {
-    mainGridRef.value?.instance?.refresh()
-})
-
-const groundsDS = computed(() => ({
-    store: grounds.value
-}))
 
 const dataSource = new CustomStore({
     key: 'id',
@@ -170,10 +215,44 @@ const dataSource = new CustomStore({
     }
 })
 
+
+function closeModals() {
+    showViewModal.value = false
+    varieties.value = []
+}
+
+// ---------------- CARGA VARIEDADES ----------------
+async function loadVarieties(speciesId) {
+    loadingVarieties.value = true
+    try {
+        const { data } = await conexionApi.get(
+            `/configuracion/production/getVarietiesBySpecies/${speciesId}?companyID=${companyID}`
+        )
+        varieties.value = (data.varieties || []).map(v => ({
+            ...v,
+            status: Number(v.status)
+        }))
+    } catch (e) {
+        console.error('Error cargando variedades', e)
+        varieties.value = []
+    } finally {
+        loadingVarieties.value = false
+    }
+}
+
 // --- Botones personalizados ---
 const customButtons = [
+    {
+        hint: 'Ver',
+        icon: 'custom-view',
+        onClick: async (e) => {
+            selectedItem.value = e.row.data
+            showViewModal.value = true
+            await loadVarieties(e.row.data.id)
+        }
+    }, ,
     'edit',
-    'delete',
+    'delete'
 ]
 
 </script>
