@@ -13,12 +13,17 @@ import Species from '@/pages/production/parameterization/SpeciesPage.vue'
 import Varieties from '@/pages/production/parameterization/VarietyPage.vue'
 import Quality from '@/pages/production/parameterization/QualityPage.vue'
 import SectorAttr from '@/pages/production/parameterization/SectorAttrPage.vue'
+import Scales from '@/pages/production/parameterization/ScalePage.vue'
 
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
 import Products from '@/pages/operations/ProductsPage.vue'
 import Resume from '@/pages/operations/ResumePage.vue'
 import Season from '@/pages/production/parameterization/SeasonPage.vue'
+import HarvestFormat from '@/pages/production/parameterization/HarvestFormatPage.vue'
+import TypeCollection from '@/pages/production/parameterization/TypeCollectionPage.vue'
+import Deals from '@/pages/production/parameterization/DealsPage.vue'
+import Exporters from '@/pages/production/parameterization/ExportersPage.vue'
 
 import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
@@ -131,7 +136,46 @@ const routes = [
           roles: [1, 2],
         },
       },
-
+      {
+        path: 'dashboard/production/parameterization-production/harvest-format',
+        name: 'HarvestFormat',
+        component: HarvestFormat,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-production/type-collection',
+        name: 'TypeCollection',
+        component: TypeCollection,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-production/deals',
+        name: 'Deals',
+        component: Deals,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-production/scale',
+        name: 'Scales',
+        component: Scales,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/parameterization-production/exporters',
+        name: 'Exporters',
+        component: Exporters,
+        meta: {
+          roles: [1, 2],
+        },
+      },
       //Páginas operaciones
       {
         path: 'dashboard/operations/warehouses',
