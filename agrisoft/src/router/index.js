@@ -8,12 +8,16 @@ import Companies from '@/pages/enviroment/CompaniesPage.vue'
 import UserCreation from '@/pages/enviroment/UserPage.vue'
 
 import Grounds from '@/pages/production/parameterization/GroundPage.vue'
-import Sectors from '@/pages/production/parameterization/SectorPage.vue' 
+import Sectors from '@/pages/production/parameterization/SectorPage.vue'
 import Species from '@/pages/production/parameterization/SpeciesPage.vue'
 import Varieties from '@/pages/production/parameterization/VarietyPage.vue'
 import Quality from '@/pages/production/parameterization/QualityPage.vue'
 import SectorAttr from '@/pages/production/parameterization/SectorAttrPage.vue'
 import Scales from '@/pages/production/parameterization/ScalePage.vue'
+
+import Contractors from '@/pages/people-management/ContractorsPage.vue'
+import Positions from '@/pages/people-management/PositionsPage.vue'
+import Groups from '@/pages/people-management/GroupsPage.vue'
 
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
@@ -24,6 +28,8 @@ import HarvestFormat from '@/pages/production/parameterization/HarvestFormatPage
 import TypeCollection from '@/pages/production/parameterization/TypeCollectionPage.vue'
 import Deals from '@/pages/production/parameterization/DealsPage.vue'
 import Exporters from '@/pages/production/parameterization/ExportersPage.vue'
+import RegularizationProduction from '@/pages/production/operations/RegularizationrPoductionPage.vue'
+import ManualUploadPage from '@/pages/production/operations/ManualUploadPage.vue'
 
 import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
@@ -120,7 +126,7 @@ const routes = [
           roles: [1, 2],
         },
       },
-     {
+      {
         path: 'dashboard/production/parameterization-production/quality',
         name: 'Quality',
         component: Quality,
@@ -176,6 +182,48 @@ const routes = [
           roles: [1, 2],
         },
       },
+      {
+        path: 'dashboard/production/operations/regularization-production',
+        name: 'RegularizationProduction',
+        component: RegularizationProduction,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/production/operations/manual-upload',
+        name: 'ManualUpload',
+        component: ManualUploadPage,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      //Management People
+      {
+        path: 'dashboard/people-management/contractors',
+        name: 'Contractors',
+        component: Contractors,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/people-management/positions',
+        name: 'Positions',
+        component: Positions,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/people-management/groups',
+        name: 'Groups',
+        component: Groups,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+
       //Páginas operaciones
       {
         path: 'dashboard/operations/warehouses',

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="header flex items-center justify-between mb-[25px] md:mb-[45px] flex-col-reverse md:flex-row gap-2 max-w-11/12 mx-auto">
+    class="header sticky top-0 z-50 flex items-center justify-between py-4 mb-2 flex-col-reverse md:flex-row gap-2 w-full backdrop-blur-sm bg-blue-50/10 dark:bg-gray-950/80 px-4 md:px-8 transition-all duration-300 border-b border-transparent hover:border-gray-200 dark:hover:border-white/10">
     <div class="ml-[0px] w-full md:w-auto">
       <div class="pt-1">
         <!--
@@ -70,28 +70,28 @@
 
             <!-- Dropdown de alertas -->
             <div v-if="showAlerts"
-     class="absolute right-0 mt-2 w-80 bg-white dark:bg-navy-800 shadow-lg rounded-lg overflow-hidden z-50 top-[50px]">
-  <transition-group name="fade" tag="ul" class="max-h-64 overflow-y-auto">
-    <li v-for="alert in alerts" :key="alert.id"
-        class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-navy-700 flex justify-between items-center">
-      <div class="flex flex-col">
-        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ alert.title }}</p>
-        <p class="text-xs text-gray-500 dark:text-gray-300">{{ alert.description }}</p>
-      </div>
-      <button @click="markAsRead(alert.id)"
-              class="ml-2 text-green-500! hover:text-green-700 focus:outline-none p-0! bg-transparent! w-auto!">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-             stroke="currentColor" class="size-4">
-          <path stroke-linecap="round" stroke-linejoin="round"
-                d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-      </button>
-    </li>
-    <li v-if="alerts.length === 0" key="empty" class="p-3 text-center text-gray-500 dark:text-gray-300">
-      No hay alertas
-    </li>
-  </transition-group>
-</div>
+              class="absolute right-0 mt-2 w-80 bg-white dark:bg-navy-800 shadow-lg rounded-lg overflow-hidden z-50 top-[50px]">
+              <transition-group name="fade" tag="ul" class="max-h-64 overflow-y-auto">
+                <li v-for="alert in alerts" :key="alert.id"
+                  class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-navy-700 flex justify-between items-center">
+                  <div class="flex flex-col">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ alert.title }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-300">{{ alert.description }}</p>
+                  </div>
+                  <button @click="markAsRead(alert.id)"
+                    class="ml-2 text-green-500! hover:text-green-700 focus:outline-none p-0! bg-transparent! w-auto!">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="size-4">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                  </button>
+                </li>
+                <li v-if="alerts.length === 0" key="empty" class="p-3 text-center text-gray-500 dark:text-gray-300">
+                  No hay alertas
+                </li>
+              </transition-group>
+            </div>
 
           </div>
 
