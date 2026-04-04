@@ -158,6 +158,10 @@ button {
   content: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='currentColor'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M10.125%202.25h-4.5c-.621%200-1.125.504-1.125%201.125v17.25c0%20.621.504%201.125%201.125%201.125h12.75c.621%200%201.125-.504%201.125-1.125v-9M10.125%202.25h.375a9%209%200%200%201%209%209v.375M10.125%202.25A3.375%203.375%200%200%201%2013.5%205.625v1.5c0%20.621.504%201.125%201.125%201.125h1.5a3.375%203.375%200%200%201%203.375%203.375M9%2015l2.25%202.25L15%2012'/%3E%3C/svg%3E") !important;
 }
 
+.dx-icon-group::before {
+  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z'/%3E%3C/svg%3E") !important;
+}
+
 .dx-closebutton {
   background: transparent !important;
 }
@@ -314,45 +318,52 @@ button {
 }
 
 .dx-state-readonly .dx-texteditor-input {
-    background-color: #e5e7eb !important;
-    cursor: not-allowed !important;
+  background-color: #e5e7eb !important;
+  cursor: not-allowed !important;
 }
 
-.dx-checkbox-text{
+.dx-checkbox-text {
   font-size: 12px !important;
 }
 
-:deep(.main-warehouse-active), :deep(.main-warehouse-inactive) {
-    padding: 15px;
-    border-radius: 8px;
-    border-left-width: 5px;
-    margin: 10px 0;
-    transition: all 0.3s ease;
+:deep(.main-warehouse-active),
+:deep(.main-warehouse-inactive) {
+  padding: 15px;
+  border-radius: 8px;
+  border-left-width: 5px;
+  margin: 10px 0;
+  transition: all 0.3s ease;
 }
 
 /* Estado: YA ES PRINCIPAL (Verde) */
 :deep(.main-warehouse-active) {
-    background-color: #f0fdf4; /* emerald-50 */
-    border-left-color: #16a34a; /* emerald-600 */
+  background-color: #f0fdf4;
+  /* emerald-50 */
+  border-left-color: #16a34a;
+  /* emerald-600 */
 }
+
 :deep(.main-warehouse-active .dx-checkbox-text) {
-    color: #15803d;
-    font-weight: 700;
+  color: #15803d;
+  font-weight: 700;
 }
 
 /* Estado: PARA SELECCIONAR (Azul) */
 :deep(.main-warehouse-inactive) {
-    background-color: #eff6ff; /* blue-50 */
-    border-left-color: #1e3a8a; /* navy-700 */
+  background-color: #eff6ff;
+  /* blue-50 */
+  border-left-color: #1e3a8a;
+  /* navy-700 */
 }
+
 :deep(.main-warehouse-inactive .dx-checkbox-text) {
-    color: #1e3a8a;
-    font-weight: 500;
+  color: #1e3a8a;
+  font-weight: 500;
 }
 
 /* Estilo del check mismo */
 :deep(.dx-checkbox-checked .dx-checkbox-icon) {
-    background-color: #1e3a8a !important;
+  background-color: #1e3a8a !important;
 }
 
 .row-distribucion-first::after {
@@ -388,4 +399,46 @@ button {
   [class*='status-'] svg {
     display: none;
   }
+}
+
+/* Global Navy & Gray Utilities */
+.bg-navy-900 { background-color: #0b1437 !important; }
+.bg-navy-800 { background-color: #111c44 !important; }
+.bg-navy-50 { background-color: #f4f7fe !important; }
+.text-navy-700 { color: #1b254b !important; }
+.text-navy-900 { color: #0b1437 !important; }
+.border-navy-100 { border-color: #e0e5f2 !important; }
+
+/* Global Scrollbar Style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* DataGrid Export Button Consistency */
+:deep(.dx-datagrid-export-button) {
+  background-color: #10b981 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  border: none !important;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2) !important;
+  transition: all 0.2s ease !important;
+  padding: 0px 12px !important;
+  height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+:deep(.dx-datagrid-export-button .dx-icon) {
+  color: white !important;
 }

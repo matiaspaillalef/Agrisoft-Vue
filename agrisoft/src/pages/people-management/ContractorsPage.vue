@@ -1,10 +1,13 @@
 <template>
-    <div class="mb-6 flex justify-between items-center w-full px-4 md:px-0">
-        <div class="flex flex-col">
-            <h1 class="text-2xl font-light text-navy-700 dark:text-white">Gestión de Contratistas</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Administración de socios externos y contratistas para servicios agrícolas
-            </p>
+    <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+                <BriefcaseIcon class="w-8 h-8 text-white" />
+            </div>
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Contratistas</h1>
+                <p class="text-slate-500 font-medium font-inter">Administración de socios externos y contratistas para servicios agrícolas</p>
+            </div>
         </div>
     </div>
 
@@ -192,42 +195,15 @@
             </div>
         </DxPopupWidget>
 
-        <!-- Standalone Custom Loader -->
-        <Transition name="fade-loader">
-            <div v-if="loading"
-                class="absolute inset-0 z-[2000] flex items-center justify-center bg-white/20 dark:bg-navy-900/10 backdrop-blur-[2px] rounded-3xl overflow-hidden">
-                <div
-                    class="custom-loader-wrapper p-10 bg-white/95 dark:bg-navy-800/95 backdrop-blur-2xl rounded-[40px] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.2)] border border-white/20 flex flex-col items-center justify-center min-w-[240px]">
-                    <div class="custom-spinner-box relative w-20 h-20 flex items-center justify-center">
-                        <div
-                            class="spinner-ring outer absolute inset-0 border-[4px] border-transparent border-t-blue-500 rounded-full">
-                        </div>
-                        <div
-                            class="spinner-ring inner absolute inset-[6px] border-[4px] border-transparent border-b-blue-400 rounded-full opacity-60">
-                        </div>
-                        <div
-                            class="spinner-logo bg-gradient-to-br from-blue-600 to-blue-400 p-2.5 rounded-xl rotate-12 animate-pulse shadow-lg ring-4 ring-blue-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="spinner-text-group mt-6 flex flex-col items-center">
-                        <span
-                            class="spinner-main-text font-bold text-navy-700 dark:text-white text-xl tracking-tight leading-none">Procesando</span>
-                        <span
-                            class="spinner-sub-text text-blue-500 text-[11px] font-black uppercase tracking-[0.4em] mt-2.5 animate-pulse leading-none">Agrisoft</span>
-                    </div>
-                </div>
-            </div>
-        </Transition>
+        <!-- Loading Overlay -->
+        <LoadingOverlay :show="loading" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import { BriefcaseIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
     DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxPaging, DxScrolling,
@@ -358,34 +334,4 @@ const dataSource = new CustomStore({
 </script>
 
 <style scoped>
-:deep(.dx-datagrid-export-button) {
-    background-color: #10b981 !important;
-    color: white !important;
-    border-radius: 12px !important;
-    border: none !important;
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2) !important;
-    transition: all 0.2s ease !important;
-    padding: 0px 12px !important;
-    height: 42px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-}
-
-.fade-loader-enter-active, .fade-loader-leave-active { transition: opacity 0.3s ease; }
-.fade-loader-enter-from, .fade-loader-leave-to { opacity: 0; }
-
-.spinner-ring.outer {
-    border-top-color: #3b82f6 !important;
-    animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-
-.spinner-ring.inner {
-    border-bottom-color: #60a5fa !important;
-    animation: spin-reverse 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
 </style>

@@ -1,14 +1,20 @@
 <template>
 
   <!-- Title Page -->
-  <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-    <div class="flex flex-col">
-      <h1 class="text-2xl font-light text-navy-700 dark:text-white">Bodegas</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Administra y controla las bodegas.</p>
+  <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+        <BuildingStorefrontIcon class="w-8 h-8 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Bodegas</h1>
+        <p class="text-slate-500 font-medium font-inter">Administración centralizada de bodegas y centros de
+          distribución</p>
+      </div>
     </div>
   </div>
   <div
-    class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-gray-200 py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-11/12 mx-auto">
+    class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-gray-200 py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-full mx-auto">
     <div class="warehouses">
 
       <div class="datagrid-container">
@@ -49,10 +55,10 @@
                 displayExpr: 'text'
               }" />
               <DxItem data-field="__usersDirty" :visible="false" />
-              <DxItem data-field="is_distribution" caption="¿Bodega de distribución?" editor-type="dxCheckBox" :col-span="2" css-class="custom-distribution-item"
-                :editor-options="{ 
+              <DxItem data-field="is_distribution" caption="¿Bodega de distribución?" editor-type="dxCheckBox"
+                :col-span="2" css-class="custom-distribution-item" :editor-options="{
                   text: 'Marcar como centro de distribución principal, sólo 1 bodega puede ser la principal, si marca esta opción en otra bodega, se desmarcará automáticamente en la anterior.',
-                }"/>
+                }" />
               <!-- 👤 RESPONSABLES -->
               <DxItem item-type="simple" caption="Responsables" :col-span="2">
                 <template #default>
@@ -77,12 +83,12 @@
 
           <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-left" />
           <template #distributionTemplate="{ data }">
-  <div v-if="data.value === 1 || data.value === true" 
-       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-    <i class="fas fa-star mr-1 text-blue-500"></i> Principal
-  </div>
-  <span v-else class="text-gray-400 text-xs">-</span>
-</template>
+            <div v-if="data.value === 1 || data.value === true"
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+              <i class="fas fa-star mr-1 text-blue-500"></i> Principal
+            </div>
+            <span v-else class="text-gray-400 text-xs">-</span>
+          </template>
           <DxColumn data-field="is_distribution" caption="¿Bodega de distribución?" :visible="false" />
 
           <!-- 🔢 CANTIDAD DE RESPONSABLES -->
@@ -95,6 +101,7 @@
 </template>
 
 <script setup>
+import { BuildingStorefrontIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
   DxDataGrid,
@@ -198,7 +205,7 @@ const dataSource = new CustomStore({
       ...w,
       users: Array.isArray(w.users) ? w.users : []
     }))
-    
+
     allWarehouses.value = result; // <--- GUARDAMOS LOS DATOS AQUÍ
     loading.value = false;
     return result;
@@ -207,7 +214,7 @@ const dataSource = new CustomStore({
   insert: async values => {
     values.idCompany = companyID; // Aseguramos que viaje el ID de empresa
     values.users = values.users ?? [];
-    
+
     // Si el check viene como undefined por alguna razón, enviamos 0
     values.is_distribution = values.is_distribution ? 1 : 0;
 
@@ -220,10 +227,10 @@ const dataSource = new CustomStore({
   },
 
   update: async (id, values) => {
-  // Agregamos idCompany para que el backend pueda resetear las otras bodegas
+    // Agregamos idCompany para que el backend pueda resetear las otras bodegas
     const payload = { ...values, idCompany: companyID };
     await conexionApi.put(`/warehouses/${id}`, payload);
-    
+
     // Opcional: Recargar el grid para actualizar allWarehouses
     mainGridRef.value?.instance.refresh();
   },
@@ -292,7 +299,7 @@ const onUsersGridReady = () => {
 const onRowPrepared = (e) => {
   if (e.rowType === 'data' && (e.data.is_distribution === 1 || e.data.is_distribution === true)) {
     // Aplicamos un estilo directo o una clase
-    e.rowElement.style.backgroundColor = '#cddc39'; 
+    e.rowElement.style.backgroundColor = '#cddc39';
     e.rowElement.style.fontWeight = '700';
   }
 }
@@ -300,7 +307,7 @@ const onRowPrepared = (e) => {
 const onCellPrepared = (e) => {
 
   if (e.rowType === 'data' && (e.data.is_distribution === 1 || e.data.is_distribution === true)) {
-    
+
 
     //e.cellElement.style.backgroundColor = '#cddc39';
     //e.cellElement.style.color = '#1a1a1a';

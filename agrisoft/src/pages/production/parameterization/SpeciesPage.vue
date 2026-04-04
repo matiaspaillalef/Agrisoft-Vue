@@ -1,11 +1,14 @@
 <template>
     <!-- Title -->
-    <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-        <div class="flex flex-col">
-            <h1 class="text-2xl font-light text-navy-700 dark:text-white">Especies</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Especies registradas en el sistema
-            </p>
+    <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+                <SparklesIcon class="w-8 h-8 text-white" />
+            </div>
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Especies</h1>
+                <p class="text-slate-500 font-medium font-inter">Administración de especies vegetales y frutales</p>
+            </div>
         </div>
     </div>
 
@@ -134,6 +137,7 @@
 
 <script setup>
 import { ref, computed, watch, shallowRef } from 'vue'
+import { SparklesIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 
 import {

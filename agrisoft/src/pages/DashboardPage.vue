@@ -1,4 +1,16 @@
 <template>
+  <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+        <HomeIcon class="w-8 h-8 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Panel de Control</h1>
+        <p class="text-slate-500 font-medium font-inter">Visualización estratégica y resumen de operaciones</p>
+      </div>
+    </div>
+  </div>
+
   <DxDataGrid
     :data-source="dataSource"
     :remote-operations="false"
@@ -44,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { HomeIcon } from '@heroicons/vue/24/solid'
 import {
   DxDataGrid,
   DxColumn,

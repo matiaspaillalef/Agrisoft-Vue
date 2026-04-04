@@ -2,39 +2,39 @@
   <li :class="levelClass">
     <div v-if="hasChildren">
       <button @click="toggleOpen"
-        class="flex items-center gap-2 text-[13px] py-2 cursor-pointer w-full !bg-transparent !pl-0 !pr-0 group transition-colors duration-200 !text-blue-950"
-        :class="{ 'text-blue-700 font-semibold': isItemActive, 'text-blue-950': !isItemActive }">
-        <span class="inline-flex items-center text-left gap-2 w-full">
-          <component :is="iconComponent" class="h-5 w-5" v-if="iconComponent" />
-          <span class="relative">
-            <span :class="`text-left ${level === 2 || level === 3 ? 'truncate' : ''}`">{{ item.name }}</span>
-            <!-- Línea animada -->
-            <span
-              class="absolute left-0 -bottom-0.5 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
-          </span>
-        </span>
-        <ChevronDownIcon class="h-4 w-4 ml-auto transition-transform" :class="{ 'rotate-180': isOpen }" />
+        class="flex items-center gap-3 px-4 py-3 cursor-pointer w-full group transition-all duration-300 rounded-2xl mb-1 mt-1 bg-transparent!"
+        :class="[
+          isItemActive ? 'text-blue-600! font-normal' : 'text-slate-800! hover:text-blue-600!',
+          isCollapsed ? 'justify-center !px-0' : ''
+        ]">
+        <component :is="iconComponent" class="h-5.5 w-5.5 flex-shrink-0 transition-colors" v-if="iconComponent" />
+        <span v-if="!isCollapsed"
+          class="text-[14px] truncate flex-1 text-left tracking-tight font-normal">{{ item.name }}</span>
+        <ChevronDownIcon v-if="!isCollapsed" class="h-4 w-4 transition-transform duration-400"
+          :class="{ 'rotate-180': isOpen }" />
       </button>
 
       <!-- Submenú -->
-      <ul v-show="isOpen" class="pl-4 flex flex-col gap-0">
-        <MenuItem v-for="child in item.children" :key="child.id" :item="child" :level="level + 1" />
-      </ul>
+      <Transition name="expand">
+        <ul v-show="isOpen && !isCollapsed" class="pl-10 flex flex-col gap-1 overflow-hidden mt-1">
+          <MenuItem v-for="child in item.children" :key="child.id" :item="child" :level="level + 1"
+            :isCollapsed="isCollapsed" />
+        </ul>
+      </Transition>
     </div>
 
     <!-- Ítem sin hijos -->
     <div v-else>
       <router-link :to="item.url || '#'"
-        class="flex items-center gap-2 text-[13px] py-2 group transition-colors duration-200"
-        active-class="!text-blue-700 font-semibold router-link-active" :class="{ 'text-blue-950': !isExactActive }">
-        <component :is="iconComponent" class="h-5 w-5" v-if="iconComponent" />
-        <span class="relative">
-          <span :class="{ truncate: level === 2 || level === 3, solitary: level === 1 }">{{
-            item.name
-          }}</span>
-          <span
-            class="absolute left-0 -bottom-0.5 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
-        </span>
+        class="flex items-center gap-3 px-4 py-1 group transition-all duration-300 rounded-full mb-1 mt-1 bg-transparent!"
+        active-class="!text-blue-600 font-normal" :class="[
+          !isExactActive ? 'text-slate-800! hover:text-blue-600!' : '',
+          isCollapsed ? 'justify-center !px-0' : ''
+        ]">
+        <div class="relative flex items-center justify-center">
+          <component :is="iconComponent" class="h-5.5 w-5.5 flex-shrink-0 transition-colors" v-if="iconComponent" />
+        </div>
+        <span v-if="!isCollapsed" class="text-[14px] font-normal truncate tracking-tight">{{ item.name }}</span>
       </router-link>
     </div>
   </li>
@@ -52,6 +52,10 @@ const props = defineProps({
     type: Number,
     default: 1,
   },
+  isCollapsed: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const route = useRoute()
@@ -65,7 +69,6 @@ const toggleOpen = () => {
   isOpen.value = !isOpen.value
 }
 
-// Check if current route is within this item or its descendants
 const checkIsActive = (item: any, currentPath: string): boolean => {
   if (!item) return false;
   if (item.url && item.url === currentPath) return true;
@@ -75,12 +78,10 @@ const checkIsActive = (item: any, currentPath: string): boolean => {
   return false;
 }
 
-// Compute if this item or any of its children are active
 const isItemActive = computed(() => {
   return checkIsActive(props.item, route.path)
 })
 
-// Compute if the current item is exactly active
 const isExactActive = computed(() => {
   return props.item?.url && props.item.url === route.path
 })
@@ -97,13 +98,11 @@ watch(() => route.path, (newPath) => {
   }
 })
 
-// Obtener componente de ícono dinámicamente
 const iconComponent = computed(() => {
   if (!props.item?.icon) return null;
   return HeroIcons[props.item.icon as keyof typeof HeroIcons] || null
 })
 
-// Clases según nivel
 const levelClass = computed(() => {
   return [
     'menu-item',
@@ -115,3 +114,22 @@ const levelClass = computed(() => {
   ]
 })
 </script>
+
+<style scoped>
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 800px;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.router-link-active {
+  transform: scale(1.02);
+}
+</style>

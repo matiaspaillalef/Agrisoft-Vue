@@ -1,10 +1,13 @@
 <template>
-    <div class="mb-6 flex justify-between items-center w-full px-4 md:px-0">
-        <div class="flex flex-col">
-            <h1 class="text-2xl font-light text-navy-700 dark:text-white">Gestión de Cuadrillas</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Administración de grupos de trabajo y cuadrillas de campo
-            </p>
+    <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+                <UserGroupIcon class="w-8 h-8 text-white" />
+            </div>
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Grupos</h1>
+                <p class="text-slate-500 font-medium font-inter">Administración de grupos de trabajo y equipos de campo</p>
+            </div>
         </div>
     </div>
 
@@ -15,7 +18,7 @@
         <!-- Header Actions Area -->
         <div class="flex w-full justify-between items-center mb-6 gap-4">
             <div class="flex-1 flex items-center">
-                <h2 class="text-lg font-bold text-navy-700 dark:text-white hidden md:block">Listado de Cuadrillas</h2>
+                <h2 class="text-lg font-bold text-navy-700 dark:text-white hidden md:block">Listado de Grupos</h2>
             </div>
             <div class="flex items-center gap-3">
                 <button @click="addNewRecord"
@@ -71,7 +74,8 @@
                 <DxButton name="delete" />
             </DxColumn>
 
-            <DxEditing mode="popup" :allow-updating="true" :allow-deleting="true" :allow-adding="true" :use-icons="true">
+            <DxEditing mode="popup" :allow-updating="true" :allow-deleting="true" :allow-adding="true"
+                :use-icons="true">
                 <DxPopup title="Configuración de Cuadrilla" :show-title="true" :width="500" :height="400" />
                 <DxForm :col-count="1">
                     <DxGroupItem caption="Información de la Cuadrilla" :col-count="1">
@@ -124,7 +128,9 @@
                             class="bg-white dark:bg-navy-800 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                             <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                                 Esta cuadrilla, identificada como <span
-                                    class="font-bold text-teal-600">{{ viewRecordData.name }}</span>, forma parte de los grupos operativos desplegados por la compañía para labores agrícolas.
+                                    class="font-bold text-teal-600">{{ viewRecordData.name }}</span>, forma parte de los
+                                grupos
+                                operativos desplegados por la compañía para labores agrícolas.
                             </p>
                         </div>
                     </div>
@@ -168,6 +174,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { UserGroupIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
     DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxPaging, DxScrolling,

@@ -1,9 +1,14 @@
 <template>
   <!-- Title Page -->
-  <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-    <div class="flex flex-col">
-      <h1 class="text-2xl font-light text-navy-700 dark:text-white">Gestión de Tránsitos</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Administra y controla los tránsitos de manera eficiente.</p>
+  <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+        <TruckIcon class="w-8 h-8 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Tránsitos</h1>
+        <p class="text-slate-500 font-medium font-inter">Administración y control de logística y movimientos entre bodegas</p>
+      </div>
     </div>
   </div>
 
@@ -151,6 +156,7 @@ import {
 } from 'devextreme-vue/data-grid'
 import { DxSimpleItem } from 'devextreme-vue/form'
 import { ref, onMounted, watch, computed } from 'vue'
+import { TruckIcon } from '@heroicons/vue/24/solid'
 import conexionApi from '@/services/conexionApi.js'
 import {statusCellTemplatev2} from '@/utils/herlpers.js'
 

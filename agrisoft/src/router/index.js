@@ -18,6 +18,9 @@ import Scales from '@/pages/production/parameterization/ScalePage.vue'
 import Contractors from '@/pages/people-management/ContractorsPage.vue'
 import Positions from '@/pages/people-management/PositionsPage.vue'
 import Groups from '@/pages/people-management/GroupsPage.vue'
+import Squads from '@/pages/people-management/SquadsPage.vue'
+import Shifts from '@/pages/people-management/ShiftsPage.vue'
+import Workers from '@/pages/people-management/WorkersPage.vue'
 
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
@@ -30,6 +33,7 @@ import Deals from '@/pages/production/parameterization/DealsPage.vue'
 import Exporters from '@/pages/production/parameterization/ExportersPage.vue'
 import RegularizationProduction from '@/pages/production/operations/RegularizationrPoductionPage.vue'
 import ManualUploadPage from '@/pages/production/operations/ManualUploadPage.vue'
+import CreateQrPage from '@/pages/production/operations/CreateQrPage.vue'
 
 import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
@@ -198,6 +202,14 @@ const routes = [
           roles: [1, 2],
         },
       },
+      {
+        path: 'dashboard/production/operations/create-qr',
+        name: 'CreateQr',
+        component: CreateQrPage,
+        meta: {
+          roles: [1, 2],
+        },
+      },
       //Management People
       {
         path: 'dashboard/people-management/contractors',
@@ -219,6 +231,30 @@ const routes = [
         path: 'dashboard/people-management/groups',
         name: 'Groups',
         component: Groups,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/people-management/squads',
+        name: 'Squads',
+        component: Squads,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/people-management/shifts',
+        name: 'Shifts',
+        component: Shifts,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/people-management/workers',
+        name: 'Workers',
+        component: Workers,
         meta: {
           roles: [1, 2],
         },

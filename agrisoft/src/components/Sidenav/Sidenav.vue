@@ -1,75 +1,85 @@
 <template>
   <aside
-    :class="['sidenav relative pt-6 px-6 transition-all duration-300', isCollapsed ? 'collapsed w-[80px]' : 'no-collapsed w-[260px] max-w-[260px]']">
+    :class="['sidenav-container bg-white/95 backdrop-blur-sm shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 relative m-4 rounded-[2.5rem] border border-white/20 flex flex-col overflow-hidden', isCollapsed ? 'collapsed w-[100px]' : 'no-collapsed w-[320px]']">
+
+    <!-- Botón Toggle "Floating Green" -->
     <button type="button" @click="onToggle"
-      :class="`inline-flex items-center gap-0 text-blue-950 cursor-pointer transition-all duration-300 absolute w-auto! right-0 top-[20px] rounded-tr-none! rounded-br-none!`"
-      v-if="![8, 9].includes(Number(rolId))">
-      <ChevronDoubleLeftIcon class="h-4 w-4" :class="{ 'rotate-180': isCollapsed }" />
-      <!--<span :class="`text-[12px] ${isCollapsed ? 'hidden' : ''}`">Contraer Menú</span>-->
+      class="absolute -right-1 bottom-20 bg-[#52c41a]! text-white rounded-full p-2.5 shadow-lg shadow-green-200 transition-all duration-300 z-50 hover:scale-110 active:scale-95 flex items-center justify-center w-fit!">
+      <ChevronLeftIcon class="h-4 w-4" :class="{ 'rotate-180': isCollapsed }" />
     </button>
 
-    <!-- SELECTOR EMPRESA (solo admin) -->
-    <div v-if="isAdmin" class="mb-6 mt-10">
-      <div v-if="loadingCompanies" class="mb-4">
-        <div class="h-[10px] w-1/4 rounded bg-gray-200 dark:bg-navy-700 animate-pulse basis-[25px] mb-2"></div>
-        <div class="relative w-full max-w-[211px]">
-          <div class="h-[45px] w-full rounded bg-gray-200 dark:bg-navy-700 animate-pulse basis-[25px]"></div>
+    <!-- TOP FIXED HEADER -->
+    <div class="pt-10 px-6 flex-shrink-0">
+      <!-- ROLE & LOGO SECTION -->
+      <div class="flex items-center gap-4 mb-8 px-1 group/user relative" :class="{ 'flex-col': isCollapsed }">
+        <div class="relative flex-shrink-0">
+          <div
+            class="w-18 h-18 rounded-[2rem] ring-8 ring-blue-50/50 p-1.5 bg-white shadow-xl relative overflow-hidden transition-all duration-500 group-hover/user:scale-105">
+            <img v-if="currentCompany?.logo" :src="currentCompany.logo" alt="Logo"
+              class="w-full h-full object-contain rounded-[1.5rem]" />
+            <BuildingOfficeIcon v-else class="w-full h-full text-slate-200 p-2" />
+
+            <label v-if="isAdmin"
+              class="absolute inset-0 bg-black/40 opacity-0 group-hover/user:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+              <input type="file" @change="onLogoChange" class="hidden" accept="image/*" />
+              <CameraIcon class="w-6 h-6 text-white" />
+            </label>
+          </div>
+          <div
+            class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 border-[4px] border-white rounded-full shadow-md z-10">
+          </div>
+        </div>
+
+        <div v-if="!isCollapsed" class="flex flex-col min-w-0">
+          <h3 class="text-md font-black text-slate-800 uppercase leading-tight">
+            {{ currentCompany?.name_company }}
+          </h3>
         </div>
       </div>
-      <div v-else class="mb-4">
-        <label class="block text-xs text-gray-500 mb-1">
-          Empresa activa
-        </label>
 
-        <div class="relative w-full max-w-[211px]">
+      <!-- COMPANY SELECTOR (Pill Style) -->
+      <div v-if="isAdmin" class="mb-10 px-1">
+        <div class="relative group">
           <select v-model="selectedCompany" @change="changeCompany" :disabled="loading"
-            class="appearance-none w-full text-[13px] border border-gray-200 rounded-[5px] px-3 py-1 h-[45px] bg-white dark:bg-navy-700 dark:text-gray-950 truncate overflow-hidden whitespace-nowrap">
-            <option v-for="company in companies" :key="company.id" :value="company.id">
+            class="appearance-none w-full text-[14px] font-extrabold border-none rounded-2xl px-6 py-4.5 bg-blue-600 text-white focus:ring-4 focus:ring-blue-500/20 transition-all cursor-pointer shadow-2xl shadow-blue-200 hover:bg-blue-700 truncate">
+            <option v-for="company in companies" :key="company.id" :value="company.id" class="text-slate-800">
               {{ company.name_company }}
             </option>
           </select>
-          <svg
-            class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500 dark:text-gray-300"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDownIcon v-if="!isCollapsed"
+            class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
         </div>
       </div>
     </div>
 
-    <!-- MENÚ -->
-    <nav>
-      <ul v-if="menuLoading">
-        <!-- Skeleton items -->
-        <li v-for="n in 7" :key="n" class="mb-4 flex items-center gap-2">
-          <!-- icon skeleton -->
-          <div class="h-[22px] w-[22px] rounded bg-gray-200 dark:bg-navy-700 animate-pulse basis-[25px]"></div>
+    <!-- SCROLLABLE NAVIGATION -->
+    <nav class="flex-grow overflow-y-auto custom-scrollbar px-6 pb-10">
+      <div v-if="menuLoading" class="space-y-4 px-1">
+        <div v-for="i in 6" :key="i" class="h-14 w-full bg-slate-50 animate-pulse rounded-2xl"></div>
+      </div>
+      <ul v-else class="space-y-1 px-1">
+        <MenuItem v-for="item in menu" :key="item.id" :item="item" :isCollapsed="isCollapsed" />
 
-          <!-- text skeleton -->
-          <div v-if="!isCollapsed" class="flex flex-col gap-1 w-full">
-            <div v-if="!isCollapsed" class="h-2 w-full rounded bg-gray-200 dark:bg-navy-700 animate-pulse"></div>
-            <div v-if="!isCollapsed" class="h-2 w-full rounded bg-gray-200 dark:bg-navy-700 animate-pulse"></div>
-          </div>
-        </li>
-      </ul>
-
-      <ul v-else>
-        <MenuItem v-for="item in menu" :key="item.id" :item="item" />
-
-        <!-- Cerrar sesión -->
-        <li class="menu-item mt-3">
-          <button @click="logout" :class="[
-            'flex items-center text-sm py-2 w-full',
-            isCollapsed ? 'gap-0 justify-center' : 'gap-2'
-          ]">
-            <XCircleIcon class="h-5 w-5" />
-            <span v-if="!isCollapsed">Cerrar sesión</span>
+        <!-- CERRAR SESIÓN (REDISEÑADO) -->
+        <li class="pt-8 mt-4 border-t border-slate-50 px-1">
+          <button @click="logout"
+            class="flex items-center gap-4 px-6 py-4 w-full rounded-2xl transition-all duration-500 group relative overflow-hidden"
+            :class="[
+              isCollapsed ? 'justify-center !px-0' : '',
+              'bg-red-50/50! text-red-600! border border-red-100! hover:bg-red-600! hover:text-white! hover:shadow-lg! hover:shadow-red-200!'
+            ]">
+            <div class="relative z-10 flex items-center gap-4">
+              <XCircleIcon class="h-6 w-6 flex-shrink-0 group-hover:rotate-90 transition-transform duration-500" />
+              <span v-if="!isCollapsed" class="text-[15px] font-black tracking-tight">Finalizar Sesión</span>
+            </div>
+            <!-- Bloque de brillo en hover -->
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer">
+            </div>
           </button>
         </li>
       </ul>
-
     </nav>
-
   </aside>
 </template>
 
@@ -77,12 +87,22 @@
 import { ref, onMounted, computed, watch, nextTick, defineEmits, } from 'vue'
 import { useRouter } from 'vue-router'
 import MenuItem from '../Menu/MenuItem.vue'
-import { XCircleIcon, ChevronDoubleLeftIcon } from '@heroicons/vue/24/outline'
+import { XCircleIcon, ChevronLeftIcon, BuildingOfficeIcon, CameraIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 import { MenuService } from '@/api/menu.services'
 import { CompanyService } from '@/api/company.services'
 import { useCompanyStore } from '@/stores/companyStore'
 
 const router = useRouter()
+
+// USER DATA
+const userName = localStorage.getItem('userName') || 'Usuario'
+const userLastname = localStorage.getItem('userLastname') || ''
+const roleIdRaw = Number(localStorage.getItem('rol') || 0)
+const userRoleName = computed(() => {
+  if (roleIdRaw === 1) return 'Administrador'
+  if (roleIdRaw === 2) return 'Operaciones'
+  return 'Usuario'
+})
 
 const emit = defineEmits(['toggle-sidenav'])
 const isCollapsed = ref(false)
@@ -107,7 +127,43 @@ const { companyID, setCompany } = useCompanyStore()
 
 const companies = ref([])
 const selectedCompany = ref(companyID.value)
+const currentCompany = ref(null)
 var loading = ref(false)
+
+const fetchActiveCompany = async (id) => {
+  if (!id) return
+  try {
+    const data = await CompanyService.getCompany(id)
+    currentCompany.value = data
+  } catch (error) {
+    console.error('Error fetching active company:', error)
+  }
+}
+
+const onLogoChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    const base64 = e.target.result
+    try {
+      loading.value = true
+      const res = await CompanyService.updateLogo(companyID.value, base64)
+      if (res.code === 'OK') {
+        // Forzar recarga del logo (añadiendo timestamp para evitar cache)
+        if (currentCompany.value) {
+          currentCompany.value.logo = res.logoUrl + '?t=' + Date.now()
+        }
+      }
+    } catch (error) {
+      console.error('Error updating logo:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+  reader.readAsDataURL(file)
+}
 
 /* =====================
    MENU
@@ -157,7 +213,8 @@ onMounted(async () => {
 /* 🔁 Mantener sincronizado el select */
 watch(companyID, (newID) => {
   selectedCompany.value = newID
-})
+  fetchActiveCompany(newID)
+}, { immediate: true })
 
 /* =====================
    CHANGE COMPANY
@@ -192,3 +249,31 @@ const logout = () => {
 }
 
 </script>
+
+<style scoped>
+.sidenav {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.sidenav-container::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+</style>
