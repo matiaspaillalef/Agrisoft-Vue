@@ -16,7 +16,7 @@
 
       <!-- Submenú -->
       <Transition name="expand">
-        <ul v-show="isOpen && !isCollapsed" class="pl-10 flex flex-col gap-1 overflow-hidden mt-1">
+        <ul v-show="isOpen && !isCollapsed" class="pl-4 flex flex-col gap-1 overflow-hidden mt-1">
           <MenuItem v-for="child in item.children" :key="child.id" :item="child" :level="level + 1"
             :isCollapsed="isCollapsed" />
         </ul>

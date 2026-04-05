@@ -53,9 +53,11 @@
           </span>
 
           <span class="flex cursor-pointer text-xl text-gray-600 dark:text-white"
-            :class="{ 'xl:hidden hidden': [7, 8].includes(Number(rolId)) }">
+            v-if="!isLargeScreen">
             <!-- Ícono hamburguesa -->
-            <Bars4Icon class="h-6 w-6" />
+            <button @click="$emit('toggle-mobile')" class="p-0 border-none bg-transparent cursor-pointer">
+              <Bars4Icon class="h-6 w-6" />
+            </button>
           </span>
 
           <div class="relative flex items-center">
@@ -117,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineProps, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumbs.vue'
 //import TitlePage from './TitlePage.vue'
@@ -129,6 +131,7 @@ import { MenuService } from '@/api/menu.services'
 import MenuItem from '@/components/Menu/MenuItem.vue'
 import axios from 'axios'
 import conexionApi from '@/services/conexionApi.js';
+import { alertsUpdateTrigger, notifyAlertsChange } from '@/services/alertsState.js'
 
 // -------------------------
 // Menu y usuario
@@ -136,7 +139,11 @@ import conexionApi from '@/services/conexionApi.js';
 const menu = ref([])
 const error = ref(null)
 const { isDarkMode, toggleDarkMode } = useDarkMode()
-const props = defineProps({ isCollapsed: Boolean })
+const props = defineProps({ 
+  isCollapsed: Boolean,
+  isLargeScreen: Boolean
+})
+const emit = defineEmits(['toggle-mobile'])
 const nombre = ref('')
 const apellido = ref('')
 const router = useRouter()
@@ -195,13 +202,18 @@ const toggleAlerts = () => {
   showAlerts.value = !showAlerts.value
 }
 
+// Escuchar cambios globales
+watch(alertsUpdateTrigger, () => {
+  fetchAlerts()
+})
+
 // Traer alertas del backend
 const fetchAlerts = async () => {
   try {
     const userId = localStorage.getItem('userId') || ''
-    const { data } = await conexionApi.get(`/alerts/user/${userId}`)
+    const { data } = await conexionApi.get(`/alerts/user/${userId}?unread=true`)
     alerts.value = data.alerts || []
-    unreadAlertsCount.value = alerts.value.filter(a => a.is_read === 0).length
+    unreadAlertsCount.value = alerts.value.length
   } catch (err) {
     console.error('Error cargando alertas:', err)
   }
@@ -211,11 +223,13 @@ const fetchAlerts = async () => {
 const markAsRead = async (alertId: number) => {
   // Animar y eliminar localmente
   alerts.value = alerts.value.filter(a => a.id !== alertId)
-  unreadAlertsCount.value = alerts.value.filter(a => a.is_read === 0).length
+  unreadAlertsCount.value = alerts.value.length
 
   try {
     const userId = localStorage.getItem('userId') || ''
     await conexionApi.put(`/alerts/${alertId}/read`, { user_id: userId })
+    // Notificar al resto de componentes
+    notifyAlertsChange()
   } catch (err) {
     console.error('Error marcando alerta como leída', err)
   }

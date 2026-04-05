@@ -38,6 +38,11 @@ import CreateQrPage from '@/pages/production/operations/CreateQrPage.vue'
 import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
 import SuppliersPage from '@/pages/operations/procurement/SuppliersPage.vue'
+import AlertsPage from '@/pages/operations/AlertsPage.vue'
+
+import ProductionReportsPage from '@/pages/reports/ProductionReportsPage.vue'
+import ProductionReportsTotalsPage from '@/pages/reports/ProductionReportsTotalsPage.vue'
+import MonthlyWorkerProductionPage from '@/pages/reports/MonthlyWorkerProductionPage.vue'
 
 import PurchaseOrderItemsPage from '@/pages/operations/procurement/orders/[id]/items/PurchaseOrderItemsPage.vue'
 import PurchaseReceiptNewPage from '@/pages/operations/procurement/orders/[id]/receipts/new/PurchaseReceiptNewPage.vue'
@@ -260,6 +265,32 @@ const routes = [
         },
       },
 
+      //Páginas de reportes
+      {
+        path: 'dashboard/reports/production-report',
+        name: 'ProductionReports',
+        component: ProductionReportsPage,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/reports/total-production-report',
+        name: 'ProductionReportsTotals',
+        component: ProductionReportsTotalsPage,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/reports/monthly-workers-production',
+        name: 'MonthlyWorkerProduction',
+        component: MonthlyWorkerProductionPage,
+        meta: {
+          roles: [1, 2],
+        },
+      },
+
       //Páginas operaciones
       {
         path: 'dashboard/operations/warehouses',
@@ -326,11 +357,19 @@ const routes = [
         },
       },
       {
-        path: 'dashboard/operations/procurement/suppliers',
+        path: 'dashboard/operations/suppliers',
         name: 'Suppliers',
         component: SuppliersPage,
         meta: {
           roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/alerts',
+        name: 'Alerts',
+        component: AlertsPage,
+        meta: {
+          roles: [1, 2],
         },
       },
     ],
