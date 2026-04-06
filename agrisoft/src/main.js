@@ -60,3 +60,21 @@ locale('es')
 // Montar app
 createApp(App).use(router).use(darkMode).mount('#app')
 
+// ✅ Hide DevExtreme Evaluation Notice (v24+)
+if (typeof window !== 'undefined') {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) {
+          const content = node.innerText || node.textContent || '';
+          if (content.includes('evaluation purposes') || (node.id && node.id.includes('dx-license'))) {
+            node.style.display = 'none';
+            node.remove();
+          }
+        }
+      });
+    });
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+}
+

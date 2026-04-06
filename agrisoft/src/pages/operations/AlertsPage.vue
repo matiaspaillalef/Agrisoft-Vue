@@ -39,6 +39,7 @@
         <!-- DataGrid Container Premium -->
         <div
             class="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-100 border border-slate-50 animate-slide-up relative mx-4 md:mx-0 pb-16">
+            <LoadingOverlay :show="loading" />
 
             <!-- Grid Header Actions 
             <div class="flex items-center justify-between mb-10 px-2">
@@ -53,7 +54,9 @@
             <DxDataGrid ref="gridRef" :data-source="filteredAlerts" key-expr="id" :show-borders="false"
                 :column-auto-width="true" :row-alternation-enabled="false" :hover-state-enabled="true"
                 class="custom-grid" @saving="onSaving" @exporting="onExporting" :load-panel="{ enabled: false }">
-                <DxScrolling mode="virtual" />
+                <DxPaging :page-size="20" />
+                <DxPager :show-page-size-selector="true" :allowed-page-sizes="[10, 20, 50]" :show-info="true"
+                    :visible="true" position="bottom" />
 
                 <!-- Toolbar estilo Premium -->
                 <DxToolbar class="mb-8!">
@@ -115,7 +118,7 @@
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500 shadow-sm animate-pulse"></span>
                         <span
-                            class="uppercase text-[11px] font-black tracking-wider text-slate-500">{{ data.value }}</span>
+                            class="uppercase text-[11px] font-black tracking-wider text-slate-500">{{ getAlertLabel(data.value) }}</span>
                     </div>
                 </template>
 
@@ -135,9 +138,11 @@
                     <div class="flex items-center gap-2">
                         <div
                             class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
-                            {{ getUserInitials(data.value) }}
+                            {{ getUserInitials(data.data) }}
                         </div>
-                        <span class="text-sm font-bold text-slate-600">{{ getUserFullName(data.value) }}</span>
+                        <span class="text-sm font-bold text-slate-600">
+                            {{ data.data.user_name || getUserFullName(data.value) }}
+                        </span>
                     </div>
                 </template>
 
@@ -218,14 +223,12 @@
                     </button>
                 </div>
                 <div v-else class="flex flex-col items-center justify-center h-full gap-4 text-slate-400 p-10">
-                    <DxLoadPanel :visible="true" position="center" />
+                    <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
                     <p class="text-sm font-bold animate-pulse">Cargando detalles de la alerta...</p>
                 </div>
             </template>
         </DxPopup>
 
-        <!-- Loading Overlay -->
-        <LoadingOverlay :show="loading" />
     </div>
 </template>
 
@@ -241,7 +244,8 @@ import {
     DxForm,
     DxItem,
     DxButton,
-    DxLoadPanel,
+    DxPager,
+    DxPaging,
     DxScrolling,
     DxToolbar,
     DxItem as DxToolbarItem
@@ -289,38 +293,52 @@ const loadUsers = async () => {
     if (!isAdmin.value) return
     try {
         const { data } = await conexionApi.get(`/configuracion/usuarios/${companyID}`)
-        users.value = data.usuarios.map(u => ({
+        const mappedUsers = data.usuarios.map(u => ({
             ...u,
             fullName: `${u.name} ${u.lastname}`
         }))
+
+        // Opción segura basada en número para "Mostrar Todas"
+        users.value = [
+            { id: 0, fullName: 'MOSTRAR TODAS LAS ALERTAS' },
+            ...mappedUsers
+        ]
     } catch (error) {
         console.error('Error cargando usuarios:', error)
     }
 }
 
 const loadAlerts = async () => {
-    if (!selectedUser.value) return
+    if (selectedUser.value === null || selectedUser.value === undefined) return
 
+    loading.value = true
     try {
-        const { data } = await conexionApi.get(`/alerts/user/${selectedUser.value}`)
-        alerts.value = data.alerts || []
+        if (selectedUser.value === 0) {
+            // Usuario 0 es el comodín para cargar todo de la empresa
+            const { data } = await conexionApi.get(`/alerts/company/${companyID}`)
+            alerts.value = data.alerts || []
+        } else {
+            // Carga alertas de un usuario específico
+            const { data } = await conexionApi.get(`/alerts/user/${selectedUser.value}`)
+            alerts.value = data.alerts || []
+        }
     } catch (error) {
         console.error('Error cargando alertas:', error)
         alerts.value = []
+    } finally {
+        loading.value = false
     }
 }
 
 onMounted(async () => {
-    loading.value = true
-
     if (isAdmin.value) {
         await loadUsers()
+        selectedUser.value = 0 // Establece 'Mostrar Todas' por defecto
+    } else {
+        selectedUser.value = currentUserId
     }
 
-    selectedUser.value = currentUserId
-
     await loadAlerts()
-    loading.value = false
 })
 
 watch(selectedUser, () => {
@@ -350,19 +368,20 @@ const getUserFullName = (userId) => {
     return user ? user.fullName : 'Aviso General'
 }
 
-const getUserInitials = (userId) => {
-    const user = users.value.find(u => u.id == userId)
+const getUserInitials = (alertObjOrId) => {
+    if (alertObjOrId && alertObjOrId.user_name) {
+        const parts = alertObjOrId.user_name.split(' ')
+        return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : parts[0][0]
+    }
+    const user = users.value.find(u => u.id == (alertObjOrId?.user_id || alertObjOrId))
     if (!user) return 'AG'
     return `${user.name[0]}${user.lastname[0]}`
 }
 
-const openAddPopup = () => {
-    gridRef.value?.instance.addRow()
-}
-
 const markAsRead = async (alertId) => {
     try {
-        await conexionApi.put(`/alerts/${alertId}/read`, { user_id: selectedUser.value })
+        const targetUserId = selectedUser.value === 0 ? currentUserId : selectedUser.value
+        await conexionApi.put(`/alerts/${alertId}/read`, { user_id: targetUserId })
         notify('Notificación Atendida', 'success', 1500)
         notifyAlertsChange()
         loadAlerts()
@@ -370,6 +389,16 @@ const markAsRead = async (alertId) => {
         console.error('Error al marcar como leída:', error)
         notify('No se pudo marcar la alerta como atendida.', 'error', 2000)
     }
+}
+
+const getAlertLabel = (type) => {
+    const labels = {
+        'task_assigned': 'TAREA ASIGNADA',
+        'admin_generated': 'ORDEN ADMIN',
+        'purchase_request': 'SOLICITUD COMPRA',
+        'nuevo_transito': 'NUEVO TRÁNSITO'
+    }
+    return labels[type] || type?.toUpperCase() || 'GENERAL'
 }
 
 const openViewModal = (data) => {

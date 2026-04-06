@@ -39,6 +39,8 @@ import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPag
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
 import SuppliersPage from '@/pages/operations/procurement/SuppliersPage.vue'
 import AlertsPage from '@/pages/operations/AlertsPage.vue'
+import FieldBookPage from '@/pages/operations/FieldBookPage.vue'
+
 
 import ProductionReportsPage from '@/pages/reports/ProductionReportsPage.vue'
 import ProductionReportsTotalsPage from '@/pages/reports/ProductionReportsTotalsPage.vue'
@@ -369,6 +371,26 @@ const routes = [
         name: 'Alerts',
         component: AlertsPage,
         meta: {
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/operations/field-book/book',
+        name: 'FieldBook',
+        component: FieldBookPage,
+        meta: {
+          title: 'Libro de Campo',
+          requiresAuth: true,
+          roles: [1, 2],
+        },
+      },
+      {
+        path: 'dashboard/operations/field-book/config',
+        name: 'FieldBookConfig',
+        component: () => import('@/pages/operations/FieldBookConfigPage.vue'),
+        meta: {
+          title: 'Configuración Libro de Campo',
+          requiresAuth: true,
           roles: [1, 2],
         },
       },

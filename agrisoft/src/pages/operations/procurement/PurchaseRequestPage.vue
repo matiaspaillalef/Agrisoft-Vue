@@ -10,7 +10,8 @@
       Solicitudes internas previas a la creación de una orden de compra.
     </p>
   </div>
-  <div class="mt-[3px] max-w-11/12 mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
+  <div class="mt-[3px] max-w-11/12 mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl relative">
+    <LoadingOverlay :show="loading" />
     <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
       :column-hiding-enabled="true">
       <DxColumnFixing :enabled="true" />
@@ -134,10 +135,10 @@ import {
   DxSearchPanel,
   DxSelection,
   DxFilterRow,
-  DxLoadPanel,
   DxColumnFixing,
   DxHeaderFilter,
 } from 'devextreme-vue/data-grid'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import DxSelectBox from 'devextreme-vue/select-box'
 import DxTextArea from 'devextreme-vue/text-area';
 import { DxRequiredRule } from 'devextreme-vue/validator'
@@ -152,6 +153,7 @@ const userRole = Number(localStorage.getItem('rol') || 0)
 const currentUser = userId
 const FullName = localStorage.getItem('userName') + ' ' + localStorage.getItem('userLastName')
 
+const loading = ref(false)
 const dxGrid = ref(null)
 const showViewModal = ref(false)
 const selectedItem = ref(null)
@@ -168,10 +170,15 @@ const dataSource = new CustomStore({
      LOAD
   ========================== */
   load: async () => {
-    const { data } = await conexionApi.get('/purchase-requests', {
-      params: { company_id: companyId }
-    })
-    return data.requests
+    loading.value = true
+    try {
+      const { data } = await conexionApi.get('/purchase-requests', {
+        params: { company_id: companyId }
+      })
+      return data.requests
+    } finally {
+      loading.value = false
+    }
   },
 
   /* =========================

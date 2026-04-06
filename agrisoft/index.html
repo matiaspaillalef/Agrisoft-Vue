@@ -13,6 +13,17 @@
 <body class="dx-theme-generic dx-swatch-agrisoft-scheme">
   <div id="app"></div>
   <script type="module" src="/src/main.js"></script>
+  <script>
+    // Early suppression of evaluation notice
+    const observer = new MutationObserver(() => {
+      const banner = document.querySelector('[class*="dx-license"], [id*="dx-license"]');
+      if (banner) {
+        banner.style.display = 'none';
+        banner.remove();
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  </script>
 </body>
 
 </html>

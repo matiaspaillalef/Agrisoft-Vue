@@ -8,10 +8,10 @@
     </div>
 
     <!-- GRID -->
-    <div class="bg-white rounded-2xl shadow-xl px-6 py-6 max-w-11/12 mx-auto">
+    <div class="bg-white rounded-2xl shadow-xl px-6 py-6 max-w-11/12 mx-auto relative">
+        <LoadingOverlay :show="loading" />
         <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
             :column-auto-width="true" @editor-preparing="onEditorPreparing" @saving="onSaving">
-            <DxLoadPanel v-model:visible="loading" />
 
             <DxSearchPanel :visible="true" placeholder="Buscar..." />
             <DxPaging :page-size="15" />
@@ -95,7 +95,8 @@
 <script setup>
 import { ref } from 'vue'
 import CustomStore from 'devextreme/data/custom_store'
-import { DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxItem, DxSearchPanel, DxPaging, DxLoadPanel } from 'devextreme-vue/data-grid'
+import { DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxItem, DxSearchPanel, DxPaging } from 'devextreme-vue/data-grid'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import conexionApi from '@/services/conexionApi'
 import { formatDate, statusTextCellTemplate, validarRutChileno, formatearRutConPuntos } from '@/utils/herlpers'
 import DxValidator, {

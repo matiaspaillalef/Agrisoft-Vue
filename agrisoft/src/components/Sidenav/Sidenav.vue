@@ -1,9 +1,8 @@
 <template>
-  <aside
-    :class="['sidenav-container bg-white/95 backdrop-blur-sm shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 flex-shrink-0 m-4 rounded-[2.5rem] border border-white/20 flex flex-col overflow-hidden h-[calc(100vh-2rem)]', 
-             isCollapsed ? 'collapsed w-[100px]' : 'no-collapsed w-[320px]',
-             'lg:translate-x-0 transition-transform duration-500',
-             isMobileVisible ? 'translate-x-0' : '-translate-x-[120%] lg:translate-x-0']">
+  <aside :class="['sidenav-container bg-white/95 backdrop-blur-sm shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 flex-shrink-0 m-4 rounded-[2.5rem] border border-white/20 flex flex-col overflow-hidden h-[calc(100vh-2rem)]',
+    isCollapsed ? 'collapsed w-[100px]' : 'no-collapsed w-[320px]',
+    'lg:translate-x-0 transition-transform duration-500',
+    isMobileVisible ? 'translate-x-0' : '-translate-x-[120%] lg:translate-x-0']">
 
     <!-- Botón Toggle "Floating Green" -->
     <button type="button" @click="onToggle"
@@ -19,7 +18,7 @@
           <div
             class="w-18 h-18 rounded-[2rem] ring-8 ring-blue-50/50 p-1.5 bg-white shadow-xl relative overflow-hidden transition-all duration-500 group-hover/user:scale-105">
             <img :src="currentCompany?.logo || '/logos/logo_16.png'" alt="Logo"
-              class="w-full h-full object-contain rounded-[1.5rem]" 
+              class="w-full h-full object-contain rounded-[1.5rem]"
               @error="(e) => (e.target.src = '/logos/logo_16.png')" />
 
             <label v-if="isAdmin"
@@ -43,21 +42,20 @@
       <!-- COMPANY SELECTOR (Pill Style) -->
       <div v-if="isAdmin" class="mb-10 px-1" :class="{ 'flex justify-center': isCollapsed }">
         <div class="relative group" :class="isCollapsed ? 'w-14' : 'w-full'">
-          <select v-model="selectedCompany" @change="changeCompany" :disabled="loading"
-            :class="[
-              'appearance-none text-white focus:ring-4 focus:ring-blue-500/20 transition-all cursor-pointer shadow-2xl shadow-blue-200 hover:bg-blue-700 truncate',
-              isCollapsed 
-                ? 'w-14 h-14 rounded-2xl bg-blue-600 px-0 flex items-center justify-center text-[0px] ring-4 ring-blue-50' 
-                : 'w-full text-[14px] font-extrabold border-none rounded-2xl px-6 py-4.5 bg-blue-600'
-            ]">
+          <select v-model="selectedCompany" @change="changeCompany" :disabled="loading" :class="[
+            'appearance-none text-white focus:ring-4 focus:ring-blue-500/20 transition-all cursor-pointer shadow-2xl shadow-blue-200 hover:bg-blue-700 truncate',
+            isCollapsed
+              ? 'w-14 h-14 rounded-2xl bg-blue-600 px-0 flex items-center justify-center text-[0px] ring-4 ring-blue-50'
+              : 'w-full text-[14px] font-extrabold border-none rounded-2xl px-6 py-4.5 bg-blue-600'
+          ]">
             <option v-for="company in companies" :key="company.id" :value="company.id" class="text-slate-800 text-sm">
               {{ company.name_company }}
             </option>
           </select>
-          
-          <BuildingOfficeIcon v-if="isCollapsed" 
+
+          <BuildingOfficeIcon v-if="isCollapsed"
             class="absolute inset-0 m-auto h-6 w-6 text-white pointer-events-none group-hover:scale-110 transition-transform" />
-            
+
           <ChevronDownIcon v-else
             class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
         </div>
@@ -95,13 +93,13 @@
 
     <!-- FOOTER / CLIMA -->
     <div class="mt-auto p-6 border-t border-slate-50">
-        <div class="bg-blue-50/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300"
-            :class="{ 'flex-col gap-4 !p-2': isCollapsed }">
-            <WeatherMini />
-            <div v-if="!isCollapsed" class="text-right">
-                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">En Tiempo Real</p>
-            </div>
+      <div class="bg-blue-50/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300"
+        :class="{ 'flex-col gap-4 !p-2': isCollapsed }">
+        <WeatherMini />
+        <div v-if="!isCollapsed" class="text-right">
+          <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">En Tiempo Real</p>
         </div>
+      </div>
     </div>
   </aside>
 </template>

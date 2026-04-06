@@ -17,13 +17,11 @@
     class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-gray-200 py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-full mx-auto">
     <div class="warehouses">
 
-      <div class="datagrid-container">
-        <DxDataGrid :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
-          :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
-          @saving="onSaving" ref="mainGridRef" @cell-prepared="onCellPrepared">
-
-          <DxLoadPanel v-model:visible="loading" :enabled="true" :showPane="true" :indicator-src="logoGif"
-            shading-color="transparent" :height="'100%'" :width="'100%'" class="custom-loadpanel" />
+        <div class="datagrid-container relative">
+          <LoadingOverlay :show="loading" />
+          <DxDataGrid :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
+            :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
+            @saving="onSaving" ref="mainGridRef" @cell-prepared="onCellPrepared">
 
           <!-- Panel adaptable -->
           <DxColumnChooser v-if="columnChooser" :enabled="true" mode="select" />
@@ -112,9 +110,9 @@ import {
   DxItem,
   DxSearchPanel,
   DxSelection,
-  DxFilterRow,
-  DxLoadPanel
+  DxFilterRow
 } from 'devextreme-vue/data-grid'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 
 import { loadMessages, locale } from 'devextreme/localization'
@@ -123,7 +121,6 @@ import { ref, computed } from 'vue'
 import conexionApi from '@/services/conexionApi.js'
 
 import { statusCellTemplate } from '@/utils/herlpers'
-import logoGif from '@/assets/img/agrisoft_logo.png'
 const loading = ref(true)
 
 const rolID = Number(localStorage.getItem('rol')) || ''

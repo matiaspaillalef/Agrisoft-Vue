@@ -15,7 +15,8 @@
         </div>
 
         <!-- Grid de Herramientas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+            <LoadingOverlay :show="loading" message="Cargando datos" submessage="Agrisoft Production" />
 
             <!-- Card: QR Trabajadores -->
             <div
@@ -150,8 +151,6 @@
                 </div>
             </div>
         </DxPopup>
-
-        <LoadingOverlay :show="loading" message="Cargando datos" submessage="Agrisoft Production" />
     </div>
 </template>
 

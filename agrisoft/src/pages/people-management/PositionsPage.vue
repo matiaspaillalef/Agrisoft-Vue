@@ -14,6 +14,7 @@
     <!-- GRID CONTAINER -->
     <div
         class="custom-grid-container relative mt-[3px] flex w-full flex-grow flex-col items-center justify-start gap-2 rounded-3xl bg-white py-8 shadow-2xl px-2 md:px-10 mb-6 min-h-[500px] border border-gray-100 dark:bg-navy-800 dark:border-white/5">
+        <LoadingOverlay :show="loading" />
 
         <!-- Header Actions Area -->
         <div class="flex w-full justify-between items-center mb-6 gap-4">
@@ -137,9 +138,6 @@
                 </div>
             </div>
         </DxPopupWidget>
-
-        <!-- Loading Overlay -->
-        <LoadingOverlay :show="loading" />
     </div>
 </template>
 

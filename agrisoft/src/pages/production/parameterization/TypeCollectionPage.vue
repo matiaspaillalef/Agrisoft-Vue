@@ -9,14 +9,11 @@
     </div>
   </div>
 
-  <!-- GRID -->
-  <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
-           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto">
-    <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
+    <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
+           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto relative text-[13px]!">
+      <LoadingOverlay :show="loading" />
+      <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
       :width="'100%'"">
-      <!-- LOADER -->
-      <DxLoadPanel v-model:visible="loading" :enabled="true" :showPane="true" :indicator-src="logoGif"
-      shading-color="transparent" :height="'100%'" :width="'100%'" class="custom-loadpanel" />
     <!-- Panel adaptable -->
 
     <DxColumnFixing :enabled="true" />
@@ -75,11 +72,11 @@ import {
   DxColumnChooser,
   DxColumnFixing,
   DxSearchPanel,
-  DxSelection,
-  DxFilterRow,
-  DxLoadPanel,
-  DxHeaderFilter
+    DxSelection,
+    DxFilterRow,
+    DxHeaderFilter
 } from 'devextreme-vue/data-grid'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 // FORM
 import {

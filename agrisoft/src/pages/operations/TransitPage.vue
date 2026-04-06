@@ -14,6 +14,7 @@
 
   <div
     class="relative mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-[#2b4775] py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-11/12 mx-auto">
+    <LoadingOverlay :show="loading" />
     <div class="datagrid-container">
       <DxDataGrid :data-source="dataSource" :show-borders="true" :column-hiding-enabled="true" :width="'100%'"
         @content-ready="onContentReady" @init-new-row="onInitNewRow" :default-sorting="{ column: 'id', desc: true }"
@@ -156,9 +157,12 @@ import {
 } from 'devextreme-vue/data-grid'
 import { DxSimpleItem } from 'devextreme-vue/form'
 import { ref, onMounted, watch, computed } from 'vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { TruckIcon } from '@heroicons/vue/24/solid'
 import conexionApi from '@/services/conexionApi.js'
 import {statusCellTemplatev2} from '@/utils/herlpers.js'
+
+const loading = ref(false)
 
 
 // ======================================================
@@ -219,6 +223,7 @@ const productosEditados = ref([])
 // ======================================================
 
 onMounted(async () => {
+  loading.value = true;
   // ------------------------------
   // 🏬 Cargar bodegas
   // ------------------------------
@@ -273,6 +278,8 @@ onMounted(async () => {
     }
   } catch (err) {
     console.error('Error al cargar productos:', err)
+  } finally {
+    loading.value = false;
   }
 })
 
@@ -551,6 +558,7 @@ const dataSource = new CustomStore({
   key: 'id',
 
   load: async () => {
+    loading.value = true
     try {
       const { data } = await conexionApi.get(`/transits/${companyID}`)
       if (data.code === 'OK') {
@@ -576,6 +584,8 @@ const dataSource = new CustomStore({
     } catch (err) {
       console.error('Error cargando tránsitos:', err)
       return []
+    } finally {
+      loading.value = false
     }
   },
 
@@ -652,6 +662,7 @@ const destinyLookup = computed(() => ({
 
 async function cancelarTransito(rowData) {
   if (!confirm('¿Está seguro que desea cancelar este tránsito y liberar los productos?')) return
+  loading.value = true
   try {
     const { data } = await conexionApi.put(`/transits/${rowData.id}/cancel`)
     if (data.code !== 'OK') throw new Error(data.mensaje)
@@ -661,11 +672,14 @@ async function cancelarTransito(rowData) {
   } catch (err) {
     console.error(err)
     alert(err.message || 'Error al cancelar tránsito')
+  } finally {
+    loading.value = false
   }
 }
 
 async function recibirTransito(rowData) {
   if (!confirm('¿Desea recibir este tránsito y mover los productos a la bodega destino?')) return
+  loading.value = true
   try {
     const { data } = await conexionApi.put(`/transits/${rowData.id}/receive`, {
       received_by: currentUser.id
@@ -677,10 +691,13 @@ async function recibirTransito(rowData) {
   } catch (err) {
     console.error(err)
     alert(err.message || 'Error al recibir tránsito')
+  } finally {
+    loading.value = false
   }
 }
 
 async function procesarTransito(rowData) {
+  loading.value = true
   try {
     const { data } = await conexionApi.put(`/transits/${rowData.id}/process`)
     if (data.code !== 'OK') throw new Error(data.mensaje)
@@ -689,6 +706,8 @@ async function procesarTransito(rowData) {
   } catch (err) {
     console.error(err)
     alert('Error al procesar el tránsito')
+  } finally {
+    loading.value = false
   }
 }
 
