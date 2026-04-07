@@ -1,139 +1,167 @@
 <template>
-    <!-- Title -->
-    <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+    <!-- Title Header -->
+    <div
+        class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md">
         <div class="flex items-center gap-4">
-            <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+            <div class="p-3 bg-emerald-600 rounded-2xl shadow-xl shadow-emerald-200">
                 <SparklesIcon class="w-8 h-8 text-white" />
             </div>
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Especies</h1>
-                <p class="text-slate-500 font-medium font-inter">Administración de especies vegetales y frutales</p>
+                <p class="text-slate-500 font-medium font-inter">Administración centralizada de especies vegetales y
+                    frutales</p>
             </div>
         </div>
     </div>
 
-    <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
-           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto relative text-[13px]!">
+    <!-- Main Grid Container -->
+    <div
+        class="mt-4 flex w-full flex-grow items-center justify-around gap-2 rounded-3xl bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative text-[13px]! border border-slate-50">
         <LoadingOverlay :show="loading" />
-        <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
-            :column-auto-width="true" :width="'100%'"">
-        <!-- Panel adaptable -->
+        <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="false"
+            :column-auto-width="true" :width="'100%'" class="custom-grid">
 
-        <DxColumnFixing :enabled="true" />
-        <DxHeaderFilter :visible="true" :allow-search="true" />
-        <DxScrolling column-rendering-mode="virtual" />
+            <DxColumnFixing :enabled="true" />
+            <DxHeaderFilter :visible="true" :allow-search="true" />
+            <DxScrolling column-rendering-mode="virtual" />
+            <DxSearchPanel :visible="true" placeholder="Buscar especie..." :width="280" />
+            <DxPaging :page-size="15" />
 
-        <DxSearchPanel :visible="true" placeholder="Buscar..." />
-        <DxPaging :page-size="15" />
+            <DxColumn data-field="id" caption="ID" width="80" css-class="font-mono text-slate-400 !text-left"
+                alignment="right" />
+            <DxColumn data-field="name" caption="Nombre de la Especie"
+                css-class="font-bold text-slate-700 font-inter !text-left" alignment="right" />
 
-        <DxColumn data-field="name" caption="Nombre" css-class="!text-left" alignment="right" />
+            <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-center"
+                width="150" :allow-filtering="false" />
 
-        <!---
-    <DxColumn data-field="ground" caption="Campo" css-class="!text-left" alignment="right">
-      <DxLookup :data-source="groundsDS" value-expr="id" display-expr="name" />
-    </DxColumn> -->
+            <DxColumn type="buttons" width="140" :buttons="customButtons" :allow-filtering="false" />
 
-        <DxColumn data-field="status" caption="" :cell-template="statusCellTemplate" css-class="!text-center"
-            alignment="right" :allow-filtering="false" />
+            <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true"
+                :use-icons="true">
+                <DxPopup title="Gestión de Especie" :show-title="true" :width="500" :height="350"
+                    class="premium-editor" />
+                <DxForm :col-count="1">
+                    <DxItem data-field="name" caption="Nombre" :is-required="true">
+                        <DxSimpleItem :validation-rules="[{ type: 'required', message: 'El nombre es obligatorio' }]" />
+                    </DxItem>
 
-        <DxColumn type="buttons" width="140" :buttons="customButtons" :allow-filtering="false" />
-        <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true">
-            <DxPopup title="Gestión de Usuario" :show-title="true" :width="900" :height="250" />
-            <DxForm>
-                <DxItem data-field="name" :is-required="true">
-                    <DxSimpleItem :validation-rules="[{ type: 'required', message: 'El nombre es obligatorio' }]" />
-                </DxItem>
-                <!--
-        <DxItem data-field="ground" caption="Campo" editor-type="dxSelectBox" :editor-options="{
-          dataSource: groundsDS,
-          valueExpr: 'id',
-          displayExpr: 'name',
-          searchEnabled: true,
-          placeholder: 'Seleccione campo'
-        }" />
--->
-
-                <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox" :is-required="true"
-                    :editor-options="{
-                        dataSource: [
-                            { id: 1, name: 'Activo' },
-                            { id: 0, name: 'Inactivo' }
-                        ],
-                        displayExpr: 'name',
-                        valueExpr: 'id',
-                        placeholder: 'Seleccione estado'
-                    }" :validation-rules="[{ type: 'required', message: 'El estado es obligatorio' }]" />
-
-            </DxForm>
-
-        </DxEditing>
+                    <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox" :is-required="true"
+                        :editor-options="{
+                            dataSource: [
+                                { id: 1, name: 'Activo' },
+                                { id: 0, name: 'Inactivo' }
+                            ],
+                            displayExpr: 'name',
+                            valueExpr: 'id',
+                            placeholder: 'Seleccione estado...'
+                        }" :validation-rules="[{ type: 'required', message: 'El estado es obligatorio' }]" />
+                </DxForm>
+            </DxEditing>
         </DxDataGrid>
     </div>
 
-    <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
-        <!-- Fondo -->
-        <div class="fixed inset-0 bg-[#0000003d] bg-opacity-50" @click="closeModals"></div>
-
-        <!-- Modal -->
-        <div
-            class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-xl mx-auto">
-            <h2 class="text-xl mb-4">
-                Detalles de la Especie
-                <span class="font-bold rounded-sm">
-                    {{ selectedItem?.name || 'N/A' }}
-                </span>
-            </h2>
-
-            <div class="max-h-[70vh] overflow-y-auto pr-2 space-y-4">
-                <!-- Estado -->
-                <p class="text-sm flex items-center gap-2">
-                    <span v-if="selectedItem?.status !== undefined"
-                        :class="`rounded-full ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor}
-              font-[400] px-3 h-[23px] inline-flex items-center w-[120px] justify-center gap-1 border border-gray-100`">
-                        <span v-if="getStatusMeta(selectedItem.status).pulseColor"
-                            :class="`w-[10px] h-[10px] ${getStatusMeta(selectedItem.status).pulseColor} rounded-full animate-pulse`"></span>
-                        <span>{{ getStatusMeta(selectedItem.status).text }}</span>
-                    </span>
-                </p>
-
-                <!-- VARIEDADES -->
-                <div>
-                    <h3 class="font-bold mb-2">Variedades asociadas</h3>
-
-                    <div v-if="loadingVarieties" class="text-sm text-gray-500">
-                        Cargando variedades...
+    <!-- Improved View Modal -->
+    <Transition name="fade">
+        <div v-if="showViewModal"
+            class="fixed inset-0 flex items-center justify-center z-[100] p-4 bg-slate-900/40 backdrop-blur-sm">
+            <div
+                class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-white/20">
+                <!-- Header del Modal -->
+                <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-emerald-50/30">
+                    <div class="flex items-center gap-5">
+                        <div class="p-4 bg-emerald-100 text-emerald-600 rounded-2xl shadow-sm">
+                            <SparklesIcon class="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Detalles de Especie</h2>
+                            <p class="text-slate-500 font-medium font-inter">Información técnica y variedades asociadas
+                            </p>
+                        </div>
                     </div>
+                    <button @click="closeModals"
+                        class="p-3 hover:bg-white rounded-2xl transition-all hover:shadow-sm w-fit! text-white!">
+                        <XMarkIcon class="w-7 h-7 text-white" />
+                    </button>
+                </div>
 
-                    <div v-else-if="!varieties.length" class="text-sm text-gray-400 italic">
-                        No existen variedades asociadas a esta especie.
-                    </div>
+                <div class="flex flex-col lg:flex-row h-full">
+                    <!-- Sidebar del Modal -->
+                    <div
+                        class="lg:w-1/3 bg-slate-50/50 p-8 border-r border-slate-50 flex flex-col items-center justify-center text-center">
+                        <div
+                            class="w-32 h-32 rounded-[2.5rem] bg-emerald-600 text-white flex items-center justify-center text-5xl font-black mb-6 shadow-xl shadow-emerald-200">
+                            {{ selectedItem?.name?.charAt(0) || '?' }}
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-800 mb-2 leading-tight">{{ selectedItem?.name }}</h3>
 
-                    <div v-else class="space-y-2">
-                        <div v-for="v in varieties" :key="v.id"
-                            class="flex items-center justify-between border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
-                            <span class="text-sm">{{ v.name }}</span>
+                        <!-- Badge de Estado -->
+                        <div v-if="selectedItem?.status !== undefined"
+                            :class="`mt-4 rounded-full ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor}
+                                      font-black px-6 py-2 flex items-center gap-2 border border-white shadow-sm transition-all hover:scale-105`">
                             <span
-                                :class="`text-xs rounded-full px-2 py-[2px] ${getStatusMeta(v.status).bgColor} ${getStatusMeta(v.status).textColor}`">
-                                {{ getStatusMeta(v.status).text }}
+                                :class="`w-3 h-3 ${getStatusMeta(selectedItem.status).pulseColor} rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]`"></span>
+                            <span
+                                class="text-xs uppercase tracking-widest">{{ getStatusMeta(selectedItem.status).text }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Cuerpo del Modal (Variedades) -->
+                    <div class="lg:w-2/3 p-8">
+                        <div class="mb-6 flex items-center justify-between">
+                            <h4 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <PuzzlePieceIcon class="w-5 h-5 text-emerald-500" />
+                                Variedades Asociadas
+                            </h4>
+                            <span
+                                class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider">
+                                {{ varieties.length }} Total
                             </span>
+                        </div>
+
+                        <div class="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div v-if="loadingVarieties" class="space-y-3">
+                                <div v-for="i in 3" :key="i" class="h-16 w-full bg-slate-50 animate-pulse rounded-2xl">
+                                </div>
+                            </div>
+
+                            <div v-else-if="!varieties.length"
+                                class="flex flex-col items-center justify-center py-10 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                                <NoSymbolIcon class="w-12 h-12 text-slate-300 mb-4" />
+                                <p class="text-slate-400 font-bold">No hay variedades para esta especie</p>
+                            </div>
+
+                            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div v-for="v in varieties" :key="v.id"
+                                    class="group flex flex-col p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:border-emerald-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-slate-700">{{ v.name }}</span>
+                                        <span
+                                            :class="`w-2 h-2 rounded-full ${getStatusMeta(v.status).pulseColor}`"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] text-slate-400 font-mono uppercase">ID:
+                                            {{ v.id }}</span>
+                                        <span
+                                            class="text-[10px] font-black text-slate-500 uppercase tracking-tighter">{{ getStatusMeta(v.status).text }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Botón cerrar -->
-            <button @click="closeModals"
-                class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg">
-                Cerrar
-            </button>
         </div>
-    </div>
-
+    </Transition>
 </template>
 
-
 <script setup>
-import { ref, computed, watch, shallowRef } from 'vue'
+import { ref, watch, shallowRef } from 'vue'
+import {
+    XMarkIcon,
+    PuzzlePieceIcon,
+    NoSymbolIcon
+} from '@heroicons/vue/24/outline'
 import { SparklesIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 
@@ -147,20 +175,14 @@ import {
     DxLookup,
     DxPaging,
     DxScrolling,
-    DxColumnChooser,
     DxColumnFixing,
     DxSearchPanel,
-    DxSelection,
-    DxFilterRow,
     DxHeaderFilter
 } from 'devextreme-vue/data-grid'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 // FORM
-import {
-    DxSimpleItem
-} from 'devextreme-vue/form'
-
+import { DxSimpleItem } from 'devextreme-vue/form'
 import conexionApi from '@/services/conexionApi.js'
 import { statusCellTemplate, getStatusMeta } from '@/utils/herlpers'
 
@@ -171,11 +193,7 @@ const selectedItem = ref(null)
 const varieties = ref([])
 const loadingVarieties = ref(false)
 
-
 const companyID = Number(localStorage.getItem('userIdCompany')) || 0
-
-const userRol = Number(localStorage.getItem('rol')) || 0
-
 
 const dataSource = new CustomStore({
     key: 'id',
@@ -199,7 +217,7 @@ const dataSource = new CustomStore({
         }
         const { data } = await conexionApi.post('/configuracion/production/createSpecies', payload)
         if (data.code === "ERROR") throw new Error(data.mensaje)
-        return data.usuario || payload // Devuelve la entidad creada
+        return data.usuario || payload
     },
     update: async (key, values) => {
         const instance = mainGridRef.value.instance;
@@ -208,7 +226,7 @@ const dataSource = new CustomStore({
 
         const { data } = await conexionApi.post('/configuracion/production/updateSpecies', payload)
         if (data.code === "ERROR") throw new Error(data.mensaje)
-        return data.usuario || payload // Devuelve el objeto actualizado
+        return data.usuario || payload
     },
     remove: async (key) => {
         const { data } = await conexionApi.post('/configuracion/production/deleteSpecies', { id: key })
@@ -216,11 +234,25 @@ const dataSource = new CustomStore({
     }
 })
 
-
 function closeModals() {
     showViewModal.value = false
     varieties.value = []
 }
+
+// --- Botones personalizados ---
+const customButtons = [
+    {
+        hint: 'Ver Detalles',
+        icon: 'custom-view',
+        onClick: async (e) => {
+            selectedItem.value = e.row.data
+            showViewModal.value = true
+            await loadVarieties(e.row.data.id)
+        }
+    },
+    'edit',
+    'delete'
+]
 
 // ---------------- CARGA VARIEDADES ----------------
 async function loadVarieties(speciesId) {
@@ -241,19 +273,30 @@ async function loadVarieties(speciesId) {
     }
 }
 
-// --- Botones personalizados ---
-const customButtons = [
-    {
-        hint: 'Ver',
-        icon: 'custom-view',
-        onClick: async (e) => {
-            selectedItem.value = e.row.data
-            showViewModal.value = true
-            await loadVarieties(e.row.data.id)
-        }
-    }, ,
-    'edit',
-    'delete'
-]
-
 </script>
+
+<style scoped>
+.custom-grid :deep(.dx-datagrid-header-panel) {
+    padding: 0 0 20px 0;
+    background-color: transparent;
+}
+
+.custom-grid :deep(.dx-datagrid-search-panel) {
+    margin-left: 0;
+}
+
+.custom-grid :deep(.dx-datagrid-content .dx-datagrid-table .dx-row > td) {
+    padding: 16px;
+    vertical-align: middle;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

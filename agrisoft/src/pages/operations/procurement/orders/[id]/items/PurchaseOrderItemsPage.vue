@@ -1,11 +1,11 @@
 <template>
-  <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
+  <div class="max-w-full mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
     <h1 class="text-2xl font-light text-navy-700 dark:text-white">
       Items de Orden de Compra #{{ purchaseOrderCode || purchaseOrderId }}
     </h1>
   </div>
 
-  <div class="mt-[3px] max-w-11/12 mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
+  <div class="mt-[3px] max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
     <div class="datagrid-container">
       <div class="mb-2 flex gap-2 align-middle  w-fit z-10 mr-0 ml-auto">
         <button
@@ -67,7 +67,7 @@
   <div v-if="showNewProductPopup" class="fixed inset-0 flex items-center justify-center z-50">
     <div class="fixed inset-0 bg-[#ffffff66] backdrop-blur-sm">
       <div
-        class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto top-[50%] translate-y-[-50%]">
+        class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto top-[50%] translate-y-[-50%]">
         <h2 class="text-xl font-semibold mb-4">Nuevo Producto</h2>
         <form @submit.prevent="saveNewProduct" class="space-y-4">
           <div>

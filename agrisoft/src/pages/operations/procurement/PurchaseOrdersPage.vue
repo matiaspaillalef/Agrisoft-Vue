@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-11/12 mx-auto mb-6 pl-2 md:pl-5 flex items-start justify-between">
+  <div class="max-w-full mx-auto mb-6 pl-2 md:pl-5 flex items-start justify-between">
     <div>
       <h1 class="text-2xl font-light text-navy-700 dark:text-white">
         Órdenes de Compra
@@ -15,7 +15,7 @@
     </button>
   </div>
 
-  <div class="mt-[3px] max-w-11/12 mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
+  <div class="mt-[3px] max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
     <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true">
       <DxSearchPanel :visible="true" placeholder="Buscar..." />
       <DxHeaderFilter :visible="true" :allow-search="true" />
@@ -25,7 +25,7 @@
         <DxPopup title="Orden de Compra" :show-title="true" :width="450" :height="320" />
 
         <DxForm :col-count="1">
-  
+
           <DxItem data-field="request_id" caption="Solicitud Aprobada" editor-type="dxSelectBox"
             :editor-options="approvedRequestsEditorOptions">
             <DxRequiredRule message="Debe seleccionar una solicitud" />
@@ -41,7 +41,8 @@
       <DxColumn data-field="order_code" caption="#Orden de Compra" alignment="right" css-class="!text-left" />
       <DxColumn data-field="tracking_code" caption="Solicitud" alignment="right" css-class="!text-left" />
       <DxColumn data-field="supplier_name" caption="Proveedor" alignment="right" css-class="!text-left" />
-      <DxColumn data-field="supplier_rut" caption="RUT Proveedor" alignment="right" css-class="!text-left" :visible="false" />
+      <DxColumn data-field="supplier_rut" caption="RUT Proveedor" alignment="right" css-class="!text-left"
+        :visible="false" />
       <DxColumn data-field="status" caption="Estado" :cell-template="statusTextCellTemplate" alignment="right"
         css-class="!text-left" />
       <DxColumn data-field="created_at" caption="Fecha" data-type="date" format="dd/MM/yyyy" alignment="right"

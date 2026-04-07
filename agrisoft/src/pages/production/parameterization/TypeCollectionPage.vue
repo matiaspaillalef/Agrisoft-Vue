@@ -1,18 +1,22 @@
 <template>
-  <!-- Title -->
-  <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-    <div class="flex flex-col">
-      <h1 class="text-2xl font-light text-navy-700 dark:text-white">Tipo de recolección</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Tipos de recolección registrados en el sistema
-      </p>
+  <!-- Title Header -->
+  <div
+    class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md">
+    <div class="flex items-center gap-4">
+      <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+        <InboxStackIcon class="w-8 h-8 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Tipos de Recolección</h1>
+        <p class="text-slate-500 font-medium font-inter">Administración de métodos y tipos de cosecha</p>
+      </div>
     </div>
   </div>
 
-    <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
-           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto relative text-[13px]!">
-      <LoadingOverlay :show="loading" />
-      <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
+  <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
+           bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative text-[13px]!">
+    <LoadingOverlay :show="loading" />
+    <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
       :width="'100%'"">
     <!-- Panel adaptable -->
 
@@ -57,6 +61,7 @@
 
 <script setup>
 import { ref, computed, watch, shallowRef } from 'vue'
+import { InboxStackIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 
 import {
@@ -72,9 +77,9 @@ import {
   DxColumnChooser,
   DxColumnFixing,
   DxSearchPanel,
-    DxSelection,
-    DxFilterRow,
-    DxHeaderFilter
+  DxSelection,
+  DxFilterRow,
+  DxHeaderFilter
 } from 'devextreme-vue/data-grid'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 

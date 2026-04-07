@@ -38,7 +38,7 @@ onMounted(async () => {
         ])
 
         order.value = orderRes.data.orders[0]
-        
+
         // Guardamos todas para lógica interna, pero filtraremos en el computed
         warehouses.value = whRes.data.warehouses
 
@@ -48,7 +48,7 @@ onMounted(async () => {
             return {
                 ...i,
                 pending_quantity: pending,
-                receive_now: 0, 
+                receive_now: 0,
                 max_receivable: pending
             }
         })
@@ -81,16 +81,16 @@ const statusMeta = computed(() =>
 const onEditorPreparing = (e) => {
     if (e.parentType === 'dataRow' && e.dataField === 'receive_now') {
         const maxQuantity = e.row.data.max_receivable;
-        
+
         e.editorOptions.min = 0;
         e.editorOptions.max = maxQuantity;
         e.editorOptions.showSpinButtons = true;
-        
+
         // Validación visual extra
         e.editorOptions.onValueChanged = (args) => {
             e.setValue(args.value); // Necesario para guardar el valor
             if (args.value > maxQuantity) {
-               // Opcional: Toast o alerta suave
+                // Opcional: Toast o alerta suave
             }
         }
     }
@@ -122,9 +122,9 @@ async function confirmReceipt() {
 
     try {
         await conexionApi.post('/purchase-receipts', payload)
-        
+
         // Usar alguna librería de notificación si tienes (ej: SweetAlert o Toast)
-        alert('Recepción y Tránsito generados correctamente ✅') 
+        alert('Recepción y Tránsito generados correctamente ✅')
         router.push('/dashboard/operations/procurement/purchase-orders')
     } catch (error) {
         // 3. CAPTURA DE ERROR DEL BACKEND (Ej: "Bodega Distribución no existe")
@@ -134,7 +134,7 @@ async function confirmReceipt() {
 }
 </script>
 <template>
-    <div class="max-w-11/12 mx-auto mb-6 pl-2 md:pl-5">
+    <div class="max-w-full mx-auto mb-6 pl-2 md:pl-5">
         <h1 class="text-2xl font-light text-navy-700 dark:text-white">
             Registrar Recepción
         </h1>
@@ -143,8 +143,8 @@ async function confirmReceipt() {
             <span class="font-semibold">#{{ order?.order_code }}</span>
         </p>
     </div>
-    
-    <div class="mt-2 max-w-11/12 mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-4 md:px-10 shadow-xl space-y-6">
+
+    <div class="mt-2 max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-4 md:px-10 shadow-xl space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
                 <p class="text-gray-500">Proveedor</p>
@@ -172,7 +172,7 @@ async function confirmReceipt() {
                 Bodega de destino
                 <span class="text-xs text-blue-500 ml-2">(Se generará tránsito desde Bodega Central)</span>
             </label>
-            
+
             <select v-model="selectedWarehouse"
                 class="w-1/4 mt-1 rounded-lg dark:bg-navy-700 dark:border-navy-600 border border-gray-200 h-[35px] px-2 text-sm">
                 <option :value="null">Seleccione bodega destino</option>
@@ -180,38 +180,30 @@ async function confirmReceipt() {
                     {{ w.name }}
                 </option>
             </select>
-            
+
             <p v-if="destinationWarehouses.length === 0 && warehouses.length > 0" class="text-xs text-red-500 mt-1">
                 ⚠️ No hay bodegas de destino disponibles. Verifica que no todas sean de distribución.
             </p>
         </div>
 
-        <DxDataGrid 
-            :data-source="items" 
-            key-expr="id" 
-            :show-borders="true" 
-            :column-auto-width="true"
-            @editor-preparing="onEditorPreparing"
-        >
+        <DxDataGrid :data-source="items" key-expr="id" :show-borders="true" :column-auto-width="true"
+            @editor-preparing="onEditorPreparing">
             <DxColumn data-field="product_name" caption="Producto" :allow-editing="false" css-class="!text-left" />
-            <DxColumn data-field="quantity" caption="Comprado" data-type="number" :allow-editing="false" css-class="!text-left" />
-            <DxColumn data-field="received_quantity" caption="Recibido" data-type="number" :allow-editing="false" css-class="!text-left" />
-            <DxColumn data-field="pending_quantity" caption="Pendiente" data-type="number" :allow-editing="false" css-class="!text-left" />
+            <DxColumn data-field="quantity" caption="Comprado" data-type="number" :allow-editing="false"
+                css-class="!text-left" />
+            <DxColumn data-field="received_quantity" caption="Recibido" data-type="number" :allow-editing="false"
+                css-class="!text-left" />
+            <DxColumn data-field="pending_quantity" caption="Pendiente" data-type="number" :allow-editing="false"
+                css-class="!text-left" />
 
-            <DxColumn 
-                data-field="receive_now" 
-                caption="Recibir ahora" 
-                data-type="number" 
-                :allow-editing="true"
-                cell-template="receiveCell" 
-                css-class="!text-left" 
-            />
+            <DxColumn data-field="receive_now" caption="Recibir ahora" data-type="number" :allow-editing="true"
+                cell-template="receiveCell" css-class="!text-left" />
 
             <template #receiveCell="{ data }">
                 <div :class="[
                     'px-2 py-1 rounded-md border font-medium text-center cursor-pointer',
-                    data.value > 0 
-                        ? 'border-indigo-400 bg-indigo-50 text-indigo-700' 
+                    data.value > 0
+                        ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
                         : 'border-gray-200 bg-gray-50 text-gray-400'
                 ]">
                     {{ data.value }}
@@ -228,11 +220,13 @@ async function confirmReceipt() {
         </div>
 
         <div class="flex justify-end gap-3">
-            <button class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium" @click="router.back()">
+            <button class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium"
+                @click="router.back()">
                 Cancelar
             </button>
 
-            <button class="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all"
+            <button
+                class="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all"
                 :disabled="!canSubmit" @click="confirmReceipt">
                 Confirmar recepción
             </button>

@@ -7,13 +7,14 @@
             </div>
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Temporadas</h1>
-                <p class="text-slate-500 font-medium font-inter">Administración de ciclos agrícolas, períodos y planificación</p>
+                <p class="text-slate-500 font-medium font-inter">Administración de ciclos agrícolas, períodos y
+                    planificación</p>
             </div>
         </div>
     </div>
 
     <!-- ALERTA TEMPORADA -->
-    <div v-if="seasonAlert" class="max-w-11/12 mx-auto mb-4">
+    <div v-if="seasonAlert" class="max-w-full mx-auto mb-4">
         <div
             class="flex items-start gap-3 rounded-xl border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -32,7 +33,7 @@
     </div>
 
     <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
-           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto relative text-[13px]!">
+           bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative text-[13px]!">
         <LoadingOverlay :show="loading" />
         <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
             :column-auto-width="true" :width="'100%'"" :on-init-new-row="editingOptions.onInitNewRow"

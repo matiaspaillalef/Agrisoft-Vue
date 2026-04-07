@@ -2,7 +2,7 @@
   <!-- =========================
        TÍTULO
   ========================== -->
-  <div class="max-w-11/12 mx-auto mb-6 pl-2 md:pl-5">
+  <div class="max-w-full mx-auto mb-6 pl-2 md:pl-5">
     <h1 class="text-2xl font-light text-navy-700 dark:text-white">
       Solicitudes de Compra
     </h1>
@@ -10,7 +10,7 @@
       Solicitudes internas previas a la creación de una orden de compra.
     </p>
   </div>
-  <div class="mt-[3px] max-w-11/12 mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl relative">
+  <div class="mt-[3px] max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl relative">
     <LoadingOverlay :show="loading" />
     <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
       :column-hiding-enabled="true">
@@ -35,15 +35,16 @@
         </DxForm>
       </DxEditing>
       <DxColumn data-field="tracking_code" caption="#Código de solicitud" :allow-editing="false"
-        :css-class="'text-left!'" alignment="right"/>
-      <DxColumn data-field="requester" caption="Solicitante" :allow-editing="false" :css-class="'text-left!'" alignment="right"/>
+        :css-class="'text-left!'" alignment="right" />
+      <DxColumn data-field="requester" caption="Solicitante" :allow-editing="false" :css-class="'text-left!'"
+        alignment="right" />
       <DxColumn data-field="justification" caption="Justificación" :allow-editing="true" :css-class="'text-left!'"
-        :visible="false" alignment="right"/>
+        :visible="false" alignment="right" />
       <DxColumn data-field="status" caption="Estado" :allow-editing="false" :css-class="'text-left!'"
-        :cell-template="statusTextCellTemplate" alignment="right"/>
+        :cell-template="statusTextCellTemplate" alignment="right" />
 
       <DxColumn data-field="created_at" caption="Fecha" data-type="date" format="dd/MM/yyyy" :allow-editing="false"
-        :css-class="'text-left!'" alignment="right"/>
+        :css-class="'text-left!'" alignment="right" />
       <DxColumn type="buttons" :buttons="customButtons" />
     </DxDataGrid>
   </div>
@@ -54,7 +55,7 @@
 
     <!-- Contenedor del modal -->
     <div
-      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto">
+      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto">
       <h2 class="text-xl mb-4">
         Detalles de la solicitud
         <span class="font-bold rounded-sm">

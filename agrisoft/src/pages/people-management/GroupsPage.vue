@@ -6,7 +6,8 @@
             </div>
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Grupos</h1>
-                <p class="text-slate-500 font-medium font-inter">Administración de grupos de trabajo y equipos de campo</p>
+                <p class="text-slate-500 font-medium font-inter">Administración de grupos de trabajo y equipos de campo
+                </p>
             </div>
         </div>
     </div>
@@ -27,7 +28,7 @@
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                     </svg>
-                    Nueva Cuadrilla
+                    Nuevo Grupo
                     <span
                         class="absolute inset-0 w-full h-full bg-white/10 transform translate-y-full hover:translate-y-0 transition-transform duration-300"></span>
                 </button>

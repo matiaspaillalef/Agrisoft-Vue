@@ -1,17 +1,20 @@
 <template>
   <!-- Title -->
-  <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-    <div class="flex flex-col">
-      <h1 class="text-2xl font-light text-navy-700 dark:text-white">Empresas</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Empresas registradas en el sistema
-      </p>
+  <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+        <BuildingOffice2Icon class="w-8 h-8 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Empresas</h1>
+        <p class="text-slate-500 font-medium font-inter">Administración centralizada de empresas</p>
+      </div>
     </div>
   </div>
 
   <!-- GRID -->
   <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
-           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto relative">
+           bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative">
     <LoadingOverlay :show="loading" />
     <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
       :width="'100%'" @editing-start="onEditingStart" @editor-preparing="onEditorPreparing">
@@ -75,13 +78,13 @@
                 form?.updateData('rut', formatted)
               }
             }" :validation-rules="[
-        { type: 'required', message: 'El RUT es obligatorio' },
-        {
-          type: 'custom',
-          message: 'RUT chileno inválido',
-          validationCallback: (e) => validarRutChileno(e.value)
-        }
-      ]" />
+              { type: 'required', message: 'El RUT es obligatorio' },
+              {
+                type: 'custom',
+                message: 'RUT chileno inválido',
+                validationCallback: (e) => validarRutChileno(e.value)
+              }
+            ]" />
 
             <DxItem data-field="giro" caption="Giro"
               :validation-rules="[{ type: 'required', message: 'El giro es obligatorio' }]" />
@@ -148,13 +151,13 @@
                 form?.updateData('legal_representative_rut', formatted)
               }
             }" :validation-rules="[
-        { type: 'required', message: 'El RUT es obligatorio' },
-        {
-          type: 'custom',
-          message: 'RUT chileno inválido',
-          validationCallback: (e) => validarRutChileno(e.value)
-        }
-      ]" />
+              { type: 'required', message: 'El RUT es obligatorio' },
+              {
+                type: 'custom',
+                message: 'RUT chileno inválido',
+                validationCallback: (e) => validarRutChileno(e.value)
+              }
+            ]" />
 
             <DxItem data-field="legal_representative_phone" caption="Teléfono" :validation-rules="[
               { type: 'required', message: 'El teléfono es obligatorio' },
@@ -189,13 +192,13 @@
                 form?.updateData('system_representative_rut', formatted)
               }
             }" :validation-rules="[
-        { type: 'required', message: 'El RUT es obligatorio' },
-        {
-          type: 'custom',
-          message: 'RUT chileno inválido',
-          validationCallback: (e) => validarRutChileno(e.value)
-        }
-      ]" />
+              { type: 'required', message: 'El RUT es obligatorio' },
+              {
+                type: 'custom',
+                message: 'RUT chileno inválido',
+                validationCallback: (e) => validarRutChileno(e.value)
+              }
+            ]" />
 
             <DxItem data-field="system_representative_phone" caption="Teléfono" :validation-rules="[
               { type: 'required', message: 'El teléfono es obligatorio' },
@@ -216,116 +219,248 @@
             ]" />
           </DxSimpleItem>
         </DxForm>
-
       </DxEditing>
-
-
     </DxDataGrid>
   </div>
 
-  <!-- Modal de solo lectura con Tailwind -->
-  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
-    <!-- Fondo oscuro -->
-    <div class="fixed inset-0 bg-[#0000003d] bg-opacity-50" @click="closeModals"></div>
+  <!-- Modal de solo lectura Premium -->
+  <Transition name="fade">
+    <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[1000] p-4">
+      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeModals"></div>
 
-    <!-- Contenedor del modal -->
-    <div
-      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto">
-      <h2 class="text-xl mb-4">
-        Detalles de la Empresa
-        <span class="font-bold rounded-sm">
-          {{ selectedItem?.name_company || 'N/A' }}
-        </span>
-      </h2>
-      <div class="max-h-96 overflow-y-scroll pr-2">
-        <div class="space-y-2">
-          <div
-            class="w-24 h-24 rounded-md overflow-hidden mb-2 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center p-2">
-            <img :src="selectedItem?.logo || noFoundImg" alt="Logo Empresa" class="object-contain w-full h-full" />
+      <div
+        class="bg-white dark:bg-navy-800 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden relative z-10 flex flex-col md:flex-row h-auto max-h-[90vh]">
+
+        <!-- Sidebar decorativa / Logo -->
+        <div
+          class="w-full md:w-1/3 bg-slate-50 dark:bg-navy-900/50 p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 dark:border-navy-700">
+          <div class="relative group">
+            <div
+              class="absolute -inset-1 bg-gradient-to-r from-brand-500 to-brand-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200">
+            </div>
+            <div
+              class="relative w-32 h-32 bg-white dark:bg-navy-800 rounded-2xl shadow-inner flex items-center justify-center p-4 overflow-hidden border border-slate-200 dark:border-navy-700">
+              <img :src="selectedItem?.logo || noFoundImg" alt="Logo" class="object-contain w-full h-full" />
+            </div>
           </div>
 
-          <p class="text-sm flex items-center gap-2">
+          <h2 class="mt-6 text-xl font-bold text-navy-700 dark:text-white text-center leading-tight">
+            {{ selectedItem?.name_company }}
+          </h2>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium tracking-wide uppercase">
+            {{ selectedItem?.rut }}
+          </p>
+
+          <div class="mt-6">
             <span v-if="selectedItem?.status !== undefined"
-              :class="`rounded-full ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor} font-[400] px-3 h-[23px] inline-flex items-center w-[120px] justify-center gap-1 border border-gray-100`">
+              :class="`rounded-full ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor} text-xs font-bold px-4 py-1.5 inline-flex items-center gap-2 border border-current/10 shadow-sm`">
               <span v-if="getStatusMeta(selectedItem.status).pulseColor"
-                :class="`w-[10px] h-[10px] ${getStatusMeta(selectedItem.status).pulseColor} rounded-full animate-pulse`"></span>
-
-              <span>{{ getStatusMeta(selectedItem.status).text }}</span>
+                :class="`w-2 h-2 ${getStatusMeta(selectedItem.status).pulseColor} rounded-full animate-pulse`"></span>
+              {{ getStatusMeta(selectedItem.status).text }}
             </span>
-          </p>
-          <p class="text-sm">
-            <strong>RUT</strong>: {{ selectedItem?.rut || 'N/A' }}
-          </p>
+          </div>
 
-          <p class="text-sm">
-            <strong>Giro Comercial:</strong> {{ selectedItem?.giro || 'N/A' }}
-          </p>
-
-          <p class="text-sm">
-            <strong>Teléfono:</strong> {{ selectedItem?.phone || 'N/A' }}
-          </p>
-
-          <p class="text-sm">
-            <strong>Web:</strong> {{ selectedItem?.web || 'N/A' }}
-          </p>
-
-          <p class="text-sm">
-            <strong>Dirección:</strong> {{ selectedItem?.address || 'N/A' }}
-          </p>
-
-          <p class="text-sm">
-            <strong>Ciudad:</strong> {{ selectedItem?.city || 'N/A' }}
-          </p>
-
-          <p class="text-sm">
-            <strong>Región:</strong> {{ getRegionName(selectedItem?.state) || 'N/A' }}
-          </p>
-
-          <p class="text-sm">
-            <strong>Caja de Compensación:</strong> {{ getCompensationBoxName(selectedItem?.compensation_box) || 'N/A' }}
-          </p>
+          <div class="mt-auto hidden md:block w-full">
+            <div class="p-4 bg-white/50 dark:bg-navy-800/50 rounded-xl border border-slate-100 dark:border-navy-700">
+              <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Giro Comercial</p>
+              <p class="text-xs text-navy-700 dark:text-slate-200 line-clamp-3 leading-relaxed">
+                {{ selectedItem?.giro || 'No especificado' }}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div class="space-y-2">
-          <h3 class="mt-4 mb-3 font-bold">Representante Legal</h3>
-          <p class="text-sm">
-            <strong>Nombre:</strong> {{ selectedItem?.legal_representative_name || 'N/A' }}
-          </p>
-          <p class="text-sm">
-            <strong>RUT:</strong> {{ selectedItem?.legal_representative_rut || 'N/A' }}
-          </p>
-          <p class="text-sm">
-            <strong>Teléfono:</strong> {{ selectedItem?.legal_representative_phone || 'N/A' }}
-          </p>
-          <p class="text-sm">
-            <strong>Email:</strong> {{ selectedItem?.legal_representative_email || 'N/A' }}
-          </p>
-        </div>
+        <!-- Contenido principal -->
+        <div class="flex-1 flex flex-col min-h-0">
+          <!-- Header interior -->
+          <div class="px-8 pt-8 pb-4 flex justify-between items-center bg-white dark:bg-navy-800 sticky top-0 z-10">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="dx-icon-info text-brand-500"></i>
+              Detalles de la Organización
+            </h3>
+            <button @click="closeModals"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors w-fit!">
+              <i class="dx-icon-close text-xl text-brand-500 hover:text-brand-600"></i>
+            </button>
+          </div>
 
-        <div class="space-y-2">
-          <h3 class="mt-4 mb-3 font-bold">Representante del Sistema</h3>
-          <p class="text-sm">
-            <strong>Nombre:</strong> {{ selectedItem?.system_representative_name || 'N/A' }}
-          </p>
-          <p class="text-sm">
-            <strong>RUT:</strong> {{ selectedItem?.system_representative_rut || 'N/A' }}
-          </p>
-          <p class="text-sm">
-            <strong>Teléfono:</strong> {{ selectedItem?.system_representative_phone || 'N/A' }}
-          </p>
-          <p class="text-sm">
-            <strong>Email:</strong> {{ selectedItem?.system_representative_email || 'N/A' }}
-          </p>
+          <!-- Scroll Area -->
+          <div class="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+
+              <!-- Sección General -->
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+                    Información General
+                  </h4>
+                  <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                      <div
+                        class="p-2 rounded-lg bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700">
+                        <i class="dx-icon-globe text-slate-400 text-sm"></i>
+                      </div>
+                      <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Sitio Web</p>
+                        <a :href="selectedItem?.web" target="_blank"
+                          class="text-sm text-brand-500 hover:underline truncate block max-w-[150px]">
+                          {{ selectedItem?.web || 'N/A' }}
+                        </a>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                      <div
+                        class="p-2 rounded-lg bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700">
+                        <i class="dx-icon-tel text-slate-400 text-sm"></i>
+                      </div>
+                      <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Teléfono Principal
+                        </p>
+                        <p class="text-sm text-navy-700 dark:text-slate-200">{{ selectedItem?.phone || 'N/A' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+                    Ubicación y Entidad
+                  </h4>
+                  <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                      <div
+                        class="p-2 rounded-lg bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700">
+                        <i class="dx-icon-map text-slate-400 text-sm"></i>
+                      </div>
+                      <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Dirección</p>
+                        <p class="text-sm text-navy-700 dark:text-slate-200 leading-snug">
+                          {{ selectedItem?.address || 'N/A' }}, {{ selectedItem?.city }},
+                          {{ getRegionName(selectedItem?.state) }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                      <div
+                        class="p-2 rounded-lg bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700">
+                        <i class="dx-icon-home text-slate-400 text-sm"></i>
+                      </div>
+                      <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Caja de Compensación
+                        </p>
+                        <p class="text-sm text-navy-700 dark:text-slate-200">
+                          {{ getCompensationBoxName(selectedItem?.compensation_box) || 'No asignada' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Representantes -->
+              <div class="space-y-8">
+                <!-- Legal -->
+                <div
+                  class="p-5 rounded-2xl bg-indigo-50/30 dark:bg-indigo-500/5 border border-indigo-100/50 dark:border-indigo-500/10">
+                  <h4
+                    class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="dx-icon-user text-sm"></i>
+                    Rep. Legal
+                  </h4>
+                  <div class="space-y-3">
+                    <p class="text-sm font-semibold text-navy-700 dark:text-white leading-tight">
+                      {{ selectedItem?.legal_representative_name || 'N/A' }}
+                    </p>
+                    <div class="grid grid-cols-1 gap-2 text-[13px]">
+                      <div class="flex justify-between border-b border-slate-200/50 dark:border-navy-700 pb-1">
+                        <span class="text-slate-400">RUT</span>
+                        <span
+                          class="text-navy-700 dark:text-slate-300 font-medium">{{ selectedItem?.legal_representative_rut || 'N/A' }}</span>
+                      </div>
+                      <div class="flex justify-between border-b border-slate-200/50 dark:border-navy-700 pb-1">
+                        <span class="text-slate-400">Email</span>
+                        <span
+                          class="text-navy-700 dark:text-slate-300 font-medium truncate ml-4">{{ selectedItem?.legal_representative_email || 'N/A' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sistema -->
+                <div
+                  class="p-5 rounded-2xl bg-emerald-50/40 dark:bg-emerald-500/5 border border-emerald-100/50 dark:border-emerald-500/10">
+                  <h4
+                    class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="dx-icon-preferences text-sm"></i>
+                    Rep. Sistema
+                  </h4>
+                  <div class="space-y-3">
+                    <p class="text-sm font-semibold text-navy-700 dark:text-white leading-tight">
+                      {{ selectedItem?.system_representative_name || 'N/A' }}
+                    </p>
+                    <div class="grid grid-cols-1 gap-2 text-[13px]">
+                      <div class="flex justify-between border-b border-white/20 dark:border-navy-700 pb-1">
+                        <span class="text-slate-400">Email</span>
+                        <span
+                          class="text-navy-700 dark:text-slate-300 font-medium truncate ml-4">{{ selectedItem?.system_representative_email || 'N/A' }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Teléfono</span>
+                        <span
+                          class="text-navy-700 dark:text-slate-300 font-medium">{{ selectedItem?.system_representative_phone || 'N/A' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Footer Action -->
+          <div
+            class="px-8 py-6 bg-slate-50/80 dark:bg-navy-900 shadow-[0_-1px_0_rgba(0,0,0,0.05)] dark:shadow-[0_-1px_0_rgba(255,255,255,0.05)] flex justify-end">
+            <button @click="closeModals"
+              class="px-6 py-2 bg-white dark:bg-navy-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl border border-slate-200 dark:border-navy-700 hover:bg-slate-100 dark:hover:bg-navy-700 transition-all shadow-sm">
+              Cerrar Vista
+            </button>
+          </div>
         </div>
       </div>
-      <!-- Botón cerrar -->
-      <button @click="closeModals" class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg">
-        Cerrar
-      </button>
     </div>
-  </div>
+  </Transition>
 </template>
 
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+</style>
 
 <script setup>
 import { ref, computed, reactive } from 'vue'
@@ -360,6 +495,8 @@ import { StateCL } from '@/utils/dataState.js'
 import { ProvitionalCL } from '@/utils/dataProvitionals'
 
 import noFoundImg from '@/assets/img/nofound.svg'
+
+import { BuildingOffice2Icon } from '@heroicons/vue/24/outline'
 
 const loading = ref(false)
 const mainGridRef = ref(null)

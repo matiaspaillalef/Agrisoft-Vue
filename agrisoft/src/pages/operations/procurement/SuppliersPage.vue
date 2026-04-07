@@ -1,6 +1,6 @@
 <template>
     <!-- Title -->
-    <div class="max-w-11/12 mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
+    <div class="max-w-full mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
         <div>
             <h1 class="text-2xl font-light text-navy-700 dark:text-white">Proveedores</h1>
             <p class="text-sm text-gray-500">Gestión de proveedores de la empresa</p>
@@ -8,7 +8,7 @@
     </div>
 
     <!-- GRID -->
-    <div class="bg-white rounded-2xl shadow-xl px-6 py-6 max-w-11/12 mx-auto relative">
+    <div class="bg-white rounded-2xl shadow-xl px-6 py-6 max-w-full mx-auto relative">
         <LoadingOverlay :show="loading" />
         <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
             :column-auto-width="true" @editor-preparing="onEditorPreparing" @saving="onSaving">
@@ -46,8 +46,7 @@
                                 form?.updateData('rut', formatted)
                             }
                         }
-                    }" 
-                    :validation-rules="[
+                    }" :validation-rules="[
                         { type: 'required', message: 'El RUT es obligatorio' },
                         {
                             type: 'custom',

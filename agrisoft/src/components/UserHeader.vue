@@ -13,7 +13,7 @@
         -->
         <div
           class="nevmenu-top relative mt-[3px] flex h-[61px] w-full flex-grow items-center justify-around gap-2 rounded-full bg-white py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 dark:bg-blue-950 px-5 md:px-10"
-          v-if="[8, 9].includes(Number(rolId))">
+          v-if="[7, 8, 10, 11].includes(Number(computedRolId))">
           <ul class="flex items-center gap-2 dark:text-white md:gap-4">
             <MenuItem v-for="item in filteredChildren" :key="item.id" :item="item" />
             <li>
@@ -48,12 +48,11 @@
           </div>
 
           <span class="flex cursor-pointer text-xl text-gray-600 dark:text-white" mr-3
-            :class="{ 'xl:hidden': ![7, 8].includes(Number(rolId)) }">
+            :class="{ 'xl:hidden': ![7, 8, 10, 11].includes(Number(computedRolId)) }">
             <WeatherMini />
           </span>
 
-          <span class="flex cursor-pointer text-xl text-gray-600 dark:text-white"
-            v-if="!isLargeScreen">
+          <span class="flex cursor-pointer text-xl text-gray-600 dark:text-white" v-if="!isLargeScreen">
             <!-- Ícono hamburguesa -->
             <button @click="$emit('toggle-mobile')" class="p-0 border-none bg-transparent cursor-pointer">
               <Bars4Icon class="h-6 w-6" />
@@ -98,6 +97,15 @@
           </div>
 
 
+          <!-- Botón de retorno de suplantación 
+          <div v-if="isImpersonating" class="hidden md:flex">
+            <button @click="revertImpersonation" 
+              class="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold border border-red-200 transition-all text-xs group">
+              <ArrowRightOnRectangleIcon class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              Finalizar Suplantación
+            </button>
+          </div>-->
+
           <div
             class="flex items-center justify-center w-8 h-8 p-[7px] text-navy-700 rounded-full shadow-xl shadow-shadow-500 dark:bg-white cursor-pointer"
             @click="toggleDarkMode">
@@ -126,7 +134,7 @@ import Breadcrumb from '@/components/Breadcrumbs/Breadcrumbs.vue'
 import WeatherMini from '@/components/Weather/WeatherMini.vue'
 import { useDarkMode } from '@/plugins/darkMode.js'
 import { MoonIcon, SunIcon, Bars4Icon } from '@heroicons/vue/24/solid'
-import { ChevronDoubleLeftIcon, XCircleIcon, BellIcon } from '@heroicons/vue/24/outline'
+import { ChevronDoubleLeftIcon, XCircleIcon, BellIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 import { MenuService } from '@/api/menu.services'
 import MenuItem from '@/components/Menu/MenuItem.vue'
 import axios from 'axios'
@@ -139,7 +147,7 @@ import { alertsUpdateTrigger, notifyAlertsChange } from '@/services/alertsState.
 const menu = ref([])
 const error = ref(null)
 const { isDarkMode, toggleDarkMode } = useDarkMode()
-const props = defineProps({ 
+const props = defineProps({
   isCollapsed: Boolean,
   isLargeScreen: Boolean
 })
@@ -147,7 +155,29 @@ const emit = defineEmits(['toggle-mobile'])
 const nombre = ref('')
 const apellido = ref('')
 const router = useRouter()
+const computedRolId = computed(() => localStorage.getItem('rol') || '')
 const rolId = localStorage.getItem('rol') || ''
+
+const isImpersonating = ref(!!localStorage.getItem('original_token'))
+const revertImpersonation = () => {
+  if (!localStorage.getItem('original_token')) return
+
+  localStorage.setItem('token', localStorage.getItem('original_token'))
+  localStorage.setItem('userId', localStorage.getItem('original_userId'))
+  localStorage.setItem('rol', localStorage.getItem('original_rol'))
+  localStorage.setItem('userName', localStorage.getItem('original_userName'))
+  localStorage.setItem('userLastname', localStorage.getItem('original_userLastname'))
+  localStorage.setItem('userIdCompany', localStorage.getItem('original_userIdCompany'))
+
+  localStorage.removeItem('original_token')
+  localStorage.removeItem('original_userId')
+  localStorage.removeItem('original_rol')
+  localStorage.removeItem('original_userName')
+  localStorage.removeItem('original_userLastname')
+  localStorage.removeItem('original_userIdCompany')
+
+  window.location.href = '/dashboard/enviroment/user-creation'
+}
 
 // Iniciales
 const initials = ref('')
@@ -172,12 +202,30 @@ onMounted(async () => {
 })
 
 // Filtrado de children según rol
+const flattenMenu = (items) => {
+  return items.reduce((acc, item) => {
+    acc.push(item)
+    if (item.children && item.children.length > 0) {
+      acc.push(...flattenMenu(item.children))
+    }
+    return acc
+  }, [])
+}
+
 const filteredChildren = computed(() => {
-  if (!menu.value[0]?.children) return []
-  if (Number(rolId) === 8) {
-    return menu.value[0].children.filter((item) => [19, 20, 21].includes(item.id))
-  } else if (Number(rolId) === 7) {
-    return menu.value[0].children.filter((item) => [19, 20].includes(item.id))
+  const currentRolId = localStorage.getItem('rol')
+  if (!menu.value.length) return []
+  const allItems = flattenMenu(menu.value)
+
+  const rid = Number(currentRolId)
+  if (rid === 8) {
+    return allItems.filter((item) => [19, 20, 21].includes(item.id))
+  } else if (rid === 7) {
+    return allItems.filter((item) => [19, 20].includes(item.id))
+  } else if (rid === 10) {
+    return allItems.filter((item) => [29, 30].includes(item.id) || ['Libro', 'Configuración'].includes(item.name))
+  } else if (rid === 11) {
+    return allItems.filter((item) => item.id === 19)
   }
   return []
 })

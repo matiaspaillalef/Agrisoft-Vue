@@ -1,10 +1,15 @@
 <template>
-    <div class="mb-6 flex justify-between items-center w-full">
-        <div class="flex flex-col">
-            <h1 class="text-2xl font-light text-navy-700 dark:text-white">Regularización de Producción</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Revisión y ajuste masivo de registros productivos
-            </p>
+    <!-- Title Header -->
+    <div
+        class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+                <AdjustmentsHorizontalIcon class="w-8 h-8 text-white" />
+            </div>
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Regularización de Producción</h1>
+                <p class="text-slate-500 font-medium font-inter">Revisión y ajuste masivo de registros productivos</p>
+            </div>
         </div>
     </div>
 
@@ -103,14 +108,14 @@
     </div>
 
     <!-- GRID CONTAINER -->
-    <div class="custom-grid-container relative mt-[3px] flex w-full flex-grow flex-col items-center justify-around gap-2 rounded-2xl bg-white py-6 shadow-xl px-2 md:px-10 mb-6 min-h-[400px]">
+    <div
+        class="custom-grid-container relative mt-[3px] flex w-full flex-grow flex-col items-center justify-around gap-2 rounded-2xl bg-white py-6 shadow-xl px-2 md:px-10 mb-6 min-h-[400px]">
         <DxDataGrid :ref="el => gridRef = el" :data-source="dataSource" :show-borders="true"
-            v-model:selected-row-keys="selectedRowKeys" class="custom-grid overflow-hidden w-full" :column-auto-width="true"
-            @exporting="onExporting"
-            @editor-preparing="onEditorPreparing"
-            :load-panel="{ enabled: false }"
-            :allow-column-reordering="true" :allow-column-resizing="true" key-expr="id">
-            
+            v-model:selected-row-keys="selectedRowKeys" class="custom-grid overflow-hidden w-full"
+            :column-auto-width="true" @exporting="onExporting" @editor-preparing="onEditorPreparing"
+            :load-panel="{ enabled: false }" :allow-column-reordering="true" :allow-column-resizing="true"
+            key-expr="id">
+
             <DxExport :enabled="true" :allow-export-selected-data="true" />
 
             <DxToolbar>
@@ -133,20 +138,24 @@
             <DxColumn data-field="ground" caption="Campo" alignment="right" css-class="!text-left">
                 <DxLookup :data-source="groundsList" value-expr="id" display-expr="name" />
             </DxColumn>
-            <DxColumn data-field="worker" caption="Trabajador" alignment="right" css-class="!text-left" :set-cell-value="setWorkerValue">
+            <DxColumn data-field="worker" caption="Trabajador" alignment="right" css-class="!text-left"
+                :set-cell-value="setWorkerValue">
                 <DxLookup :data-source="workersList" value-expr="id" :display-expr="getWorkerName" />
             </DxColumn>
-            <DxColumn data-field="worker_rut" caption="RUT" alignment="right" css-class="!text-left" :set-cell-value="setWorkerRutValue">
+            <DxColumn data-field="worker_rut" caption="RUT" alignment="right" css-class="!text-left"
+                :set-cell-value="setWorkerRutValue">
                 <DxLookup :data-source="workersList" value-expr="id" display-expr="rut" />
             </DxColumn>
-            <DxColumn data-field="specie" caption="Especie" alignment="right" css-class="!text-left" :set-cell-value="setSpecieValue">
+            <DxColumn data-field="specie" caption="Especie" alignment="right" css-class="!text-left"
+                :set-cell-value="setSpecieValue">
                 <DxLookup :data-source="speciesList" value-expr="id" display-expr="name" />
             </DxColumn>
             <DxColumn data-field="variety" caption="Variedad" alignment="right" css-class="!text-left">
                 <DxLookup :data-source="varietiesList" value-expr="id" display-expr="name" />
             </DxColumn>
 
-            <DxColumn data-field="kg_boxes" caption="Kg Cajas" data-type="number" alignment="right" css-class="!text-left" />
+            <DxColumn data-field="kg_boxes" caption="Kg Cajas" data-type="number" alignment="right"
+                css-class="!text-left" />
             <DxColumn data-field="boxes" caption="Cajas" data-type="number" alignment="right" css-class="!text-left" />
 
             <DxColumn type="buttons" width="60" :buttons="['edit', 'delete']" />
@@ -169,20 +178,31 @@
 
         <!-- Standalone Custom Loader (Manual Overlay for absolute reliability) -->
         <Transition name="fade-loader">
-            <div v-if="loading" class="absolute inset-0 z-[2000] flex items-center justify-center bg-white/20 dark:bg-navy-900/10 backdrop-blur-[2px] rounded-3xl overflow-hidden">
-                <div class="custom-loader-wrapper p-10 bg-white/95 dark:bg-navy-800/95 backdrop-blur-2xl rounded-[40px] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.2)] border border-white/20 flex flex-col items-center justify-center min-w-[240px]">
+            <div v-if="loading"
+                class="absolute inset-0 z-[2000] flex items-center justify-center bg-white/20 dark:bg-navy-900/10 backdrop-blur-[2px] rounded-3xl overflow-hidden">
+                <div
+                    class="custom-loader-wrapper p-10 bg-white/95 dark:bg-navy-800/95 backdrop-blur-2xl rounded-[40px] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.2)] border border-white/20 flex flex-col items-center justify-center min-w-[240px]">
                     <div class="custom-spinner-box relative w-20 h-20 flex items-center justify-center">
-                        <div class="spinner-ring outer absolute inset-0 border-[4px] border-transparent border-t-blue-500 rounded-full"></div>
-                        <div class="spinner-ring inner absolute inset-[6px] border-[4px] border-transparent border-b-blue-400 rounded-full opacity-60"></div>
-                        <div class="spinner-logo bg-gradient-to-br from-blue-600 to-blue-400 p-2.5 rounded-xl rotate-12 animate-pulse shadow-lg ring-4 ring-blue-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        <div
+                            class="spinner-ring outer absolute inset-0 border-[4px] border-transparent border-t-blue-500 rounded-full">
+                        </div>
+                        <div
+                            class="spinner-ring inner absolute inset-[6px] border-[4px] border-transparent border-b-blue-400 rounded-full opacity-60">
+                        </div>
+                        <div
+                            class="spinner-logo bg-gradient-to-br from-blue-600 to-blue-400 p-2.5 rounded-xl rotate-12 animate-pulse shadow-lg ring-4 ring-blue-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </div>
                     </div>
                     <div class="spinner-text-group mt-6 flex flex-col items-center">
-                        <span class="spinner-main-text font-bold text-navy-700 dark:text-white text-xl tracking-tight leading-none">Procesando</span>
-                        <span class="spinner-sub-text text-blue-500 text-[11px] font-black uppercase tracking-[0.4em] mt-2.5 animate-pulse leading-none">Agrisoft</span>
+                        <span
+                            class="spinner-main-text font-bold text-navy-700 dark:text-white text-xl tracking-tight leading-none">Procesando</span>
+                        <span
+                            class="spinner-sub-text text-blue-500 text-[11px] font-black uppercase tracking-[0.4em] mt-2.5 animate-pulse leading-none">Agrisoft</span>
                     </div>
                 </div>
             </div>
@@ -192,6 +212,7 @@
 
 <script setup>
 import { ref, computed, onMounted, shallowRef } from 'vue'
+import { AdjustmentsHorizontalIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
     DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxItem, DxPaging, DxScrolling,
@@ -256,7 +277,7 @@ const setWorkerValue = (newData, value) => {
 
 const setWorkerRutValue = (newData, value) => {
     newData.worker = value;
-     newData.worker_rut = value; // Syncing IDs
+    newData.worker_rut = value; // Syncing IDs
 }
 
 const companyID = Number(localStorage.getItem('userIdCompany')) || 0
@@ -438,7 +459,8 @@ const handleBulkDelete = async () => {
 
 <style scoped>
 :deep(.dx-datagrid-export-button) {
-    background-color: #10b981 !important; /* emerald-500 */
+    background-color: #10b981 !important;
+    /* emerald-500 */
     color: white !important;
     border-radius: 12px !important;
     border: none !important;
@@ -474,7 +496,8 @@ const handleBulkDelete = async () => {
 }
 
 :deep(.dx-datagrid-export-button:hover) {
-    background-color: #059669 !important; /* emerald-600 */
+    background-color: #059669 !important;
+    /* emerald-600 */
     transform: translateY(-1px) !important;
     box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3) !important;
 }
@@ -510,17 +533,36 @@ const handleBulkDelete = async () => {
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes spin-reverse {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(-360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1) rotate(12deg); }
-    50% { opacity: 0.7; transform: scale(0.95) rotate(12deg); }
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(12deg);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(0.95) rotate(12deg);
+    }
 }
 </style>

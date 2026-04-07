@@ -6,6 +6,7 @@ import AccessDenied from '@/components/AccessDenied.vue'
 
 import Companies from '@/pages/enviroment/CompaniesPage.vue'
 import UserCreation from '@/pages/enviroment/UserPage.vue'
+import Roles from '@/pages/enviroment/RolePage.vue'
 
 import Grounds from '@/pages/production/parameterization/GroundPage.vue'
 import Sectors from '@/pages/production/parameterization/SectorPage.vue'
@@ -40,6 +41,8 @@ import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequest
 import SuppliersPage from '@/pages/operations/procurement/SuppliersPage.vue'
 import AlertsPage from '@/pages/operations/AlertsPage.vue'
 import FieldBookPage from '@/pages/operations/FieldBookPage.vue'
+import ForgotPassword from '@/pages/ForgotPassword.vue'
+import ResetPassword from '@/pages/ResetPassword.vue'
 
 
 import ProductionReportsPage from '@/pages/reports/ProductionReportsPage.vue'
@@ -55,6 +58,18 @@ const routes = [
     path: '/',
     name: 'Login',
     component: Login,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword,
     meta: { requiresAuth: false },
   },
   {
@@ -91,6 +106,14 @@ const routes = [
         path: 'dashboard/enviroment/user-creation',
         name: 'UserCreation',
         component: UserCreation,
+        meta: {
+          roles: [1],
+        },
+      },
+      {
+        path: 'dashboard/enviroment/role-creation',
+        name: 'Roles',
+        component: Roles,
         meta: {
           roles: [1],
         },
@@ -323,7 +346,7 @@ const routes = [
         name: 'Resume',
         component: Resume,
         meta: {
-          roles: [1, 2],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
       {
@@ -331,7 +354,7 @@ const routes = [
         name: 'PurchaseRequests',
         component: PurchaseRequestsPage,
         meta: {
-          roles: [1, 2, 7, 8],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
       {
@@ -339,7 +362,7 @@ const routes = [
         name: 'PurchaseOrders',
         component: PurchaseOrdersPage,
         meta: {
-          roles: [1, 2, 7, 8],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
       {
@@ -347,7 +370,7 @@ const routes = [
         name: 'PurchaseOrderItems',
         component: PurchaseOrderItemsPage,
         meta: {
-          roles: [1, 2, 7, 8],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
       {
@@ -355,7 +378,7 @@ const routes = [
         name: 'PurchaseOrderReceiptNew',
         component: PurchaseReceiptNewPage,
         meta: {
-          roles: [1, 2, 7, 8],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
       {
@@ -363,7 +386,7 @@ const routes = [
         name: 'Suppliers',
         component: SuppliersPage,
         meta: {
-          roles: [1, 2, 7, 8],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
       {
@@ -381,7 +404,7 @@ const routes = [
         meta: {
           title: 'Libro de Campo',
           requiresAuth: true,
-          roles: [1, 2],
+          roles: [1, 2, 10, 11],
         },
       },
       {
@@ -391,7 +414,7 @@ const routes = [
         meta: {
           title: 'Configuración Libro de Campo',
           requiresAuth: true,
-          roles: [1, 2],
+          roles: [1, 2, 10],
         },
       },
     ],
@@ -410,12 +433,18 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !loggedIn) {
     next({ name: 'Login' })
+  } else if (to.name === 'Dashboard' && [7, 8, 10].includes(userRol)) {
+    next({ name: 'Resume' })
   } else if (to.meta.roles && !to.meta.roles.includes(userRol)) {
-    //alert('Acceso denegado: no tienes permisos')
-    next({ name: 'AccessDenied' }) //Vista denegada
-    //next({ name: 'Dashboard' })
+    next({ name: 'AccessDenied' })
   } else if (to.name === 'Login' && loggedIn) {
-    next({ name: 'Dashboard' })
+    if ([7, 8, 10].includes(userRol)) {
+      next({ name: 'Resume' })
+    } else if (userRol === 11) {
+      next({ name: 'FieldBook' })
+    } else {
+      next({ name: 'Dashboard' })
+    }
   } else {
     next()
   }

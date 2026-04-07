@@ -41,10 +41,17 @@
               </p>
 
               <!-- Botón -->
-              <button type="submit"
-                class="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200">
-                Entrar
+              <button type="submit" :disabled="loading"
+                class="linear mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span v-if="loading" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                {{ loading ? 'Ingresando...' : 'Entrar' }}
               </button>
+
+              <div class="mt-4 flex items-center justify-center">
+                <router-link to="/forgot-password" class="text-sm font-medium text-brand-500 hover:text-brand-600 transition-colors">
+                  ¿Olvidaste tu contraseña?
+                </router-link>
+              </div>
             </form>
           </div>
         </div>
@@ -89,6 +96,7 @@ const usuario = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const errorMessage = ref('')
+const loading = ref(false) // 👈 Loading state
 const router = useRouter()
 
 const { isDarkMode, toggleDarkMode } = useDarkMode()
@@ -96,26 +104,29 @@ const { isDarkMode, toggleDarkMode } = useDarkMode()
 // Cargar datos guardados si existían
 onMounted(() => {
   const savedUser = localStorage.getItem('rememberedUser')
-  const savedPass = localStorage.getItem('rememberedPass')
-  if (savedUser) usuario.value = savedUser
-  if (savedPass) password.value = savedPass
-  if (savedUser || savedPass) rememberMe.value = true
+  if (savedUser) {
+    usuario.value = savedUser
+    rememberMe.value = true
+  }
 })
 
 async function handleLogin() {
+  if (loading.value) return
+  loading.value = true
   errorMessage.value = ''
+  
   try {
     // 1️⃣ Login normal
     await login(usuario.value, password.value)
 
-    // 2️⃣ Guardar usuario y contraseña si "remember me"
+    // 2️⃣ Guardar usuario si "remember me" (NUNCA guardar contraseña en texto plano)
     if (rememberMe.value) {
       localStorage.setItem('rememberedUser', usuario.value)
-      localStorage.setItem('rememberedPass', password.value)
     } else {
       localStorage.removeItem('rememberedUser')
-      localStorage.removeItem('rememberedPass')
     }
+    // Siempre remover la contraseña del storage por seguridad si existía de versiones anteriores
+    localStorage.removeItem('rememberedPass')
 
     // 3️⃣ Obtener companyID y userID de localStorage
     const companyID = localStorage.getItem('userIdCompany')
@@ -149,12 +160,18 @@ if (Number(userID) === 1) {
   localStorage.removeItem('userWarehouses')
 }
 
-    // 6️⃣ Redirigir a Dashboard
-    router.push({ name: 'Dashboard' })
+    // 6️⃣ Redirigir según rol
+    if ([7, 8].includes(role)) {
+      router.push({ name: 'Resume' })
+    } else {
+      router.push({ name: 'Dashboard' })
+    }
 
   } catch (err) {
     console.error(err)
-    errorMessage.value = err.message || 'Error al iniciar sesión'
+    errorMessage.value = err.message || 'Credenciales incorrectas'
+  } finally {
+    loading.value = false
   }
 }
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 min-h-screen bg-slate-50/50">
+    <div class="min-h-screen bg-slate-50/50">
         <!-- Header con gradiente suave -->
         <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
             <div class="flex items-center gap-4">

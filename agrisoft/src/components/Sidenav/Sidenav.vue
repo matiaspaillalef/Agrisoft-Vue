@@ -123,6 +123,8 @@ const roleIdRaw = Number(localStorage.getItem('rol') || 0)
 const userRoleName = computed(() => {
   if (roleIdRaw === 1) return 'Administrador'
   if (roleIdRaw === 2) return 'Operaciones'
+  if (roleIdRaw === 7) return 'Bodeguero'
+  if (roleIdRaw === 8) return 'Prod. Manager'
   return 'Usuario'
 })
 

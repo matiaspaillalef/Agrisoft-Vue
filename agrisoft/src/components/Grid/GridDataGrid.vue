@@ -93,7 +93,7 @@
 
       <!-- Contenedor del modal -->
       <div
-        class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto">
+        class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto">
         <h2 class="text-xl mb-4">
           Detalles del tránsito
           <span class="font-bold bg-gray-200 p-1 rounded-sm">
@@ -422,4 +422,3 @@ const productsCatalog = [
 
 
 </script>
-

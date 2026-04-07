@@ -7,13 +7,14 @@
       </div>
       <div>
         <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Tránsitos</h1>
-        <p class="text-slate-500 font-medium font-inter">Administración y control de logística y movimientos entre bodegas</p>
+        <p class="text-slate-500 font-medium font-inter">Administración y control de logística y movimientos entre
+          bodegas</p>
       </div>
     </div>
   </div>
 
   <div
-    class="relative mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-[#2b4775] py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-11/12 mx-auto">
+    class="relative mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-[#2b4775] py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-full mx-auto">
     <LoadingOverlay :show="loading" />
     <div class="datagrid-container">
       <DxDataGrid :data-source="dataSource" :show-borders="true" :column-hiding-enabled="true" :width="'100%'"
@@ -98,7 +99,7 @@
   <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
     <div class="fixed inset-0 bg-[#ffffff66] backdrop-blur-sm" @click="closeModals"></div>
     <div
-      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto">
+      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto">
       <h2 class="text-xl mb-4">Detalles del tránsito <span class="font-bold bg-gray-200 p-1 rounded-sm">{{
         selectedItem?.id_transito }}</span></h2>
       <p class="text-sm"><strong>Ruta:</strong> {{ getWarehouseName(selectedItem?.origin_id) }} → {{
@@ -160,7 +161,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { TruckIcon } from '@heroicons/vue/24/solid'
 import conexionApi from '@/services/conexionApi.js'
-import {statusCellTemplatev2} from '@/utils/herlpers.js'
+import { statusCellTemplatev2 } from '@/utils/herlpers.js'
 
 const loading = ref(false)
 

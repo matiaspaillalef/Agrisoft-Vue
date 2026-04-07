@@ -7,13 +7,14 @@
             </div>
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Gestión de Exportadoras</h1>
-                <p class="text-slate-500 font-medium font-inter">Administración de empresas exportadoras y socios comerciales</p>
+                <p class="text-slate-500 font-medium font-inter">Administración de empresas exportadoras y socios
+                    comerciales</p>
             </div>
         </div>
     </div>
 
     <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
-           bg-white py-6 shadow-xl px-2 md:px-10 max-w-11/12 mx-auto relative text-[13px]!">
+           bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative text-[13px]!">
         <LoadingOverlay :show="loading" />
         <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
             :column-auto-width="true" :width="'100%'" @editing-start="onEditingStart"
@@ -69,13 +70,13 @@
                                 form?.updateData('rut', formatted)
                             }
                         }" :validation-rules="[
-                { type: 'required', message: 'El RUT es obligatorio' },
-                {
-                    type: 'custom',
-                    message: 'RUT chileno inválido',
-                    validationCallback: (e) => validarRutChileno(e.value)
-                }
-            ]" />
+                            { type: 'required', message: 'El RUT es obligatorio' },
+                            {
+                                type: 'custom',
+                                message: 'RUT chileno inválido',
+                                validationCallback: (e) => validarRutChileno(e.value)
+                            }
+                        ]" />
 
                         <DxItem data-field="giro" caption="Giro"
                             :validation-rules="[{ type: 'required', message: 'El giro es obligatorio' }]" />
@@ -136,13 +137,13 @@
                                     form?.updateData('legal_representative_rut', formatted)
                                 }
                             }" :validation-rules="[
-                { type: 'required', message: 'El RUT es obligatorio' },
-                {
-                    type: 'custom',
-                    message: 'RUT chileno inválido',
-                    validationCallback: (e) => validarRutChileno(e.value)
-                }
-            ]" />
+                                { type: 'required', message: 'El RUT es obligatorio' },
+                                {
+                                    type: 'custom',
+                                    message: 'RUT chileno inválido',
+                                    validationCallback: (e) => validarRutChileno(e.value)
+                                }
+                            ]" />
 
                         <DxItem data-field="legal_representative_phone" caption="Teléfono" :validation-rules="[
                             { type: 'required', message: 'El teléfono es obligatorio' },
@@ -178,7 +179,7 @@
 
         <!-- Contenedor del modal -->
         <div
-            class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-11/12 md:max-w-lg mx-auto">
+            class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto">
             <h2 class="text-xl mb-4">
                 Detalles de la Empresa
                 <span class="font-bold rounded-sm">
@@ -232,7 +233,7 @@
 
                     <p class="text-sm">
                         <strong>Caja de Compensación:</strong> {{ getCompensationBoxName(selectedItem?.compensation_box)
-                        || 'N/A' }}
+                            || 'N/A' }}
                     </p>
                 </div>
 

@@ -12,14 +12,98 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <router-link to="/operations/field-book/config"
+        <router-link v-if="userRoleId !== 11" to="/dashboard/operations/field-book/config"
           class="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-slate-100">
           <AdjustmentsHorizontalIcon class="w-5 h-5" />
         </router-link>
-        <button @click="openCreateModal()"
+        <button v-if="userRoleId !== 11" @click="openCreateModal()"
           class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all font-black text-xs shadow-lg shadow-blue-200">
           <PlusIcon class="w-4 h-4" />
           Nueva Tarea
+        </button>
+      </div>
+    </div>
+    <!-- ROLE 11 SUMMARY STATS -->
+    <div v-if="userRoleId === 11" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+        <div class="p-4 bg-orange-50 rounded-2xl text-orange-600">
+          <ClockIcon class="w-8 h-8" />
+        </div>
+        <div>
+          <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Atrasadas</p>
+          <h3 class="text-2xl font-black text-rose-600">{{ stats.overdue }}</h3>
+        </div>
+      </div>
+ 
+      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+        <div class="p-4 bg-blue-50 rounded-2xl text-blue-600">
+          <BeakerIcon class="w-8 h-8" />
+        </div>
+        <div>
+          <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Pendientes</p>
+          <h3 class="text-2xl font-black text-blue-600">{{ stats.pending }}</h3>
+        </div>
+      </div>
+ 
+      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+        <div class="p-4 bg-amber-50 rounded-2xl text-amber-600">
+          <AdjustmentsHorizontalIcon class="w-8 h-8" />
+        </div>
+        <div>
+          <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Parciales</p>
+          <h3 class="text-2xl font-black text-amber-600">{{ stats.partial }}</h3>
+        </div>
+      </div>
+ 
+      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+        <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
+          <ClipboardDocumentCheckIcon class="w-8 h-8" />
+        </div>
+        <div>
+          <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">Aplicadas Hoy</p>
+          <h3 class="text-2xl font-black text-emerald-600">{{ stats.appliedToday }}</h3>
+        </div>
+      </div>
+    </div>
+    <!-- FILTERS AND GENERAL TOOLS -->
+    <div
+      class="mb-6 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-6">
+      <!--
+      <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
+          <FunnelIcon class="w-5 h-5" />
+        </div>
+        
+        <div>
+          <p class="text-[10px] font-black text-slate-800 uppercase leading-none">Filtros de Fecha</p>
+          <p class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 whitespace-nowrap">Reporte por Periodo</p>
+        </div>
+       
+      </div>
+ -->
+      <div class="flex flex-1 min-w-[300px] items-center gap-3">
+        <div class="flex-1 space-y-1">
+          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Desde</label>
+          <input type="date" v-model="filterFrom"
+            class="w-full px-4 py-2.5 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+        </div>
+        <div class="flex-1 space-y-1">
+          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Hasta</label>
+          <input type="date" v-model="filterTo"
+            class="w-full px-4 py-2.5 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-auto justify-end">
+        <button v-if="filterFrom || filterTo" @click="resetFilters"
+          class="p-3 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-2xl transition-all border border-rose-100 shadow-sm w-fit!"
+          title="Limpiar Filtros">
+          <XMarkIcon class="w-5 h-5" />
+        </button>
+        <button v-if="userRoleId !== 11" @click="handleExportGeneralExcel"
+          class="flex items-center gap-2 px-6 py-3! bg-emerald-600! text-white! rounded-2xl hover:bg-emerald-700! transition-all! font-black! text-[10px]! uppercase! tracking-widest! shadow-lg! shadow-emerald-200! w-fit!">
+          <ArrowDownTrayIcon class="w-4 h-4" />
+          Descargar Reporte General
         </button>
       </div>
     </div>
@@ -27,18 +111,23 @@
     <!-- MAIN GRID -->
     <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6 relative">
       <LoadingOverlay :show="loading" />
-      <DxDataGrid :data-source="orders" :show-borders="false" :column-auto-width="true" class="premium-grid">
-        <DxSearchPanel :visible="true" :width="240" placeholder="Buscar orden..." />
-        <DxPaging :page-size="10" />
+      <DxDataGrid :data-source="filteredOrders" :show-borders="false" :column-auto-width="true" class="premium-grid">
+        <DxHeaderFilter :visible="true" />
+        <DxFilterRow :visible="false" />
+        <DxPaging :page-size="20" />
 
-        <DxColumn data-field="order_number" caption="N° Orden" cell-template="orderNumTemplate" />
-        <DxColumn data-field="issue_date" caption="Fecha" data-type="date" format="dd/MM/yyyy" />
-        <DxColumn data-field="ground_name" caption="Campo" />
-        <DxColumn data-field="specie_name" caption="Especie" />
-        <DxColumn data-field="area_name" caption="Área" />
-        <DxColumn data-field="task_name" caption="Tarea" />
-        <DxColumn data-field="status" caption="Estado" cell-template="statusTemplate" :width="120" />
-        <DxColumn caption="Acciones" cell-template="actionsTemplate" :width="140" h-alignment="center" />
+        <DxColumn data-field="order_number" caption="N° Orden" cell-template="orderNumTemplate" alignment="right"
+          css-class="!text-left" />
+        <DxColumn data-field="issue_date" caption="Fecha" data-type="date" format="dd/MM/yyyy" alignment="right"
+          css-class="!text-left" />
+        <DxColumn data-field="ground_name" caption="Campo" alignment="right" css-class="!text-left" />
+        <DxColumn data-field="specie_name" caption="Especie" alignment="right" css-class="!text-left" />
+        <DxColumn data-field="area_name" caption="Área" alignment="right" css-class="!text-left" />
+        <DxColumn data-field="task_name" caption="Tarea" alignment="right" css-class="!text-left" />
+        <DxColumn data-field="status" caption="Estado" cell-template="statusTemplate" :width="120" alignment="right"
+          css-class="!text-left" />
+        <DxColumn caption="" cell-template="actionsTemplate" :width="140" h-alignment="center" alignment="right"
+          css-class="!text-left" />
 
         <template #orderNumTemplate="{ data }">
           <span class="font-black text-blue-600">{{ data.data.order_number }}</span>
@@ -71,14 +160,14 @@
             </button>
 
             <!-- Editar solo si es PENDING y tiene permiso -->
-            <button v-if="data.data.status === 'PENDING'" @click="openEditModal(data.data)"
+            <button v-if="data.data.status === 'PENDING' && userRoleId !== 11" @click="openEditModal(data.data)"
               class="p-0! text-slate-800! bg-transparent! border-none w-fit!" title="Editar">
               <PencilSquareIcon class="w-4 h-4" />
             </button>
 
             <!-- Generar Orden (Tech/Admin) -->
             <button
-              v-if="data.data.status === 'PENDING' && (canChangeResponsible || Number(data.data.responsible_id) === currentUserId)"
+              v-if="data.data.status === 'PENDING' && userRoleId !== 11 && (canChangeResponsible || Number(data.data.responsible_id) === currentUserId)"
               @click="handleFinalize(data.data)" class="p-0! text-slate-800! bg-transparent! border-none  w-fit!"
               title="Generar Orden">
               <CheckBadgeIcon class="w-4 h-4" />
@@ -93,19 +182,19 @@
             </button>
 
             <!-- Validar/Cerrar (Tech/Admin/Roles 1-2, cuando esta Aplicada o Parcial si ya no hay mas restos) -->
-            <button v-if="['APPLIED', 'PARTIAL'].includes(data.data.status) && canChangeResponsible"
+            <button v-if="['APPLIED', 'PARTIAL'].includes(data.data.status) && canChangeResponsible && userRoleId !== 11"
               @click="handleCloseOrder(data.data)" class="p-0! text-emerald-600! bg-transparent! border-none w-fit!"
               title="Validar y Cerrar">
               <ShieldCheckIcon class="w-4 h-4" />
             </button>
 
             <!-- Descargar Excel (Para cualquier orden generada) -->
-            <button v-if="data.data.status !== 'PENDING'" @click="handleExportExcel(data.data)"
+            <button v-if="data.data.status !== 'PENDING' && userRoleId !== 11" @click="handleExportExcel(data.data)"
               class="p-0! text-emerald-600! bg-transparent! border-none w-fit!" title="Descargar Orden Excel">
               <ArrowDownTrayIcon class="w-4 h-4" />
             </button>
 
-            <button v-if="data.data.status === 'PENDING' || canChangeResponsible" @click="handleDelete(data.data)"
+            <button v-if="(data.data.status === 'PENDING' || canChangeResponsible) && userRoleId !== 11" @click="handleDelete(data.data)"
               class="p-0! text-slate-400! hover:text-rose-600! bg-transparent! border-none w-fit!" title="Eliminar">
               <TrashIcon class="w-4 h-4" />
             </button>
@@ -232,29 +321,47 @@
                 <table class="w-full text-left min-w-[1000px]">
                   <thead>
                     <tr class="bg-slate-50/50">
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo / Ingrediente</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Plan (L/Ha)</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Dosis 100L</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Reingreso</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Carencia (E/A)</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Intervalo</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Nº App</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Mezcla</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Restante (L)</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo /
+                        Ingrediente
+                      </th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Plan
+                        (L-Kg/Ha)</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Aguas
+                        100/L
+                      </th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        Reingreso
+                      </th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        Carencia
+                        (E/A)</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        Intervalo
+                      </th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Nº App
+                      </th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Mezcla
+                      </th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        Restante
+                        (L-Kg)</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-50">
                     <tr v-for="(p, i) in form.products" :key="i" class="hover:bg-slate-50/30 transition-all">
                       <td class="p-4">
                         <p class="text-sm font-black text-slate-700 leading-none mb-1">{{ p.brand_name }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">{{ p.active_ingredient || 'Sin Ingrediente' }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase">
+                          {{ p.active_ingredient || 'Sin Ingrediente' }}
+                        </p>
                       </td>
                       <td class="p-4 text-center font-black text-blue-600">
                         <span class="px-3 py-1 bg-blue-50 rounded-lg text-sm">{{ p.dosage }}</span>
                       </td>
-                      <td class="p-4 text-center text-xs font-bold text-slate-500">{{ p.dosage_100l || '-' }}</td>
+                      <td class="p-4 text-center text-xs font-bold text-slate-500">{{ p.water_volume || '-' }}</td>
                       <td class="p-4 text-center">
-                        <span v-if="p.reentry_period" class="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black">
+                        <span v-if="p.reentry_period"
+                          class="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black">
                           {{ p.reentry_period }} Hrs
                         </span>
                         <span v-else class="text-slate-300">-</span>
@@ -263,9 +370,11 @@
                         {{ p.withholding_label || '-' }} / {{ p.withholding_asoex || '-' }}
                       </td>
                       <td class="p-4 text-center text-xs font-bold text-slate-500">{{ p.app_interval || '-' }}</td>
-                      <td class="p-4 text-center text-xs font-black text-slate-600">{{ p.season_app_number || '-' }}</td>
+                      <td class="p-4 text-center text-xs font-black text-slate-600">{{ p.season_app_number || '-' }}
+                      </td>
                       <td class="p-4 text-center">
-                        <span :class="['text-[10px] font-black uppercase px-2 py-0.5 rounded-md', p.is_mix ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400']">
+                        <span
+                          :class="['text-[10px] font-black uppercase px-2 py-0.5 rounded-md', p.is_mix ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400']">
                           {{ p.is_mix ? 'SI' : 'NO' }}
                         </span>
                       </td>
@@ -345,9 +454,12 @@
                 class="premium-select shadow-sm" />
             </div>
             <div v-if="filteredQuarters.length > 0" class="col-span-2 space-y-1">
-              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest flex items-center justify-between">
+              <label
+                class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest flex items-center justify-between">
                 <span>Cuarteles Destino</span>
-                <span class="text-[7px] text-indigo-400 normal-case font-bold bg-indigo-50 px-1.5 py-0.5 rounded-full">Sectores Validados</span>
+                <span
+                  class="text-[7px] text-indigo-400 normal-case font-bold bg-indigo-50 px-1.5 py-0.5 rounded-full">Sectores
+                  Validados</span>
               </label>
               <DxTagBox v-model:value="form.quarters" :data-source="filteredQuarters" display-expr="name"
                 value-expr="id" class="premium-select shadow-sm" placeholder="Seleccionar..." />
@@ -355,9 +467,10 @@
                 * Mostrando solo cuarteles con atributos de sector definidos.
               </p>
             </div>
-            <div v-else-if="form.id_ground" class="col-span-2 flex items-center bg-amber-50/50 p-3 rounded-2xl border border-amber-100 border-dashed">
+            <div v-else-if="form.id_ground"
+              class="col-span-2 flex items-center bg-amber-50/50 p-3 rounded-2xl border border-amber-100 border-dashed">
               <p class="text-[9px] text-amber-600 font-black leading-tight uppercase tracking-wider">
-                Sin sectores validados en este predio.<br/>
+                Sin sectores validados en este predio.<br />
                 <span class="text-[7px] font-bold text-slate-400">Verifica los atributos de sector.</span>
               </p>
             </div>
@@ -421,54 +534,127 @@
                 Añadir</button>
             </div>
 
-            <div v-for="(product, idx) in form.products" :key="idx"
+            <div v-for="product in form.products" :key="product._uId"
               class="col-span-full relative grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/20 p-5 pt-10 rounded-3xl border border-slate-100 border-dashed">
               <!-- Trash button moved to top-right -->
-              <button @click="removeProduct(idx)"
+              <button @click="removeProductByUid(product._uId)"
                 class="absolute top-4 right-4 p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all border-none w-fit!">
                 <TrashIcon class="w-4.5 h-4.5" />
               </button>
 
               <div class="col-span-2 space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo (Nombre o Comp. Activo)</label>
-                <DxSelectBox 
-                  v-model:value="product.brand_name" 
-                  :data-source="companyProducts" 
-                  display-expr="name"
-                  value-expr="name" 
-                  :search-enabled="true" 
-                  :search-expr="['name', 'active_ingredient']"
-                  @on-value-changed="(e) => onProductNameChange(e, product)" 
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo (Nombre o Comp.
+                  Activo)</label>
+                <DxSelectBox v-model:value="product.id_product" :data-source="companyProducts" display-expr="name"
+                  value-expr="id" :search-enabled="true" :search-expr="['name', 'active_ingredient']"
+                  @value-changed="(e) => onProductNameChange(e, product)" 
+                  @on-selection-changed="(e) => onProductNameChange(e, product)"
                   class="premium-select"
-                  item-template="productItem"
-                >
+                  item-template="productItem">
                   <template #productItem="{ data }">
                     <div class="flex flex-col py-1">
                       <span class="font-bold text-slate-900 text-xs">{{ data.name }}</span>
-                      <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tight">{{ data.active_ingredient || 'Sin Ing. Activo' }}</span>
+                      <span
+                        class="text-[9px] text-slate-400 font-bold uppercase tracking-tight">{{ data.active_ingredient || 'Sin Ing. Activo' }}</span>
                     </div>
                   </template>
                 </DxSelectBox>
               </div>
               <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Dosis L/Ha</label>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Dosis
+                  (L-Kg/Ha)</label>
                 <input v-model="product.dosage"
                   class="w-full px-4 py-[11px] bg-white rounded-xl font-bold text-sm border-none shadow-sm outline-none" />
               </div>
               <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Agua L</label>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Aguas
+                  100/L</label>
                 <input v-model="product.water_volume"
                   class="w-full px-4 py-[11px] bg-white rounded-xl font-bold text-sm border-none shadow-sm outline-none" />
               </div>
 
-              <div class="col-span-full grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 p-3 bg-white/50 rounded-2xl border border-slate-100">
+              <!-- STOCK & WAREHOUSE RESERVATION -->
+              <div v-if="product.id_product"
+                class="col-span-full grid grid-cols-1 md:grid-cols-4 gap-6 mt-2 p-4 bg-blue-50/30 rounded-2xl border border-blue-100 border-dashed">
+                <div class="col-span-2 space-y-1">
+                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Disponibilidad en
+                    Bodegas</label>
+                  <div class="flex flex-wrap gap-2 pt-1">
+                    <div v-for="(s, sIdx) in (product.stock_info || [])" :key="sIdx"
+                         class="px-3 py-1.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[70px]">
+                      <span class="text-[7px] font-black text-slate-400 truncate uppercase tracking-tighter">{{ s.warehouse_name || getWarehouseName(s.id_warehouse || s.warehouse_id) }}</span>
+                      <span class="text-[10px] font-bold text-blue-600 leading-none mt-1">{{ s.quantity || s.stock || 0 }}</span>
+                    </div>
+                    <div v-if="product.id_product && (!product.stock_info || product.stock_info.length === 0)" class="text-[9px] text-amber-500 font-bold py-1 flex items-center gap-1">
+                      <ExclamationTriangleIcon class="w-3 h-3" /> Sin stock informado
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Bodega
+                    Origen</label>
+                  <DxSelectBox v-model:value="product.id_warehouse" :data-source="warehouses" value-expr="id"
+                    display-expr="name" :search-enabled="true" search-mode="contains"
+                    class="premium-select-small shadow-sm" placeholder="Seleccionar..."
+                    @on-value-changed="(e) => onWarehouseChange(e, product)" />
+                </div>
+
+                <div class="flex items-center gap-3 self-center pl-2">
+                  <div class="flex flex-col">
+                    <label class="text-[9px] font-black text-slate-800 uppercase tracking-widest leading-none">Reservar
+                      Stock</label>
+                    <p class="text-[7px] text-slate-400 font-bold mt-1 uppercase">Notifica retiro a bodega</p>
+                    <div v-if="product.id_warehouse"
+                      class="mt-1 px-2 py-0.5 bg-blue-600/10 rounded-md border border-blue-600/20 w-fit!">
+                      <span class="text-[8px] font-black text-blue-700 uppercase">Stock:
+                        {{ getSelectedWarehouseStock(product) }}</span>
+                    </div>
+                  </div>
+                  <button @click="product.reserve_stock = !product.reserve_stock" type="button" :class="[
+                    'relative! inline-flex! h-[20px]! w-[36px]! shrink-0 cursor-pointer! rounded-full! border-none! p-0! transition-colors duration-200 ease-in-out focus:outline-none! ring-0!',
+                    product.reserve_stock ? 'bg-emerald-500!' : 'bg-slate-200!'
+                  ]">
+                    <span :class="[
+                      'pointer-events-none! inline-block! h-[16px]! w-[16px]! transform rounded-full! bg-white! shadow-sm transition duration-200 ease-in-out mt-[2px] ml-[2px]',
+                      product.reserve_stock ? 'translate-x-[16px]!' : 'translate-x-0!'
+                    ]"></span>
+                  </button>
+                </div>
+
+                <!-- STOCK WARNINGS -->
+                <div v-if="product.id_warehouse && (parseFloat(calculateProductNeeded(product)) > parseFloat(getSelectedWarehouseStock(product)))" 
+                     class="col-span-full">
+                  <div v-if="!product.reserve_stock" 
+                       class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 animate-pulse mt-2">
+                    <ExclamationTriangleIcon class="w-5 h-5 text-rose-500" />
+                    <div class="flex flex-col">
+                      <p class="text-[10px] font-black text-rose-700 uppercase tracking-tighter">Stock Insuficiente en Bodega</p>
+                      <p class="text-[8px] font-bold text-rose-600">Requieres {{ calculateProductNeeded(product) }} L-Kg para la superficie actual, pero solo hay {{ getSelectedWarehouseStock(product) }} disponibles.</p>
+                    </div>
+                  </div>
+                  <div v-else 
+                       class="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 mt-2">
+                    <InformationCircleIcon class="w-5 h-5 text-blue-500" />
+                    <div class="flex flex-col">
+                      <p class="text-[10px] font-black text-blue-700 uppercase tracking-tighter">Reserva de Stock Activada</p>
+                      <p class="text-[8px] font-bold text-blue-600">Con esta opción se mandará con productos que aún no tienes en bodega {{ getWarehouseName(product.id_warehouse) }}.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="col-span-full grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 p-3 bg-white/50 rounded-2xl border border-slate-100">
                 <div class="space-y-1">
                   <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Reingreso (Hrs)</label>
                   <input v-model="product.reentry_period" placeholder="12"
                     class="w-full px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
                 </div>
                 <div class="space-y-1">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Carencia (Etiq | ASOEX)</label>
+                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Carencia
+                    (Etiq
+                    | ASOEX)</label>
                   <div class="flex gap-1">
                     <input v-model="product.withholding_label" placeholder="7"
                       class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
@@ -477,7 +663,8 @@
                   </div>
                 </div>
                 <div class="space-y-1">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Intervalo / Nº App</label>
+                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Intervalo / Nº
+                    App</label>
                   <div class="flex gap-1">
                     <input v-model="product.app_interval" placeholder="20"
                       class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
@@ -485,20 +672,21 @@
                       class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
                   </div>
                 </div>
-                <div class="col-span-full pt-2 flex items-center gap-4">
-                   <div class="flex items-center gap-2">
-                     <input type="checkbox" v-model="product.is_mix" class="w-4 h-4 rounded border-slate-200" />
-                     <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">¿Es Mezcla?</span>
-                   </div>
+                <div class="space-y-1 flex flex-col">
+                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">¿Es Mezcla?</label>
+                  <div class="flex-1 flex items-center pt-1">
+                    <button @click="product.is_mix = !product.is_mix" type="button" :class="[
+                      'relative! inline-flex! h-[24px]! w-[44px]! shrink-0 cursor-pointer! rounded-full! border-none! p-0! transition-colors duration-200 ease-in-out focus:outline-none! ring-0!',
+                      product.is_mix ? 'bg-indigo-600!' : 'bg-slate-200!'
+                    ]">
+                      <span :class="[
+                        'pointer-events-none! inline-block! h-[20px]! w-[20px]! transform rounded-full! bg-white! shadow-sm transition duration-200 ease-in-out mt-[2px] ml-[2px]',
+                        product.is_mix ? 'translate-x-[20px]!' : 'translate-x-0!'
+                      ]"></span>
+                    </button>
+                  </div>
                 </div>
               </div>
-              <!--
-              <div class="flex items-center justify-end">
-                <button @click="removeProduct(idx)"
-                  class="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all border-none w-fit!">
-                  <TrashIcon class="w-4.5 h-4.5" />
-                </button>
-              </div>-->
             </div>
 
             <div class="col-span-full border-b border-slate-50 pb-2 mt-4 flex items-center gap-2 font-black">
@@ -575,17 +763,17 @@
               class="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-black text-slate-700">{{ prod.brand_name }}</span>
-                <span class="text-[10px] font-bold text-slate-400">Total Plan: {{ prod.dosage }} L/Ha</span>
+                <span class="text-[10px] font-bold text-slate-400">Total Plan: {{ prod.dosage }} L-Kg/Ha</span>
               </div>
               <div class="flex items-center gap-4 mb-3">
                 <div class="flex-1 p-2 bg-emerald-50 text-emerald-600 rounded-lg text-center">
                   <p class="text-[8px] font-black uppercase tracking-widest">Ya Aplicado</p>
-                  <p class="text-xs font-black">{{ prod.applied_quantity_accum || 0 }} L</p>
+                  <p class="text-xs font-black">{{ prod.applied_quantity_accum || 0 }} L-Kg</p>
                 </div>
                 <div class="flex-1 p-2 bg-rose-50 text-rose-600 rounded-lg text-center">
                   <p class="text-[8px] font-black uppercase tracking-widest">Restante</p>
                   <p class="text-xs font-black">
-                    {{ (parseFloat(prod.dosage) - parseFloat(prod.applied_quantity_accum || 0)).toFixed(2) }} L
+                    {{ (parseFloat(prod.dosage) - parseFloat(prod.applied_quantity_accum || 0)).toFixed(2) }} L-Kg
                   </p>
                 </div>
               </div>
@@ -594,7 +782,7 @@
                   :max="parseFloat(prod.dosage) - parseFloat(prod.applied_quantity_accum || 0)"
                   placeholder="Cantidad a aplicar ahora..."
                   class="flex-1 px-4 py-2 bg-white rounded-lg font-bold text-sm border-none shadow-sm outline-none focus:ring-1 focus:ring-indigo-100" />
-                <span class="text-[11px] font-black text-slate-400 uppercase">Litros</span>
+                <span class="text-[11px] font-black text-slate-400 uppercase">L-Kg</span>
               </div>
             </div>
           </div>
@@ -685,8 +873,8 @@
                 <th class="p-2 border-r-2 border-slate-900 text-left">Nombre Comercial / Insumo</th>
                 <th class="p-2 border-r-2 border-slate-900">Ing. Activo / Composición</th>
                 <th class="p-2 border-r-2 border-slate-900">Objetivo / Justificación</th>
-                <th class="p-2 border-r-2 border-slate-900">Dosis (L/Ha)</th>
-                <th class="p-2 border-r-2 border-slate-900">Vol. Agua (L)</th>
+                <th class="p-2 border-r-2 border-slate-900">Dosis (L-Kg/Ha)</th>
+                <th class="p-2 border-r-2 border-slate-900">Aguas 100/L</th>
                 <th class="p-2">Mix</th>
               </tr>
             </thead>
@@ -759,7 +947,8 @@ import { CompanyService } from '@/api/company.services'
 import {
   BookOpenIcon, PlusIcon, AdjustmentsHorizontalIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   CheckBadgeIcon, EyeIcon, UsersIcon, BeakerIcon, MapPinIcon, ShieldCheckIcon,
-  WrenchIcon, IdentificationIcon, PrinterIcon, ArrowDownTrayIcon
+  WrenchIcon, IdentificationIcon, PrinterIcon, ArrowDownTrayIcon, FunnelIcon, 
+  ExclamationTriangleIcon, ClockIcon, ClipboardDocumentCheckIcon
 } from '@heroicons/vue/24/outline'
 
 async function handleExportExcel(order) {
@@ -847,7 +1036,7 @@ async function handleExportExcel(order) {
       // Si es una ruta relativa, convertirla a absoluta para el fetch
       // Si empieza con http ya es absoluta
       if (!logoUrl.startsWith('http')) {
-        const baseUrl = 'http://localhost:4000' // O la URL de tu backend
+        const baseUrl = import.meta.env.VITE_API_URL
         if (logoUrl.startsWith('/')) logoUrl = baseUrl + logoUrl
         else logoUrl = baseUrl + '/' + logoUrl
       }
@@ -935,13 +1124,13 @@ async function handleExportExcel(order) {
     prodHeader.alignment = { horizontal: 'center' }
     currentRow++
 
-    const pHeaders = ['Nombre Comercial', 'Ing. Activo', 'Objetivo / Justificación', 'Dosis L/HA', 'Agua L', 'Dosis 100L', 'Reingreso', 'Carencia (E/A)', 'Intervalo', 'Nº App', 'Mix']
+    const pHeaders = ['Nombre Comercial', 'Ing. Activo', 'Objetivo / Justificación', 'Dosis L-Kg/HA', 'Aguas 100/L', 'Dosis 100L', 'Reingreso', 'Carencia (E/A)', 'Intervalo', 'Nº App', 'Mix']
     worksheet.getCell('A' + currentRow).value = 'Nombre Comercial'
     worksheet.mergeCells(`B${currentRow}:C${currentRow}`)
     worksheet.getCell('B' + currentRow).value = 'Ing. Activo / Composición'
     worksheet.getCell('D' + currentRow).value = 'Objetivo / Justificación'
-    worksheet.getCell('E' + currentRow).value = 'Dosis L/Ha'
-    worksheet.getCell('F' + currentRow).value = 'Agua L'
+    worksheet.getCell('E' + currentRow).value = 'Dosis L-Kg/Ha'
+    worksheet.getCell('F' + currentRow).value = 'Aguas 100/L'
     worksheet.getCell('G' + currentRow).value = 'Dosis 100L'
     worksheet.getCell('H' + currentRow).value = 'Reingreso'
     worksheet.getCell('I' + currentRow).value = 'Carencia E/A'
@@ -1058,7 +1247,190 @@ async function handleExportExcel(order) {
     loading.value = false
   }
 }
-import { DxDataGrid, DxColumn, DxPaging, DxSearchPanel } from 'devextreme-vue/data-grid'
+
+async function handleExportGeneralExcel() {
+  if (filteredOrders.value.length === 0) {
+    alert('No hay registros para exportar en el periodo seleccionado.')
+    return
+  }
+
+  loading.value = true
+  try {
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Libro de Campo General')
+
+    // --- ENCABEZADO CON LOGO ---
+    const { companyID } = useCompanyStore()
+    const company = await CompanyService.getCompany(companyID.value)
+
+    try {
+      let logoUrl = company?.logo || '/logos/logo_16.png'
+      if (!logoUrl.startsWith('http')) {
+        const baseUrl = import.meta.env.VITE_API_URL
+        if (logoUrl.startsWith('/')) logoUrl = baseUrl + logoUrl
+        else logoUrl = baseUrl + '/' + logoUrl
+      }
+      const response = await fetch(logoUrl)
+      const buffer = await response.arrayBuffer()
+      const logoId = workbook.addImage({ buffer: buffer, extension: 'png' })
+      worksheet.addImage(logoId, { tl: { col: 0, row: 0 }, br: { col: 2, row: 3 } })
+    } catch (e) {
+      console.error('Error cargando logo al Excel:', e)
+    }
+
+    worksheet.mergeCells('D1:L2')
+    const titleCell = worksheet.getCell('D1')
+    titleCell.value = 'REPORTE GENERAL DE LIBRO DE CAMPO (BITÁCORA DE APLICACIONES)'
+    titleCell.font = { bold: true, size: 14, color: { argb: 'FF1E40AF' } }
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' }
+
+    worksheet.mergeCells('D3:L3')
+    worksheet.getCell('D3').value = `Periodo: ${filterFrom.value || 'Inicio'} hasta ${filterTo.value || 'Fin'}`
+    worksheet.getCell('D3').alignment = { horizontal: 'center' }
+    worksheet.getCell('D3').font = { size: 10, italic: true }
+
+    // Estilos base
+    const headerStyle = { font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 9 }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E1B4B' } }, alignment: { horizontal: 'center', vertical: 'middle' } }
+
+    // Iniciar tabla en fila 6
+    let startRow = 6
+
+    // Columnas adaptadas para reporte masivo
+    worksheet.columns = [
+      { header: 'N° ORDEN', key: 'order', width: 10 },
+      { header: 'FECHA LABOR', key: 'date', width: 12 },
+      { header: 'CAMPO', key: 'ground', width: 15 },
+      { header: 'AREA / TAREA', key: 'task', width: 20 },
+      { header: 'ESPECIE (VAR)', key: 'specie', width: 20 },
+      { header: 'EST. FENOLOG.', key: 'stage', width: 20 },
+      { header: 'CUARTELES', key: 'quarters', width: 15 },
+      { header: 'SUP. TOTAL (HA)', key: 'sup', width: 14 },
+      { header: 'INSUMO', key: 'brand', width: 20 },
+      { header: 'ING. ACTIVO', key: 'active', width: 20 },
+      { header: 'DOSIS (L-Kg/HA)', key: 'dosage', width: 14 },
+      { header: 'AGUAS 100/L', key: 'water', width: 12 },
+      { header: 'RESP. TÉCNICO', key: 'tech', width: 18 },
+      { header: 'APLICADOR', key: 'applicator', width: 18 },
+      { header: 'ESTADO', key: 'status', width: 12 }
+    ]
+
+    // Formatear cabecera (que ahora está en la fila 6)
+    worksheet.getRow(startRow).eachCell(cell => {
+      Object.assign(cell, headerStyle)
+    })
+
+    // Fetch details for all selected orders
+    const rawResults = await Promise.all(
+      filteredOrders.value.map(o => fieldBookService.getOrderDetails(o.id))
+    )
+
+    rawResults.forEach(res => {
+      if (res.data.code !== 'OK') return;
+      const o = res.data.order;
+      const products = res.data.products || [];
+      const quarters = res.data.quarters || [];
+
+      const quartersText = quarters.map(q => q.quarter_number).join(', ')
+      const totalHa = quarters.reduce((acc, q) => acc + parseFloat(q.surface || 0), 0)
+
+      // Resolver nombres desde el maestro local si el API no los trae
+      const rUser = users.value.find(u => Number(u.id) === Number(o.responsible_id))
+      const aUser = users.value.find(u => Number(u.id) === Number(o.applicator_id))
+      const techName = rUser ? `${rUser.name} ${rUser.lastname}` : (o.responsible_name || 'N/A')
+      const appName = aUser ? `${aUser.name} ${aUser.lastname}` : (o.applicator_name || '-')
+
+      const groundObj = grounds.value.find(g => Number(g.id) === Number(o.id_ground))
+      const areaObj = configAreas.value.find(a => Number(a.id) === Number(o.id_area))
+      const specObj = species.value.find(s => Number(s.id) === Number(o.id_specie))
+      const varObj = allVarieties.value.find(v => Number(v.id) === Number(o.id_variety))
+
+      const taskStr = [areaObj?.name || o.area_name, o.task_name].filter(v => v && v !== 'undefined').join(' / ') || '-'
+      const specieStr = specObj ? `${specObj.name} (${varObj?.name || o.variety_name || '-'})` : (o.specie_name || '-')
+
+      // Por cada producto generamos una fila para que el reporte sea detallado y filtrable
+      products.forEach(p => {
+        worksheet.addRow({
+          order: o.order_number,
+          date: formatDate(o.issue_date),
+          ground: groundObj?.name || o.ground_name || '-',
+          task: taskStr,
+          specie: specieStr,
+          stage: o.phenological_stage || '-',
+          quarters: quartersText,
+          sup: totalHa.toFixed(2),
+          brand: p.brand_name,
+          active: p.active_ingredient || '-',
+          dosage: p.dosage,
+          water: p.water_volume,
+          tech: techName,
+          applicator: appName,
+          status: o.status === 'PENDING' ? 'Borrador' : o.status === 'GENERATED' ? 'Pendiente' : o.status === 'APPLIED' ? 'Aplicada' : 'Cerrada'
+        })
+      })
+
+      // Si no hay productos, igual mostrar la orden
+      if (products.length === 0) {
+        worksheet.addRow({
+          order: o.order_number,
+          date: formatDate(o.issue_date),
+          ground: groundObj?.name || o.ground_name || '-',
+          task: taskStr,
+          specie: specieStr,
+          stage: o.phenological_stage || '-',
+          quarters: quartersText,
+          sup: totalHa.toFixed(2),
+          tech: techName,
+          applicator: appName,
+          status: o.status === 'PENDING' ? 'Borrador' : o.status === 'GENERATED' ? 'Pendiente' : o.status === 'APPLIED' ? 'Aplicada' : 'Cerrada'
+        })
+      }
+    })
+
+    // Bordes, Alineación y Colores Dinámicos
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      if (rowNumber >= startRow) {
+        row.eachCell((cell, colNumber) => {
+          // Borde estándar para todo
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+          cell.alignment = { vertical: 'middle', horizontal: 'center' }
+
+          if (rowNumber === startRow) return; // Saltamos cabecera para los rellenos de datos
+
+          // 1. Colores de Columnas (Según Imagen Referencia)
+          if (colNumber === 2) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } } // Fecha (Verde claro)
+          if (colNumber === 7) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4EC' } } // Cuarteles (Rosa)
+          if (colNumber === 11) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE3F2FD' } } // Dosis (Azul)
+          if (colNumber === 12) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } } // Aguas/Mojamiento (Verde)
+
+          // 2. Color por ESTADO (Columna 15)
+          if (colNumber === 15) {
+            const val = cell.value;
+            let bgColor = 'FFF1F5F9'; // Gris suave fondo
+            let fontColor = 'FF000000'; // Negro texto
+            if (val === 'Cerrada') { bgColor = 'FFD1FAE5'; fontColor = 'FF065F46'; }
+            if (val === 'Aplicada') { bgColor = 'FFE0E7FF'; fontColor = 'FF3730A3'; }
+            if (val === 'Pendiente') { bgColor = 'FFDBEAFE'; fontColor = 'FF1E40AF'; }
+            if (val === 'Borrador') { bgColor = 'FFFEF3C7'; fontColor = 'FF92400E'; }
+
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } }
+            cell.font = { bold: true, size: 8, color: { argb: fontColor } }
+          }
+        })
+      }
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const fileName = `Reporte_General_Campo_${filterFrom.value || 'inicio'}_a_${filterTo.value || 'fin'}.xlsx`
+    saveAs(new Blob([buffer]), fileName)
+
+  } catch (e) {
+    console.error(e)
+    alert('Error al generar reporte general: ' + e.message)
+  } finally {
+    loading.value = false
+  }
+}
+import { DxDataGrid, DxColumn, DxPaging, DxSearchPanel, DxHeaderFilter, DxFilterRow } from 'devextreme-vue/data-grid'
 import { DxPopup } from 'devextreme-vue/popup'
 import { DxSelectBox } from 'devextreme-vue/select-box'
 import { DxTagBox } from 'devextreme-vue/tag-box'
@@ -1078,6 +1450,54 @@ const users = ref([])
 const companyProducts = ref([])
 const configAreas = ref([])
 const configTasks = ref([])
+const warehouses = ref([])
+
+const filterFrom = ref('')
+const filterTo = ref('')
+ 
+const stats = computed(() => {
+  const myOrders = orders.value.filter(o => Number(o.applicator_id) === currentUserId)
+  const today = new Date().setHours(0, 0, 0, 0)
+  const todayStr = new Date().toISOString().split('T')[0]
+  
+  return {
+    pending: myOrders.filter(o => o.status === 'GENERATED').length,
+    overdue: myOrders.filter(o => {
+      const isPending = o.status === 'GENERATED'
+      const orderDate = new Date(o.issue_date).setHours(0, 0, 0, 0)
+      return isPending && orderDate < today
+    }).length,
+    partial: myOrders.filter(o => o.status === 'PARTIAL').length,
+    appliedToday: myOrders.filter(o => o.status === 'APPLIED' && o.application_date?.split('T')[0] === todayStr).length,
+    applied: myOrders.filter(o => o.status === 'APPLIED').length
+  }
+})
+
+const filteredOrders = computed(() => {
+  let list = [...orders.value]
+  
+  // Si es Aplicador (Rol 11), solo mostrar sus asignadas
+  if (userRoleId === 11) {
+    list = list.filter(o => Number(o.applicator_id) === currentUserId)
+  }
+
+  if (!filterFrom.value && !filterTo.value) {
+    return list.sort((a, b) => b.order_number.localeCompare(a.order_number))
+  }
+  
+  return list.filter(o => {
+    const date = o.issue_date?.split('T')[0]
+    let match = true
+    if (filterFrom.value && date < filterFrom.value) match = false
+    if (filterTo.value && date > filterTo.value) match = false
+    return match
+  }).sort((a, b) => b.order_number.localeCompare(a.order_number))
+})
+
+function resetFilters() {
+  filterFrom.value = ''
+  filterTo.value = ''
+}
 
 const showConfirmModal = ref(false)
 const selectedOrderConfirm = ref(null)
@@ -1128,10 +1548,16 @@ const displayFullName = (item) => {
   return item ? `${item.name} ${item.lastname}` : ''
 }
 
+const getWarehouseName = (id) => {
+  if (!id) return 'BOD'
+  const w = warehouses.value.find(ext => Number(ext.id) === Number(id))
+  return w ? w.name : `BOD-${id}`
+}
+
 async function fetchData() {
   loading.value = true
   try {
-    const [ordersRes, usersRes, groundsRes, speciesRes, productsRes, areasRes, quartersRes, varietiesRes, attributesRes] = await Promise.all([
+    const [ordersRes, usersRes, groundsRes, speciesRes, productsRes, areasRes, quartersRes, varietiesRes, attributesRes, warehousesRes] = await Promise.all([
       fieldBookService.getOrders(companyId),
       conexionApi.get(`/configuracion/usuarios/${companyId}`),
       conexionApi.get(`/configuracion/production/getGround/${companyId}`),
@@ -1140,7 +1566,8 @@ async function fetchData() {
       fieldBookService.getAreas(companyId),
       conexionApi.get(`/configuracion/production/getSectorsBarracks/${companyId}`),
       conexionApi.get(`/configuracion/production/getVarieties/${companyId}`),
-      conexionApi.get(`/configuracion/production/getAttributesSector/${companyId}`)
+      conexionApi.get(`/configuracion/production/getAttributesSector/${companyId}`),
+      conexionApi.get(`/warehouses/getWarehouses/${companyId}`)
     ])
 
     orders.value = ordersRes.data.orders || []
@@ -1155,6 +1582,15 @@ async function fetchData() {
     allQuarters.value = quartersRes.data.sectors || []
     allVarieties.value = varietiesRes.data.varieties || []
     sectorAttributes.value = attributesRes.data.attributes || []
+    warehouses.value = warehousesRes.data.warehouses || []
+    
+    companyProducts.value = (productsRes.data.products || []).map(p => {
+      const si = p.warehouses || p.stocks || p.Stocks || [];
+      return {
+        ...p,
+        stock_info: [...si]
+      };
+    })
 
     if (!isEditing.value) resetForm()
   } catch (e) {
@@ -1179,41 +1615,138 @@ const resetForm = () => {
     phenological_stage: '', machinery: '', ppe_required: '',
     status: 'PENDING',
     quarters: [], quartersDetail: [],
-    products: [{ 
-      brand_name: '', dosage: '', water_volume: '', 
+    products: [{
+      _uId: Date.now(),
+      brand_name: '', id_product: null, dosage: '', water_volume: '',
       active_ingredient: '', composition: '', objective: '', justification: '',
       dosage_100l: '', is_mix: false, reentry_period: '',
       withholding_label: '', withholding_asoex: '',
-      app_interval: '', season_app_number: ''
+      app_interval: '', season_app_number: '',
+      id_warehouse: null, reserve_stock: false, stock_info: []
     }]
   }
 }
 
-function onProductNameChange(e, productRow) {
-  if (!e.value) return
-  const found = companyProducts.value.find(p => p.name === e.value)
+async function fetchProductStock(productId, productRow) {
+  try {
+    const res = await conexionApi.get(`/products/${productId}`)
+    if (res.data.code === 'OK') {
+      const d = res.data;
+      const productObj = d.product || d.data || d;
+      
+      const newStock = productObj.warehouses || productObj.stocks || productObj.warehouse_products || d.stocks
+      if (newStock && newStock.length > 0) {
+        productRow.stock_info = [...newStock]
+      }
+      
+      if (productRow.id_warehouse) {
+        fetchCurrentWarehouseStock(productRow)
+      }
+    }
+  } catch (e) {
+    console.error("Error fetching stock:", e)
+  }
+}
+
+const calculateProductNeeded = (product) => {
+  const totalHaRaw = form.value.quarters.reduce((acc, id) => {
+    const q = allQuarters.value.find(base => base.id === id)
+    return acc + parseFloat(q?.ha_productivas || q?.surface || 0)
+  }, 0)
+  
+  // Si no hay cuarteles seleccionados, asumimos 1 Ha para mostrar la dosis base en el aviso
+  const totalHa = totalHaRaw > 0 ? totalHaRaw : 1;
+  return (parseFloat(product.dosage || 0) * totalHa).toFixed(2)
+}
+
+const getSelectedWarehouseStock = (product) => {
+  if (!product.id_warehouse) return 0
+  
+  // FALLBACK DE SEGURIDAD
+  if (!product.stock_info || product.stock_info.length === 0) {
+    const master = companyProducts.value.find(p => Number(p.id) === Number(product.id_product))
+    if (master && master.stock_info && master.stock_info.length > 0) {
+       product.stock_info = JSON.parse(JSON.stringify(master.stock_info))
+    } else {
+       return 0
+    }
+  }
+  
+  const found = (product.stock_info || []).find(s => Number(s.id_warehouse || s.warehouse_id) === Number(product.id_warehouse))
   if (found) {
-    productRow.brand_name = found.name
-    productRow.active_ingredient = found.active_ingredient ?? ''
-    productRow.composition = found.composition ?? ''
-    productRow.objective = found.objective ?? ''
-    productRow.justification = found.justification ?? ''
+    const qty = (found.quantity !== undefined ? found.quantity : (found.stock || found.Stock || 0))
+    return parseFloat(qty) || 0
+  }
+  
+  return 0
+}
+
+async function fetchCurrentWarehouseStock(productRow) {
+  if (!productRow.id_product || !productRow.id_warehouse) return
+
+  try {
+    const res = await conexionApi.get(`/products/stock/${productRow.id_product}/${productRow.id_warehouse}`)
+    if (res.data.code === 'OK' || res.data.status === 'OK') {
+      const quantity = (res.data.data?.quantity !== undefined ? res.data.data.quantity : res.data.quantity) || 0
+      
+      if (!productRow.stock_info) productRow.stock_info = []
+      
+      const idx = productRow.stock_info.findIndex(s => Number(s.id_warehouse || s.warehouse_id) === Number(productRow.id_warehouse))
+      if (idx !== -1) {
+        productRow.stock_info[idx].quantity = quantity
+      } else {
+        productRow.stock_info.push({ warehouse_id: productRow.id_warehouse, quantity: quantity })
+      }
+    }
+  } catch (e) {
+    console.error("Error query warehouse product stock:", e)
+  }
+}
+
+function onWarehouseChange(e, productRow) {
+  if (!e.value) return
+  fetchCurrentWarehouseStock(productRow)
+}
+
+function onProductNameChange(e, productRow) {
+  const newVal = e.value
+  if (!newVal) return
+  
+  productRow.stock_info = []
+  productRow.brand_name = ''
+  productRow.id_product = Number(newVal)
+  
+  const found = companyProducts.value.find(p => Number(p.id) === Number(newVal))
+  if (found) {
+    Object.assign(productRow, {
+      brand_name: found.name,
+      active_ingredient: found.active_ingredient ?? '',
+      composition: found.composition ?? '',
+      objective: found.objective ?? '',
+      justification: found.justification ?? '',
+      stock_info: [...(found.stock_info || [])]
+    })
+    fetchProductStock(found.id, productRow)
+  } else {
+    fetchProductStock(newVal, productRow)
   }
 }
 
 function addProduct() {
   form.value.products.push({
-    brand_name: '', dosage: '', water_volume: '',
+    _uId: Date.now() + Math.random(),
+    brand_name: '', id_product: null, dosage: '', water_volume: '',
     active_ingredient: '', composition: '',
     objective: '', justification: '',
     dosage_100l: '', is_mix: false, reentry_period: '',
     withholding_label: '', withholding_asoex: '',
-    app_interval: '', season_app_number: ''
+    app_interval: '', season_app_number: '',
+    id_warehouse: null, reserve_stock: false, stock_info: []
   })
 }
 
-function removeProduct(idx) {
-  form.value.products.splice(idx, 1)
+function removeProductByUid(uid) {
+  form.value.products = form.value.products.filter(p => p._uId !== uid)
 }
 
 // Watch users to ensure selection happens as soon as they are loaded if modal is open
@@ -1348,6 +1881,23 @@ async function handleSaveOrder() {
       executor_id: form.value.applicator_id // Sync executor with applicator as they are the same
     }
 
+    // VALIDACIÓN ESTRICTA DE DISPONIBILIDAD DE STOCK
+    const totalHa = mappedQuarters.reduce((acc, q) => acc + parseFloat(q.surface || 0), 0)
+    for (const p of payload.products) {
+      if (p.id_warehouse) {
+        // Obtenemos el stock más actual para esta bodega
+        const stockItem = (p.stock_info || []).find(s => Number(s.id_warehouse || s.warehouse_id) === Number(p.id_warehouse))
+        const available = stockItem ? parseFloat(stockItem.quantity || stockItem.stock || 0) : 0
+        const needed = parseFloat(p.dosage || 0) * totalHa
+
+        if (needed > available && !p.reserve_stock) {
+          alert(`🚫 ERROR DE STOCK: Para "${p.brand_name || 'Insumo'}", el stock disponible (${available}) es INSUFICIENTE para cubrir la dosis planificada (${needed.toFixed(2)}). Para continuar, activa la opción de "Reservar Stock" si planeas retirarlo más tarde.`)
+          loading.value = false
+          return
+        }
+      }
+    }
+
     let res;
     if (isEditing.value) {
       res = await fieldBookService.updateOrder(editingOrderId.value, payload)
@@ -1475,7 +2025,7 @@ function formatDate(dateStr) {
 
 // Watchers
 watch(() => form.value.id_ground, (newVal) => {
-  filteredQuarters.value = allQuarters.value.filter(q => 
+  filteredQuarters.value = allQuarters.value.filter(q =>
     Number(q.ground) === Number(newVal) &&
     sectorAttributes.value.some(attr => Number(attr.sector) === Number(q.id))
   )
@@ -1516,12 +2066,12 @@ watch(() => form.value.quarters, (newVal) => {
 
 <style scoped>
 .premium-grid :deep(.dx-datagrid-headers) {
-  background-color: #f8fafc;
-  color: #64748b !important;
-  font-weight: 900 !important;
-  text-transform: uppercase;
+  background-color: white;
+  color: var(--color-slate-800) !important;
+  font-weight: 700 !important;
+  text-transform: initial;
   font-size: 10px;
-  letter-spacing: 0.1em;
+  letter-spacing: normal;
 }
 
 .premium-grid :deep(.dx-data-row) {
@@ -1537,6 +2087,18 @@ watch(() => form.value.quarters, (newVal) => {
 .premium-select :deep(.dx-widget) {
   border-radius: 16px;
   background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+}
+
+.premium-select-small :deep(.dx-texteditor-input) {
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.premium-select-small :deep(.dx-widget) {
+  border-radius: 12px;
+  background-color: white;
   border: 1px solid #f1f5f9;
 }
 

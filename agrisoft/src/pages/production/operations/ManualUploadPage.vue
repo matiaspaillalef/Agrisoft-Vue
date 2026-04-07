@@ -1,12 +1,16 @@
 <template>
-    <div class="mb-6 flex justify-between items-center w-full px-4 md:px-0">
-        <div class="flex flex-col">
-            <h1 class="text-2xl font-light text-navy-700 dark:text-white">Carga Manual de Cosecha</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Historial y gestión de registros productivos manuales
-            </p>
-        </div>
+  <!-- Title Header -->
+  <div class="mb-8 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md max-w-full mx-auto">
+    <div class="flex items-center gap-4">
+      <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+        <CloudArrowUpIcon class="w-8 h-8 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Carga Manual de Cosecha</h1>
+        <p class="text-slate-500 font-medium font-inter">Carga masiva, historial y gestión de registros productivos</p>
+      </div>
     </div>
+  </div>
 
     <!-- GRID CONTAINER -->
     <div
@@ -348,6 +352,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { CloudArrowUpIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
     DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxPaging, DxScrolling,
