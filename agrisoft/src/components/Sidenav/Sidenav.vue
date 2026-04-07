@@ -70,6 +70,29 @@
       <ul v-else class="space-y-1 px-1">
         <MenuItem v-for="item in menu" :key="item.id" :item="item" :isCollapsed="isCollapsed" />
 
+        <!-- Soporte (Acceso Rápido) -->
+        <li v-if="rolId === 1 || rolId === 2" class="mt-4 px-1">
+          <router-link to="/dashboard/support/tickets"
+            class="flex items-center gap-4 px-6 py-4 w-full rounded-2xl transition-all duration-300 group relative overflow-hidden bg-blue-600! text-white! font-normal!"
+            :class="[
+              isCollapsed ? 'justify-center !px-0' : '',
+              $route.path === '/dashboard/support/tickets' ?
+                ' text-white shadow-lg shadow-blue-200' :
+                'text-slate-500 hover:bg-blue-50 hover:text-blue-600'
+            ]">
+            <div class="relative z-10 flex items-center gap-4">
+              <div class="relative">
+                <LifebuoyIcon class="h-6 w-6 flex-shrink-0" />
+                <div v-if="unreadSupport > 0"
+                  class="absolute -top-3 -right-3 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full border-2 border-white shadow-lg animate-pulse z-[100] flex items-center justify-center min-w-[18px] w-6! h-6!">
+                  {{ unreadSupport }}
+                </div>
+              </div>
+              <span v-if="!isCollapsed" class="text-[15px] font-semibold tracking-tight">Soporte & Ayuda</span>
+            </div>
+          </router-link>
+        </li>
+
         <!-- CERRAR SESIÓN (REDISEÑADO) -->
         <li class="pt-8 mt-4 border-t border-slate-50 px-1">
           <button @click="logout"
@@ -108,7 +131,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MenuItem from '../Menu/MenuItem.vue'
-import { XCircleIcon, ChevronLeftIcon, BuildingOfficeIcon, CameraIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+import { XCircleIcon, ChevronLeftIcon, BuildingOfficeIcon, CameraIcon, ChevronDownIcon, LifebuoyIcon } from '@heroicons/vue/24/outline'
 import { MenuService } from '@/api/menu.services'
 import { CompanyService } from '@/api/company.services'
 import { useCompanyStore } from '@/stores/companyStore'
@@ -212,17 +235,23 @@ onMounted(async () => {
   }
 
   /* =====================
+     UNREAD SUPPORT
+  ===================== */
+  if (rolId === 1 || rolId === 2) {
+    loadUnreadSupport()
+    setInterval(loadUnreadSupport, 30000)
+    window.addEventListener('update-unread-support', loadUnreadSupport)
+  }
+
+  /* =====================
      EMPRESAS (solo admin)
   ===================== */
   if (!isAdmin.value) return
 
   try {
     loadingCompanies.value = true
-
     const data = await CompanyService.getCompanies()
     companies.value = data || []
-
-    // Si no hay empresa activa aún
     if (!companyID.value && companies.value.length) {
       setCompany(companies.value[0].id)
       selectedCompany.value = companies.value[0].id
@@ -234,6 +263,14 @@ onMounted(async () => {
     loadingCompanies.value = false
   }
 })
+
+const unreadSupport = ref(0)
+async function loadUnreadSupport() {
+  try {
+    const { data } = await MenuService.getUnreadSupport()
+    unreadSupport.value = data.unread
+  } catch (e) { }
+}
 
 
 /* 🔁 Mantener sincronizado el select */

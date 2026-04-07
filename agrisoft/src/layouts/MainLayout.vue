@@ -26,6 +26,9 @@
         Regresar a mi Administrador
       </button>
     </div>
+
+    <!-- ChatBox de Soporte e IA -->
+    <SupportChatBox />
   </div>
 </template>
 
@@ -33,6 +36,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import UserHeader from '@/components/UserHeader.vue'
 import Sidenav from '@/components/Sidenav/Sidenav.vue'
+import SupportChatBox from '@/components/SupportChatBox.vue'
 import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 
 const isCollapsed = ref(false)

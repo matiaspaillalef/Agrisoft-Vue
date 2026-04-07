@@ -43,6 +43,7 @@ import AlertsPage from '@/pages/operations/AlertsPage.vue'
 import FieldBookPage from '@/pages/operations/FieldBookPage.vue'
 import ForgotPassword from '@/pages/ForgotPassword.vue'
 import ResetPassword from '@/pages/ResetPassword.vue'
+import SupportTicketsPage from '@/pages/support/SupportTicketsPage.vue'
 
 
 import ProductionReportsPage from '@/pages/reports/ProductionReportsPage.vue'
@@ -415,6 +416,16 @@ const routes = [
           title: 'Configuración Libro de Campo',
           requiresAuth: true,
           roles: [1, 2, 10],
+        },
+      },
+      {
+        path: 'dashboard/support/tickets',
+        name: 'SupportTickets',
+        component: SupportTicketsPage,
+        meta: {
+          title: 'Soporte y Consultas',
+          requiresAuth: true,
+          roles: [1, 2],
         },
       },
     ],
