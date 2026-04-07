@@ -29,15 +29,6 @@
         </div>
       </div>
 
-      <!-- Sugerencias rápidas -->
-      <div v-if="messages.length === 1"
-        class="px-4 py-2 flex gap-2 overflow-x-auto bg-white dark:bg-navy-900 border-b border-gray-50 dark:border-navy-800 scrollbar-none">
-        <button v-for="tag in ['Sectores', 'Bodegas', 'OCs', 'Libro de Campo']" :key="tag"
-          @click="userInput = tag; sendMessage()"
-          class="shrink-0 text-[10px] bg-blue-50 dark:bg-navy-800 text-blue-600 dark:text-blue-300 font-bold px-3 py-1 rounded-full hover:bg-blue-600 hover:text-white transition-colors uppercase border border-blue-100 dark:border-navy-700">
-          # {{ tag }}
-        </button>
-      </div>
 
       <!-- Contenido del Chat -->
       <div

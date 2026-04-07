@@ -95,38 +95,229 @@
       </DxDataGrid>
     </div>
   </div>
-  <!-- Modal de detalle -->
-  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
-    <div class="fixed inset-0 bg-[#ffffff66] backdrop-blur-sm" @click="closeModals"></div>
+  <!-- Modal de detalle Mejorado -->
+  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[100] p-4">
+    <div class="fixed inset-0 bg-navy-900/40 backdrop-blur-sm" @click="closeModals"></div>
     <div
-      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto">
-      <h2 class="text-xl mb-4">Detalles del tránsito <span class="font-bold bg-gray-200 p-1 rounded-sm">{{
-        selectedItem?.id_transito }}</span></h2>
-      <p class="text-sm"><strong>Ruta:</strong> {{ getWarehouseName(selectedItem?.origin_id) }} → {{
-        getWarehouseName(selectedItem?.destiny_id) }}</p>
-      <p class="text-sm"><strong>Estado:</strong> {{ formatStatus(selectedItem?.status) }}</p>
-      <p class="text-sm"><strong>Responsable:</strong> {{ selectedItem?.responsible_name }}</p>
-      <p class="text-sm mb-4"><strong>Fecha:</strong> {{ formatDate(selectedItem?.date) }}</p>
-
-      <div class="max-h-44 overflow-y-auto rounded-md shadow-md">
-        <table class="min-w-full table-auto border-collapse">
-          <thead class="bg-blue-950 text-white text-left text-[12px] uppercase tracking-wider sticky top-0 z-10">
-            <tr>
-              <th class="px-6 py-2">Producto</th>
-              <th class="px-6 py-2">Cantidad</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white text-gray-700 text-[12px]">
-            <tr v-for="(product, index) in selectedItem?.products" :key="index" class="hover:bg-blue-50">
-              <td class="px-6 py-2 font-medium">{{ product.Name }}</td>
-              <td class="px-6 py-2">{{ product.Quantity }}</td>
-            </tr>
-          </tbody>
-        </table>
+      class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-2xl z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in zoom-in duration-200">
+      <!-- Header -->
+      <div
+        class="p-6 border-b border-gray-100 dark:border-navy-700 flex justify-between items-center bg-slate-50/50 dark:bg-navy-800/50">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+            <TruckIcon class="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <h2 class="text-xl font-bold text-slate-800 dark:text-white leading-none">Detalles del Tránsito</h2>
+              <span
+                class="px-2 py-0.5 bg-slate-200 dark:bg-navy-700 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                #{{ selectedItem?.id_transito }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium font-inter">Información logística y control de existencias</p>
+          </div>
+        </div>
+        <button @click="closeModals"
+          class="text-gray-400 hover:text-navy-600 transition p-2 hover:bg-gray-100 dark:hover:bg-navy-700 rounded-full w-fit!">
+          <XMarkIcon class="w-6 h-6" />
+        </button>
       </div>
 
-      <button @click="closeModals"
-        class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg">Cerrar</button>
+      <div class="p-8 space-y-8">
+        <!-- Status & Route Section -->
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 dark:bg-navy-800/50 p-6 rounded-[2rem] border border-slate-100 dark:border-navy-700">
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-white dark:bg-navy-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-navy-700">
+                <MapPinIcon class="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Origen</p>
+                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                  {{ getWarehouseName(selectedItem?.origin_id) }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-white dark:bg-navy-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-navy-700">
+                <FlagIcon class="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Destino</p>
+                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                  {{ getWarehouseName(selectedItem?.destiny_id) }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Estado Actual
+              </p>
+              <div :class="[
+                'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-tighter shadow-sm',
+                selectedItem?.status == 3 ? 'bg-green-100 text-green-700 border border-green-200' :
+                  selectedItem?.status == 2 ? 'bg-orange-100 text-orange-700 border border-orange-200 animate-pulse' :
+                    selectedItem?.status == 0 ? 'bg-red-100 text-red-700 border border-red-200' :
+                      'bg-blue-100 text-blue-700 border border-blue-200'
+              ]">
+                <CheckCircleIcon v-if="selectedItem?.status == 3" class="w-4 h-4" />
+                <ArrowPathRoundedSquareIcon v-else-if="selectedItem?.status == 2" class="w-4 h-4" />
+                <NoSymbolIcon v-else-if="selectedItem?.status == 0" class="w-4 h-4" />
+                <ClockIcon v-else class="w-4 h-4" />
+                {{ formatStatus(selectedItem?.status) }}
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-white dark:bg-navy-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-navy-700">
+                <CalendarIcon class="w-5 h-5 text-gray-500" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Fecha</p>
+                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ formatDate(selectedItem?.date) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Responsibles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-4 bg-slate-50/50 dark:bg-navy-800/30 rounded-2xl border border-slate-100 dark:border-navy-700">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <UserIcon class="w-3 h-3 text-blue-500" /> Emitido por
+            </p>
+            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ selectedItem?.responsible_name }}</p>
+          </div>
+          <div class="p-4 bg-slate-50/50 dark:bg-navy-800/30 rounded-2xl border border-slate-100 dark:border-navy-700">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <UserCheckIcon class="w-3 h-3 text-green-500" /> Recibido por
+            </p>
+            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">
+              {{ selectedItem?.received_by || 'Aún no recibido' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="space-y-4">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <CubeIcon class="w-3 h-3 text-orange-500" /> Productos en Movimiento
+            ({{ selectedItem?.products?.length || 0 }})
+          </p>
+          <div
+            class="border border-slate-100 dark:border-navy-700 rounded-[1.5rem] overflow-hidden bg-white dark:bg-navy-900 shadow-sm">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-navy-800/50 border-b border-slate-100 dark:border-navy-700">
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Insumo</th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
+                    Cantidad</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-navy-700">
+                <tr v-for="(product, index) in selectedItem?.products" :key="index"
+                  class="hover:bg-slate-50/80 dark:hover:bg-navy-800/20 transition-colors">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-950/20 flex items-center justify-center font-black text-[10px] text-orange-600">
+                        {{ product.Name[0] }}
+                      </div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ product.Name }}</p>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <span
+                      class="px-3 py-1 bg-slate-100 dark:bg-navy-800 rounded-lg text-xs font-black text-slate-600 dark:text-slate-300">
+                      {{ product.Quantity }}
+                    </span>
+                  </td>
+                </tr>
+                <tr v-if="!selectedItem?.products?.length">
+                  <td colspan="2" class="px-6 py-10 text-center text-sm text-slate-400 italic">No se encontraron
+                    productos
+                    registrados</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-6 bg-slate-50 dark:bg-navy-800/50 border-t border-gray-100 dark:border-navy-700 flex justify-end">
+        <button @click="closeModals"
+          class="bg-navy-600 hover:bg-navy-700 text-white font-black px-10 py-3 rounded-2xl shadow-lg transition active:scale-95 text-xs uppercase tracking-widest">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Recepción Parcial -->
+  <div v-if="showReceiptModal" class="fixed inset-0 flex items-center justify-center z-[101] p-4">
+    <div class="fixed inset-0 bg-navy-900/40 backdrop-blur-sm" @click="showReceiptModal = false"></div>
+    <div
+      class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-xl z-20 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in zoom-in duration-200">
+      <div
+        class="p-6 border-b border-gray-100 dark:border-navy-700 flex justify-between items-center bg-slate-50/50 dark:bg-navy-800/50">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+            <CheckCircleIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Confirmar Recepción</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tránsito
+              #{{ selectedTransitForReceipt?.id_transito }}</p>
+          </div>
+        </div>
+        <button @click="showReceiptModal = false"
+          class="text-gray-400 hover:text-navy-600 transition p-2 hover:bg-gray-100 dark:hover:bg-navy-700 rounded-full w-fit!">
+          <XMarkIcon class="w-6 h-6" />
+        </button>
+      </div>
+
+      <div class="p-8 space-y-6">
+        <p class="text-sm text-slate-500 font-medium leading-relaxed">
+          Informe la cantidad exacta de productos recibidos. Si hubo una pérdida durante el transporte, ingrese la
+          cantidad real que llegó a la bodega de destino.
+        </p>
+
+        <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
+          <div v-for="(product, index) in receiptProducts" :key="index"
+            class="p-4 bg-slate-50 dark:bg-navy-800 rounded-2xl border border-slate-100 dark:border-navy-700 flex items-center justify-between gap-4">
+            <div class="flex-1">
+              <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ product.name }}</p>
+              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Enviado:
+                {{ product.original_quantity }}
+              </p>
+            </div>
+            <div class="w-24">
+              <input type="number" v-model="product.received_quantity"
+                class="w-full bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-600 rounded-xl px-3 py-2 text-sm font-bold text-center focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                :max="product.original_quantity" min="0" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="p-6 bg-slate-50 dark:bg-navy-800/50 border-t border-gray-100 dark:border-navy-700 flex justify-end gap-3">
+        <button @click="showReceiptModal = false"
+          class="px-6 py-3 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-navy-700 transition text-sm">
+          Cancelar
+        </button>
+        <button @click="confirmarRecepcion"
+          class="bg-green-600 hover:bg-green-700 text-white font-black px-10 py-3 rounded-2xl shadow-lg shadow-green-200 dark:shadow-none transition active:scale-95 text-xs uppercase tracking-widest">
+          Confirmar y Recibir
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -159,7 +350,20 @@ import {
 import { DxSimpleItem } from 'devextreme-vue/form'
 import { ref, onMounted, watch, computed } from 'vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
-import { TruckIcon } from '@heroicons/vue/24/solid'
+import {
+  TruckIcon,
+  XMarkIcon,
+  MapPinIcon,
+  FlagIcon,
+  CheckCircleIcon,
+  ArrowPathRoundedSquareIcon,
+  NoSymbolIcon,
+  ClockIcon,
+  CalendarIcon,
+  CubeIcon,
+  UserIcon,
+  UserGroupIcon
+} from '@heroicons/vue/24/solid'
 import conexionApi from '@/services/conexionApi.js'
 import { statusCellTemplatev2 } from '@/utils/herlpers.js'
 
@@ -575,6 +779,7 @@ const dataSource = new CustomStore({
             received_by: t.received_name || '—',
             date: new Date(t.date),
             products: t.products.map(p => ({
+              id: p.product_id,
               Name: p.name,
               Quantity: p.quantity
             }))
@@ -661,6 +866,10 @@ const destinyLookup = computed(() => ({
 // ⚙️ ACCIONES DE NEGOCIO (CANCELAR / RECIBIR / PROCESAR)
 // ======================================================
 
+const showReceiptModal = ref(false)
+const selectedTransitForReceipt = ref(null)
+const receiptProducts = ref([])
+
 async function cancelarTransito(rowData) {
   if (!confirm('¿Está seguro que desea cancelar este tránsito y liberar los productos?')) return
   loading.value = true
@@ -679,19 +888,39 @@ async function cancelarTransito(rowData) {
 }
 
 async function recibirTransito(rowData) {
-  if (!confirm('¿Desea recibir este tránsito y mover los productos a la bodega destino?')) return
+  selectedTransitForReceipt.value = rowData
+  // Mapear productos actuales para el modal de recepción
+  receiptProducts.value = rowData.products.map(p => ({
+    product_id: p.id || p.product_id, // Asegurar ID correcto
+    name: p.Name || p.name,
+    original_quantity: p.Quantity || p.quantity,
+    received_quantity: p.Quantity || p.quantity // Por defecto todo
+  }))
+  showReceiptModal.value = true
+}
+
+async function confirmarRecepcion() {
+  if (!selectedTransitForReceipt.value) return
+
   loading.value = true
   try {
-    const { data } = await conexionApi.put(`/transits/${rowData.id}/receive`, {
-      received_by: currentUser.id
-    })
+    const payload = {
+      received_by: currentUser.id,
+      products: receiptProducts.value.map(p => ({
+        product_id: p.product_id,
+        received_quantity: Number(p.received_quantity)
+      }))
+    }
+
+    const { data } = await conexionApi.put(`/transits/${selectedTransitForReceipt.value.id}/receive`, payload)
     if (data.code !== 'OK') throw new Error(data.mensaje)
-    rowData.status = 3
+
+    showReceiptModal.value = false
     dataGrid.value.instance.refresh()
-    alert('Tránsito recibido y stock actualizado')
+    alert('Tránsito recibido y stock actualizado correctamente')
   } catch (err) {
     console.error(err)
-    alert(err.message || 'Error al recibir tránsito')
+    alert(err.message || 'Error al confirmar recepción')
   } finally {
     loading.value = false
   }

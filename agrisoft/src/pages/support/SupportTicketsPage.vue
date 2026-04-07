@@ -72,7 +72,8 @@
 
   <div
     class="mt-2 max-w-full mx-auto rounded-[2.5rem] bg-white dark:bg-navy-800 p-8 shadow-xl border border-slate-50 dark:border-navy-700 text-[13px]! text-initial!">
-    <DxDataGrid ref="gridRef" :data-source="dataSource" key-expr="id" :show-borders="false" :column-auto-width="true">
+    <DxDataGrid ref="gridRef" :data-source="dataSource" key-expr="id" :show-borders="false" :column-auto-width="true"
+      :load-panel="{ enabled: false }">
       <DxSearchPanel :visible="true" placeholder="Buscar ticket..." />
       <DxHeaderFilter :visible="true" />
       <DxPaging :page-size="10" />

@@ -205,9 +205,6 @@ const fetchAllData = async () => {
       DashboardService.getDataKgGroundAllTemp(cID)
     ])
 
-    console.log('Hourly Data Today:', hourlyDay)
-    console.log('Hourly Data Season:', hourlySeason)
-
     // Update Metrics
     metrics.value.kgDay = kgDay?.kg_boxes || 0
     metrics.value.kgSeason = kgSeason?.kg_boxes || 0

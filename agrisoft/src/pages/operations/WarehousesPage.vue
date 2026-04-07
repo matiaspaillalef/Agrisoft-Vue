@@ -17,11 +17,11 @@
     class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl bg-white dark:bg-gray-200 py-6 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 px-2 md:px-10 max-w-full mx-auto">
     <div class="warehouses">
 
-        <div class="datagrid-container relative">
-          <LoadingOverlay :show="loading" />
-          <DxDataGrid :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
-            :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
-            @saving="onSaving" ref="mainGridRef" @cell-prepared="onCellPrepared">
+      <div class="datagrid-container relative">
+        <LoadingOverlay :show="loading" />
+        <DxDataGrid :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
+          :column-hiding-enabled="true" :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow"
+          @saving="onSaving" ref="mainGridRef" @cell-prepared="onCellPrepared" :load-panel="{ enabled: false }">
 
           <!-- Panel adaptable -->
           <DxColumnChooser v-if="columnChooser" :enabled="true" mode="select" />
@@ -77,6 +77,8 @@
             </DxForm>
           </DxEditing>
 
+
+
           <DxColumn data-field="name" caption="Nombre" css-class="!text-left" />
 
           <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-left" />
@@ -92,14 +94,106 @@
           <!-- 🔢 CANTIDAD DE RESPONSABLES -->
           <DxColumn data-field="users" caption="Responsables" :calculate-cell-value="usersLabel"
             css-class="!text-left" />
+
+          <DxColumn type="buttons" :width="110">
+            <DxButton icon="custom-view" hint="Ver Detalles" @click="openViewModal" />
+            <DxButton name="edit" />
+            <DxButton name="delete" />
+          </DxColumn>
         </DxDataGrid>
+
+        <!-- Modal de Vista de Detalle -->
+        <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[100] p-4">
+          <div class="fixed inset-0 bg-navy-900/40 backdrop-blur-sm" @click="showViewModal = false"></div>
+          <div
+            class="bg-white dark:bg-navy-900 rounded-3xl shadow-2xl w-full max-w-lg z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in zoom-in duration-200">
+            <div
+              class="p-6 border-b border-gray-100 dark:border-navy-700 flex justify-between items-center bg-slate-50/50 dark:bg-navy-800/50">
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                  <BuildingStorefrontIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Detalles de Bodega</h2>
+              </div>
+              <button @click="showViewModal = false"
+                class="text-gray-400 hover:text-navy-600 transition p-2 hover:bg-gray-100 dark:hover:bg-navy-700 rounded-full w-fit!">
+                <XMarkIcon class="w-6 h-6" />
+              </button>
+            </div>
+
+            <div class="p-8 space-y-6">
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nombre</p>
+                  <p class="text-lg font-bold text-slate-700 dark:text-slate-200">{{ selectedWarehouse?.name }}</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Estado</p>
+                  <div class="flex items-center gap-1.5">
+                    <span
+                      :class="['w-2 h-2 rounded-full', selectedWarehouse?.status ? 'bg-green-500' : 'bg-red-500']"></span>
+                    <p class="font-bold text-slate-700 dark:text-slate-200">
+                      {{ selectedWarehouse?.status ? 'Activa' : 'Inactiva' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="selectedWarehouse?.is_distribution"
+                class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex items-center gap-3">
+                <SparklesIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <p class="text-sm font-bold text-blue-700 dark:text-blue-300">Bodega de Distribución Principal</p>
+              </div>
+
+              <div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <UserGroupIcon class="w-4 h-4" />
+                  Responsables Asignados ({{ selectedWarehouse?.users?.length || 0 }})
+                </p>
+                <div class="max-h-[200px] overflow-y-auto space-y-2 pr-2 scrollbar-thin">
+                  <div v-for="user in getSelectedUsersInfo" :key="user.id"
+                    class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-navy-800 rounded-2xl border border-slate-100 dark:border-navy-700 transition hover:border-blue-200 dark:hover:border-blue-900/50">
+                    <div
+                      class="w-10 h-10 rounded-full bg-white dark:bg-navy-700 flex items-center justify-center font-bold text-blue-600 shadow-sm border border-slate-100 dark:border-navy-600">
+                      {{ user.name[0] }}{{ user.lastname[0] }}
+                    </div>
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ user.name }}
+                        {{ user.lastname }}
+                      </p>
+                      <p class="text-xs text-slate-400">{{ user.mail }}</p>
+                    </div>
+                  </div>
+                  <div v-if="!selectedWarehouse?.users?.length"
+                    class="text-center py-6 text-slate-400 italic text-sm bg-slate-50 dark:bg-navy-800 rounded-2xl border border-dashed border-slate-200 dark:border-navy-700">
+                    No hay responsables asignados
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="p-6 bg-slate-50 dark:bg-navy-800/50 border-t border-gray-100 dark:border-navy-700 flex justify-end">
+              <button @click="showViewModal = false"
+                class="bg-navy-600 hover:bg-navy-700 text-white font-bold px-8 py-3 rounded-2xl shadow-lg transition active:scale-95 text-sm">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { BuildingStorefrontIcon } from '@heroicons/vue/24/solid'
+import {
+  BuildingStorefrontIcon,
+  EyeIcon,
+  XMarkIcon,
+  UserGroupIcon,
+  SparklesIcon
+} from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
   DxDataGrid,
@@ -110,7 +204,8 @@ import {
   DxItem,
   DxSearchPanel,
   DxSelection,
-  DxFilterRow
+  DxFilterRow,
+  DxButton
 } from 'devextreme-vue/data-grid'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
@@ -168,6 +263,22 @@ const loadUsers = async () => {
 
 loadUsers()
 
+/* =========================
+   VISTA DE DETALLES
+========================= */
+const showViewModal = ref(false)
+const selectedWarehouse = ref(null)
+
+const openViewModal = (e) => {
+  selectedWarehouse.value = e.row.data
+  showViewModal.value = true
+}
+
+const getSelectedUsersInfo = computed(() => {
+  if (!selectedWarehouse.value || !selectedWarehouse.value.users) return []
+  return users.value.filter(u => selectedWarehouse.value.users.includes(u.id))
+})
+
 const userEditorOptions = computed(() => ({
   dataSource: users.value,
   valueExpr: 'id',
@@ -197,38 +308,49 @@ const dataSource = new CustomStore({
 
   load: async () => {
     loading.value = true;
-    const { data } = await conexionApi.get('/warehouses/getWarehouses/' + companyID)
-    const result = data.warehouses.map(w => ({
-      ...w,
-      users: Array.isArray(w.users) ? w.users : []
-    }))
+    try {
+      const { data } = await conexionApi.get('/warehouses/getWarehouses/' + companyID)
+      const result = data.warehouses.map(w => ({
+        ...w,
+        is_distribution: w.is_distribution === 1 || w.is_distribution === true,
+        users: Array.isArray(w.users) ? w.users : []
+      }))
 
-    allWarehouses.value = result; // <--- GUARDAMOS LOS DATOS AQUÍ
-    loading.value = false;
-    return result;
+      allWarehouses.value = result;
+      return result;
+    } finally {
+      loading.value = false;
+    }
   },
 
   insert: async values => {
-    values.idCompany = companyID; // Aseguramos que viaje el ID de empresa
-    values.users = values.users ?? [];
-
-    // Si el check viene como undefined por alguna razón, enviamos 0
-    values.is_distribution = values.is_distribution ? 1 : 0;
+    const payload = {
+      ...values,
+      idCompany: companyID,
+      users: values.users ?? [],
+      is_distribution: !!values.is_distribution
+    };
 
     const { data } = await conexionApi.post(
       '/warehouses/createWarehouse',
-      values
+      payload
     );
 
-    return { id: data.id, ...values };
+    return { id: data.id, ...payload };
   },
 
   update: async (id, values) => {
-    // Agregamos idCompany para que el backend pueda resetear las otras bodegas
-    const payload = { ...values, idCompany: companyID };
-    await conexionApi.put(`/warehouses/${id}`, payload);
+    // Para el update, si no viene is_distribution en 'values' de devextreme, 
+    // pero si lo tenemos en el formData original, lo incluimos para que el backend 
+    // sepa si esta bodega sigue siendo (o dejo de ser) la de distribución si es necesario.
+    // Aunque el backend solo resetea si es 1.
 
-    // Opcional: Recargar el grid para actualizar allWarehouses
+    const payload = {
+      ...values,
+      idCompany: companyID
+    };
+
+    await conexionApi.put(`/warehouses/${id}`, payload);
     mainGridRef.value?.instance.refresh();
   },
 
