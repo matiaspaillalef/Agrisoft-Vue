@@ -18,7 +18,8 @@
     <template v-if="userRoleId === 11">
       <!-- Role 11: Aplicador Stats -->
       <!-- Overdue -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-rose-50 rounded-2xl text-rose-600">
           <ExclamationTriangleIcon class="w-8 h-8" />
         </div>
@@ -30,7 +31,8 @@
       </div>
 
       <!-- Pending -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-orange-50 rounded-2xl text-orange-600">
           <ClockIcon class="w-8 h-8" />
         </div>
@@ -42,7 +44,8 @@
       </div>
 
       <!-- Completed -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
           <ClipboardDocumentCheckIcon class="w-8 h-8" />
         </div>
@@ -57,7 +60,8 @@
     <template v-else-if="userRoleId === 10">
       <!-- Role 10: Agronomo Stats -->
       <!-- Stat Card 1: Pending Applications -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-orange-50 rounded-2xl text-orange-600">
           <ClockIcon class="w-8 h-8" />
         </div>
@@ -69,7 +73,8 @@
       </div>
 
       <!-- Stat Card 2: Applied Orders -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-blue-50 rounded-2xl text-blue-600">
           <BeakerIcon class="w-8 h-8" />
         </div>
@@ -81,7 +86,8 @@
       </div>
 
       <!-- Stat Card 3: Total Programmed -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
           <ClipboardDocumentCheckIcon class="w-8 h-8" />
         </div>
@@ -96,7 +102,8 @@
     <template v-else>
       <!-- Original Stat Cards (Role 7, 8, etc.) -->
       <!-- Stat Card 1: Low Stock -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-amber-50 rounded-2xl text-amber-600">
           <ExclamationTriangleIcon class="w-8 h-8" />
         </div>
@@ -108,7 +115,8 @@
       </div>
 
       <!-- Stat Card 2: Pending Orders -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-blue-50 rounded-2xl text-blue-600">
           <ShoppingCartIcon class="w-8 h-8" />
         </div>
@@ -120,7 +128,8 @@
       </div>
 
       <!-- Stat Card 3: Recent Receipts -->
-      <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
           <TruckIcon class="w-8 h-8" />
         </div>
@@ -144,41 +153,37 @@
               {{ userRoleId === 11 ? 'Mis Labores Pendientes' : 'Actividad Reciente del Libro de Campo' }}
             </h2>
           </div>
-          <router-link to="/dashboard/operations/field-book/book" class="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all">
+          <router-link to="/dashboard/operations/field-book/book"
+            class="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all">
             <ArrowTopRightOnSquareIcon class="w-5 h-5" />
           </router-link>
         </div>
 
         <LoadingOverlay :show="loadingFieldOrders" />
 
-        <DxDataGrid 
-          :data-source="computedFieldOrders" 
-          :show-borders="false" 
-          class="custom-grid w-full"
-          :column-auto-width="true"
-          :no-data-text="'No hay órdenes de aplicación registradas'"
-        >
+        <DxDataGrid :data-source="computedFieldOrders" :show-borders="false" class="custom-grid w-full"
+          :column-auto-width="true" :no-data-text="'No hay órdenes de aplicación registradas'">
           <DxScrolling mode="virtual" />
-          <DxColumn data-field="order_number" caption="#Orden" width="100" css-class="font-black text-blue-600 !text-left" />
+          <DxColumn data-field="order_number" caption="#Orden" width="100"
+            css-class="font-black text-blue-600 !text-left" />
           <DxColumn data-field="ground_name" caption="Campo" css-class="!text-left" />
           <DxColumn data-field="specie_name" caption="Especie" css-class="!text-left" />
           <DxColumn data-field="task_name" caption="Tarea" css-class="!text-left" />
           <DxColumn data-field="status" caption="Estado" cell-template="fieldStatusTemplate" width="140" />
           <DxColumn data-field="issue_date" caption="Fecha Plan" data-type="date" format="dd/MM/yyyy" width="120" />
-          <DxColumn v-if="userRoleId === 11" caption="Acciones" cell-template="actionsTemplate" width="120" alignment="center" />
+          <DxColumn v-if="userRoleId === 11" caption="Acciones" cell-template="actionsTemplate" width="120"
+            alignment="center" />
 
           <template #fieldStatusTemplate="{ data }">
-            <span :class="getFieldStatusClass(data.value)" class="px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-wider block text-center">
+            <span :class="getFieldStatusClass(data.value)"
+              class="px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-wider block text-center">
               {{ formatFieldStatusText(data.value) }}
             </span>
           </template>
 
           <template #actionsTemplate="{ data }">
-            <button 
-              v-if="['GENERATED', 'PARTIAL'].includes(data.value.status)"
-              @click="goToApply(data.value)"
-              class="w-full bg-indigo-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-100"
-            >
+            <button v-if="['GENERATED', 'PARTIAL'].includes(data.value.status)" @click="goToApply(data.value)"
+              class="w-full bg-indigo-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-100">
               <CheckCircleIcon class="w-4 h-4" />
               Aplicar
             </button>
@@ -192,24 +197,20 @@
       <!-- Stock Alerts Grid -->
       <div class="bg-white rounded-[2.5rem] shadow-xl p-8 relative min-h-[500px] border border-slate-50">
         <div class="flex items-center justify-between mb-8">
-            <div class="flex items-center gap-3">
-                <div class="w-2 h-8 bg-amber-500 rounded-full"></div>
-                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Críticos de Bodega</h2>
-            </div>
-            <router-link to="/dashboard/operations/products" class="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition-all">
-                <ArrowTopRightOnSquareIcon class="w-5 h-5" />
-            </router-link>
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-8 bg-amber-500 rounded-full"></div>
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Críticos de Bodega</h2>
+          </div>
+          <router-link to="/dashboard/operations/products"
+            class="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition-all">
+            <ArrowTopRightOnSquareIcon class="w-5 h-5" />
+          </router-link>
         </div>
-        
+
         <LoadingOverlay :show="loadingStock" />
 
-        <DxDataGrid 
-          :data-source="lowStockData" 
-          :show-borders="false" 
-          class="custom-grid w-full"
-          :column-auto-width="true"
-          :no-data-text="'No hay alertas de stock'"
-        >
+        <DxDataGrid :data-source="lowStockData" :show-borders="false" class="custom-grid w-full"
+          :column-auto-width="true" :no-data-text="'No hay alertas de stock'">
           <DxScrolling mode="virtual" />
           <DxColumn data-field="sku" caption="SKU" width="90" css-class="font-mono text-slate-400 !text-left" />
           <DxColumn data-field="name" caption="Producto" css-class="!text-left" />
@@ -225,37 +226,35 @@
 
       <!-- Active Orders Grid -->
       <div class="bg-white rounded-[2.5rem] shadow-xl p-8 relative min-h-[500px] border border-slate-50">
-          <div class="flex items-center justify-between mb-8">
-              <div class="flex items-center gap-3">
-                  <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
-                  <h2 class="text-2xl font-black text-slate-800 tracking-tight">Órdenes Activas</h2>
-              </div>
-              <router-link to="/dashboard/operations/procurement/purchase-orders" class="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all">
-                  <ArrowTopRightOnSquareIcon class="w-5 h-5" />
-              </router-link>
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Órdenes Activas</h2>
           </div>
+          <router-link to="/dashboard/operations/procurement/purchase-orders"
+            class="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all">
+            <ArrowTopRightOnSquareIcon class="w-5 h-5" />
+          </router-link>
+        </div>
 
-          <LoadingOverlay :show="loadingOrders" />
+        <LoadingOverlay :show="loadingOrders" />
 
-          <DxDataGrid 
-            :data-source="activeOrdersData" 
-            :show-borders="false" 
-            class="custom-grid w-full"
-            :column-auto-width="true"
-            :no-data-text="'No hay órdenes de compra activas'"
-          >
-            <DxScrolling mode="virtual" />
-            <DxColumn data-field="order_code" caption="#Orden" width="100" css-class="font-black text-blue-600 !text-left" />
-            <DxColumn data-field="supplier_name" caption="Proveedor" css-class="!text-left" />
-            <DxColumn data-field="status" caption="Estado" cell-template="statusTemplate" width="140" />
-            <DxColumn data-field="created_at" caption="Fecha" data-type="date" format="dd/MM/yyyy" width="100" />
+        <DxDataGrid :data-source="activeOrdersData" :show-borders="false" class="custom-grid w-full"
+          :column-auto-width="true" :no-data-text="'No hay órdenes de compra activas'">
+          <DxScrolling mode="virtual" />
+          <DxColumn data-field="order_code" caption="#Orden" width="100"
+            css-class="font-black text-blue-600 !text-left" />
+          <DxColumn data-field="supplier_name" caption="Proveedor" css-class="!text-left" />
+          <DxColumn data-field="status" caption="Estado" cell-template="statusTemplate" width="140" />
+          <DxColumn data-field="created_at" caption="Fecha" data-type="date" format="dd/MM/yyyy" width="100" />
 
-            <template #statusTemplate="{ data }">
-              <span :class="getStatusClass(data.value)" class="px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-wider block text-center">
-                {{ formatStatusText(data.value) }}
-              </span>
-            </template>
-          </DxDataGrid>
+          <template #statusTemplate="{ data }">
+            <span :class="getStatusClass(data.value)"
+              class="px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-wider block text-center">
+              {{ formatStatusText(data.value) }}
+            </span>
+          </template>
+        </DxDataGrid>
       </div>
     </template>
   </div>
@@ -263,10 +262,10 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { 
-  PresentationChartLineIcon, 
-  ExclamationTriangleIcon, 
-  ShoppingCartIcon, 
+import {
+  PresentationChartLineIcon,
+  ExclamationTriangleIcon,
+  ShoppingCartIcon,
   TruckIcon,
   ArrowTopRightOnSquareIcon,
   ClockIcon,
@@ -297,21 +296,21 @@ const pendingOrdersCount = computed(() => activeOrdersData.value.length)
 
 // Field Book Specific Stats
 const pendingFieldOrdersCount = computed(() => {
-  const data = userRoleId === 11 
+  const data = userRoleId === 11
     ? fieldOrdersData.value.filter(o => Number(o.applicator_id) === Number(userId))
     : fieldOrdersData.value
   return data.filter(o => ['GENERATED', 'PARTIAL'].includes(o.status)).length
 })
 
 const appliedFieldOrdersCount = computed(() => {
-  const data = userRoleId === 11 
+  const data = userRoleId === 11
     ? fieldOrdersData.value.filter(o => Number(o.applicator_id) === Number(userId))
     : fieldOrdersData.value
   return data.filter(o => o.status === 'APPLIED').length
 })
 
 const closedFieldOrdersCount = computed(() => {
-  const data = userRoleId === 11 
+  const data = userRoleId === 11
     ? fieldOrdersData.value.filter(o => Number(o.applicator_id) === Number(userId))
     : fieldOrdersData.value
   return data.filter(o => o.status === 'CLOSED').length
@@ -320,7 +319,7 @@ const closedFieldOrdersCount = computed(() => {
 // Role 11 Specific: Overdue Tasks
 const overdueFieldOrdersCount = computed(() => {
   const today = new Date().setHours(0, 0, 0, 0)
-  const data = userRoleId === 11 
+  const data = userRoleId === 11
     ? fieldOrdersData.value.filter(o => Number(o.applicator_id) === Number(userId))
     : fieldOrdersData.value
   return data.filter(o => {
@@ -355,7 +354,7 @@ const fetchLogisticsData = async () => {
   try {
     const productsRes = await conexionApi.get(`/products/${companyID}`)
     const products = productsRes.data.products || []
-    
+
     const alerts = []
     products.forEach(p => {
       if (p.warehouses && Array.isArray(p.warehouses)) {

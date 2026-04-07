@@ -402,25 +402,45 @@ button {
 }
 
 /* Global Navy & Gray Utilities */
-.bg-navy-900 { background-color: #0b1437 !important; }
-.bg-navy-800 { background-color: #111c44 !important; }
-.bg-navy-50 { background-color: #f4f7fe !important; }
-.text-navy-700 { color: #1b254b !important; }
-.text-navy-900 { color: #0b1437 !important; }
-.border-navy-100 { border-color: #e0e5f2 !important; }
+.bg-navy-900 {
+  background-color: #0b1437 !important;
+}
+
+.bg-navy-800 {
+  background-color: #111c44 !important;
+}
+
+.bg-navy-50 {
+  background-color: #f4f7fe !important;
+}
+
+.text-navy-700 {
+  color: #1b254b !important;
+}
+
+.text-navy-900 {
+  color: #0b1437 !important;
+}
+
+.border-navy-100 {
+  border-color: #e0e5f2 !important;
+}
 
 /* Global Scrollbar Style */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #e2e8f0;
   border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1;
 }
@@ -439,6 +459,7 @@ button {
   align-items: center !important;
   justify-content: center !important;
 }
+
 :deep(.dx-datagrid-export-button .dx-icon) {
   color: white !important;
 }

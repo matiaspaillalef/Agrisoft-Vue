@@ -25,7 +25,8 @@
     </div>
     <!-- ROLE 11 SUMMARY STATS -->
     <div v-if="userRoleId === 11" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+      <div
+        class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-orange-50 rounded-2xl text-orange-600">
           <ClockIcon class="w-8 h-8" />
         </div>
@@ -34,8 +35,9 @@
           <h3 class="text-2xl font-black text-rose-600">{{ stats.overdue }}</h3>
         </div>
       </div>
- 
-      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+
+      <div
+        class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-blue-50 rounded-2xl text-blue-600">
           <BeakerIcon class="w-8 h-8" />
         </div>
@@ -44,8 +46,9 @@
           <h3 class="text-2xl font-black text-blue-600">{{ stats.pending }}</h3>
         </div>
       </div>
- 
-      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+
+      <div
+        class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-amber-50 rounded-2xl text-amber-600">
           <AdjustmentsHorizontalIcon class="w-8 h-8" />
         </div>
@@ -54,8 +57,9 @@
           <h3 class="text-2xl font-black text-amber-600">{{ stats.partial }}</h3>
         </div>
       </div>
- 
-      <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
+
+      <div
+        class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all">
         <div class="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
           <ClipboardDocumentCheckIcon class="w-8 h-8" />
         </div>
@@ -182,7 +186,8 @@
             </button>
 
             <!-- Validar/Cerrar (Tech/Admin/Roles 1-2, cuando esta Aplicada o Parcial si ya no hay mas restos) -->
-            <button v-if="['APPLIED', 'PARTIAL'].includes(data.data.status) && canChangeResponsible && userRoleId !== 11"
+            <button
+              v-if="['APPLIED', 'PARTIAL'].includes(data.data.status) && canChangeResponsible && userRoleId !== 11"
               @click="handleCloseOrder(data.data)" class="p-0! text-emerald-600! bg-transparent! border-none w-fit!"
               title="Validar y Cerrar">
               <ShieldCheckIcon class="w-4 h-4" />
@@ -194,7 +199,8 @@
               <ArrowDownTrayIcon class="w-4 h-4" />
             </button>
 
-            <button v-if="(data.data.status === 'PENDING' || canChangeResponsible) && userRoleId !== 11" @click="handleDelete(data.data)"
+            <button v-if="(data.data.status === 'PENDING' || canChangeResponsible) && userRoleId !== 11"
+              @click="handleDelete(data.data)"
               class="p-0! text-slate-400! hover:text-rose-600! bg-transparent! border-none w-fit!" title="Eliminar">
               <TrashIcon class="w-4 h-4" />
             </button>
@@ -547,9 +553,8 @@
                   Activo)</label>
                 <DxSelectBox v-model:value="product.id_product" :data-source="companyProducts" display-expr="name"
                   value-expr="id" :search-enabled="true" :search-expr="['name', 'active_ingredient']"
-                  @value-changed="(e) => onProductNameChange(e, product)" 
-                  @on-selection-changed="(e) => onProductNameChange(e, product)"
-                  class="premium-select"
+                  @value-changed="(e) => onProductNameChange(e, product)"
+                  @on-selection-changed="(e) => onProductNameChange(e, product)" class="premium-select"
                   item-template="productItem">
                   <template #productItem="{ data }">
                     <div class="flex flex-col py-1">
@@ -581,11 +586,14 @@
                     Bodegas</label>
                   <div class="flex flex-wrap gap-2 pt-1">
                     <div v-for="(s, sIdx) in (product.stock_info || [])" :key="sIdx"
-                         class="px-3 py-1.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[70px]">
-                      <span class="text-[7px] font-black text-slate-400 truncate uppercase tracking-tighter">{{ s.warehouse_name || getWarehouseName(s.id_warehouse || s.warehouse_id) }}</span>
-                      <span class="text-[10px] font-bold text-blue-600 leading-none mt-1">{{ s.quantity || s.stock || 0 }}</span>
+                      class="px-3 py-1.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[70px]">
+                      <span
+                        class="text-[7px] font-black text-slate-400 truncate uppercase tracking-tighter">{{ s.warehouse_name || getWarehouseName(s.id_warehouse || s.warehouse_id) }}</span>
+                      <span
+                        class="text-[10px] font-bold text-blue-600 leading-none mt-1">{{ s.quantity || s.stock || 0 }}</span>
                     </div>
-                    <div v-if="product.id_product && (!product.stock_info || product.stock_info.length === 0)" class="text-[9px] text-amber-500 font-bold py-1 flex items-center gap-1">
+                    <div v-if="product.id_product && (!product.stock_info || product.stock_info.length === 0)"
+                      class="text-[9px] text-amber-500 font-bold py-1 flex items-center gap-1">
                       <ExclamationTriangleIcon class="w-3 h-3" /> Sin stock informado
                     </div>
                   </div>
@@ -623,22 +631,28 @@
                 </div>
 
                 <!-- STOCK WARNINGS -->
-                <div v-if="product.id_warehouse && (parseFloat(calculateProductNeeded(product)) > parseFloat(getSelectedWarehouseStock(product)))" 
-                     class="col-span-full">
-                  <div v-if="!product.reserve_stock" 
-                       class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 animate-pulse mt-2">
+                <div
+                  v-if="product.id_warehouse && (parseFloat(calculateProductNeeded(product)) > parseFloat(getSelectedWarehouseStock(product)))"
+                  class="col-span-full">
+                  <div v-if="!product.reserve_stock"
+                    class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 animate-pulse mt-2">
                     <ExclamationTriangleIcon class="w-5 h-5 text-rose-500" />
                     <div class="flex flex-col">
-                      <p class="text-[10px] font-black text-rose-700 uppercase tracking-tighter">Stock Insuficiente en Bodega</p>
-                      <p class="text-[8px] font-bold text-rose-600">Requieres {{ calculateProductNeeded(product) }} L-Kg para la superficie actual, pero solo hay {{ getSelectedWarehouseStock(product) }} disponibles.</p>
+                      <p class="text-[10px] font-black text-rose-700 uppercase tracking-tighter">Stock Insuficiente en
+                        Bodega</p>
+                      <p class="text-[8px] font-bold text-rose-600">Requieres {{ calculateProductNeeded(product) }} L-Kg
+                        para la superficie actual, pero solo hay {{ getSelectedWarehouseStock(product) }} disponibles.
+                      </p>
                     </div>
                   </div>
-                  <div v-else 
-                       class="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 mt-2">
+                  <div v-else class="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 mt-2">
                     <InformationCircleIcon class="w-5 h-5 text-blue-500" />
                     <div class="flex flex-col">
-                      <p class="text-[10px] font-black text-blue-700 uppercase tracking-tighter">Reserva de Stock Activada</p>
-                      <p class="text-[8px] font-bold text-blue-600">Con esta opción se mandará con productos que aún no tienes en bodega {{ getWarehouseName(product.id_warehouse) }}.</p>
+                      <p class="text-[10px] font-black text-blue-700 uppercase tracking-tighter">Reserva de Stock
+                        Activada
+                      </p>
+                      <p class="text-[8px] font-bold text-blue-600">Con esta opción se mandará con productos que aún no
+                        tienes en bodega {{ getWarehouseName(product.id_warehouse) }}.</p>
                     </div>
                   </div>
                 </div>
@@ -947,7 +961,7 @@ import { CompanyService } from '@/api/company.services'
 import {
   BookOpenIcon, PlusIcon, AdjustmentsHorizontalIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   CheckBadgeIcon, EyeIcon, UsersIcon, BeakerIcon, MapPinIcon, ShieldCheckIcon,
-  WrenchIcon, IdentificationIcon, PrinterIcon, ArrowDownTrayIcon, FunnelIcon, 
+  WrenchIcon, IdentificationIcon, PrinterIcon, ArrowDownTrayIcon, FunnelIcon,
   ExclamationTriangleIcon, ClockIcon, ClipboardDocumentCheckIcon
 } from '@heroicons/vue/24/outline'
 
@@ -1454,12 +1468,12 @@ const warehouses = ref([])
 
 const filterFrom = ref('')
 const filterTo = ref('')
- 
+
 const stats = computed(() => {
   const myOrders = orders.value.filter(o => Number(o.applicator_id) === currentUserId)
   const today = new Date().setHours(0, 0, 0, 0)
   const todayStr = new Date().toISOString().split('T')[0]
-  
+
   return {
     pending: myOrders.filter(o => o.status === 'GENERATED').length,
     overdue: myOrders.filter(o => {
@@ -1475,7 +1489,7 @@ const stats = computed(() => {
 
 const filteredOrders = computed(() => {
   let list = [...orders.value]
-  
+
   // Si es Aplicador (Rol 11), solo mostrar sus asignadas
   if (userRoleId === 11) {
     list = list.filter(o => Number(o.applicator_id) === currentUserId)
@@ -1484,7 +1498,7 @@ const filteredOrders = computed(() => {
   if (!filterFrom.value && !filterTo.value) {
     return list.sort((a, b) => b.order_number.localeCompare(a.order_number))
   }
-  
+
   return list.filter(o => {
     const date = o.issue_date?.split('T')[0]
     let match = true
@@ -1583,7 +1597,7 @@ async function fetchData() {
     allVarieties.value = varietiesRes.data.varieties || []
     sectorAttributes.value = attributesRes.data.attributes || []
     warehouses.value = warehousesRes.data.warehouses || []
-    
+
     companyProducts.value = (productsRes.data.products || []).map(p => {
       const si = p.warehouses || p.stocks || p.Stocks || [];
       return {
@@ -1633,12 +1647,12 @@ async function fetchProductStock(productId, productRow) {
     if (res.data.code === 'OK') {
       const d = res.data;
       const productObj = d.product || d.data || d;
-      
+
       const newStock = productObj.warehouses || productObj.stocks || productObj.warehouse_products || d.stocks
       if (newStock && newStock.length > 0) {
         productRow.stock_info = [...newStock]
       }
-      
+
       if (productRow.id_warehouse) {
         fetchCurrentWarehouseStock(productRow)
       }
@@ -1653,7 +1667,7 @@ const calculateProductNeeded = (product) => {
     const q = allQuarters.value.find(base => base.id === id)
     return acc + parseFloat(q?.ha_productivas || q?.surface || 0)
   }, 0)
-  
+
   // Si no hay cuarteles seleccionados, asumimos 1 Ha para mostrar la dosis base en el aviso
   const totalHa = totalHaRaw > 0 ? totalHaRaw : 1;
   return (parseFloat(product.dosage || 0) * totalHa).toFixed(2)
@@ -1661,23 +1675,23 @@ const calculateProductNeeded = (product) => {
 
 const getSelectedWarehouseStock = (product) => {
   if (!product.id_warehouse) return 0
-  
+
   // FALLBACK DE SEGURIDAD
   if (!product.stock_info || product.stock_info.length === 0) {
     const master = companyProducts.value.find(p => Number(p.id) === Number(product.id_product))
     if (master && master.stock_info && master.stock_info.length > 0) {
-       product.stock_info = JSON.parse(JSON.stringify(master.stock_info))
+      product.stock_info = JSON.parse(JSON.stringify(master.stock_info))
     } else {
-       return 0
+      return 0
     }
   }
-  
+
   const found = (product.stock_info || []).find(s => Number(s.id_warehouse || s.warehouse_id) === Number(product.id_warehouse))
   if (found) {
     const qty = (found.quantity !== undefined ? found.quantity : (found.stock || found.Stock || 0))
     return parseFloat(qty) || 0
   }
-  
+
   return 0
 }
 
@@ -1688,9 +1702,9 @@ async function fetchCurrentWarehouseStock(productRow) {
     const res = await conexionApi.get(`/products/stock/${productRow.id_product}/${productRow.id_warehouse}`)
     if (res.data.code === 'OK' || res.data.status === 'OK') {
       const quantity = (res.data.data?.quantity !== undefined ? res.data.data.quantity : res.data.quantity) || 0
-      
+
       if (!productRow.stock_info) productRow.stock_info = []
-      
+
       const idx = productRow.stock_info.findIndex(s => Number(s.id_warehouse || s.warehouse_id) === Number(productRow.id_warehouse))
       if (idx !== -1) {
         productRow.stock_info[idx].quantity = quantity
@@ -1711,11 +1725,11 @@ function onWarehouseChange(e, productRow) {
 function onProductNameChange(e, productRow) {
   const newVal = e.value
   if (!newVal) return
-  
+
   productRow.stock_info = []
   productRow.brand_name = ''
   productRow.id_product = Number(newVal)
-  
+
   const found = companyProducts.value.find(p => Number(p.id) === Number(newVal))
   if (found) {
     Object.assign(productRow, {

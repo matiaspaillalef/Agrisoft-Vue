@@ -30,8 +30,9 @@
 
 
               <div>
-                <label class="inline-flex items-center gap-2 text-sm text-navy-700 dark:text-white font-normal text-[13px]">
-                  <input type="checkbox" v-model="rememberMe" class="m-0!"/>
+                <label
+                  class="inline-flex items-center gap-2 text-sm text-navy-700 dark:text-white font-normal text-[13px]">
+                  <input type="checkbox" v-model="rememberMe" class="m-0!" />
                   Recuérdame
                 </label>
               </div>
@@ -43,12 +44,14 @@
               <!-- Botón -->
               <button type="submit" :disabled="loading"
                 class="linear mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span v-if="loading" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                <span v-if="loading"
+                  class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
                 {{ loading ? 'Ingresando...' : 'Entrar' }}
               </button>
 
               <div class="mt-4 flex items-center justify-center">
-                <router-link to="/forgot-password" class="text-sm font-medium text-brand-500 hover:text-brand-600 transition-colors">
+                <router-link to="/forgot-password"
+                  class="text-sm font-medium text-brand-500 hover:text-brand-600 transition-colors">
                   ¿Olvidaste tu contraseña?
                 </router-link>
               </div>
@@ -114,7 +117,7 @@ async function handleLogin() {
   if (loading.value) return
   loading.value = true
   errorMessage.value = ''
-  
+
   try {
     // 1️⃣ Login normal
     await login(usuario.value, password.value)
@@ -133,36 +136,38 @@ async function handleLogin() {
     const userID = localStorage.getItem('userId')
     const role = Number(localStorage.getItem('rol'))
 
- let warehousesResponse
+    let warehousesResponse
 
-if (Number(userID) === 1) {
-  // 🔑 ADMIN → todas las bodegas de la empresa
-  warehousesResponse = await conexionApi.get(
-    `/warehouses/getWarehouses/${companyID}`
-  )
-} else {
-  // 👤 Usuario normal → solo sus bodegas
-  warehousesResponse = await conexionApi.get(
-    `/warehouses/getWarehouses/${companyID}?users=${userID}`
-  )
-}
+    if (Number(userID) === 1) {
+      // 🔑 ADMIN → todas las bodegas de la empresa
+      warehousesResponse = await conexionApi.get(
+        `/warehouses/getWarehouses/${companyID}`
+      )
+    } else {
+      // 👤 Usuario normal → solo sus bodegas
+      warehousesResponse = await conexionApi.get(
+        `/warehouses/getWarehouses/${companyID}?users=${userID}`
+      )
+    }
 
     const data = warehousesResponse.data
 
-   if (data.code === 'OK' && Array.isArray(data.warehouses)) {
-  const warehousesToSave = data.warehouses.map(w => ({
-    id: w.id,
-    name: w.name
-  }))
+    if (data.code === 'OK' && Array.isArray(data.warehouses)) {
+      const warehousesToSave = data.warehouses.map(w => ({
+        id: w.id,
+        name: w.name
+      }))
 
-  localStorage.setItem('userWarehouses', JSON.stringify(warehousesToSave))
-} else {
-  localStorage.removeItem('userWarehouses')
-}
+      localStorage.setItem('userWarehouses', JSON.stringify(warehousesToSave))
+    } else {
+      localStorage.removeItem('userWarehouses')
+    }
 
     // 6️⃣ Redirigir según rol
-    if ([7, 8].includes(role)) {
+    if ([7, 8, 10].includes(role)) {
       router.push({ name: 'Resume' })
+    } else if (role === 11) {
+      router.push({ name: 'FieldBook' })
     } else {
       router.push({ name: 'Dashboard' })
     }

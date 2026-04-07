@@ -89,7 +89,7 @@ const routes = [
         name: 'Dashboard',
         component: Dashboard,
         meta: {
-          roles: [1, 2, 7, 8],
+          roles: [1, 2, 7, 8, 10, 11],
         },
       },
 
@@ -433,8 +433,14 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !loggedIn) {
     next({ name: 'Login' })
-  } else if (to.name === 'Dashboard' && [7, 8, 10].includes(userRol)) {
-    next({ name: 'Resume' })
+  } else if (to.name === 'Dashboard') {
+    if ([7, 8, 10].includes(userRol)) {
+      next({ name: 'Resume' })
+    } else if (userRol === 11) {
+      next({ name: 'FieldBook' })
+    } else {
+      next()
+    }
   } else if (to.meta.roles && !to.meta.roles.includes(userRol)) {
     next({ name: 'AccessDenied' })
   } else if (to.name === 'Login' && loggedIn) {
