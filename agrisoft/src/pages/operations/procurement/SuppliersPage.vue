@@ -1,109 +1,194 @@
 <template>
-    <!-- Title -->
-    <div class="max-w-full mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-        <div>
-            <h1 class="text-2xl font-light text-navy-700 dark:text-white">Proveedores</h1>
-            <p class="text-sm text-gray-500">Gestión de proveedores de la empresa</p>
+    <!-- Page Header -->
+    <div
+        class="mb-8 p-8 bg-white dark:bg-navy-800 rounded-[2.5rem] border border-slate-100 dark:border-navy-700 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 hover:shadow-md">
+        <div class="flex items-center gap-6">
+            <div
+                class="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] shadow-xl shadow-blue-200 dark:shadow-none transform transition-transform hover:scale-105">
+                <BuildingOfficeIcon class="w-10 h-10 text-white" />
+            </div>
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Gestión de Proveedores
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 font-medium font-inter tracking-tight">Administración de
+                    socios comerciales y proveedores de insumo</p>
+            </div>
         </div>
     </div>
 
-    <!-- GRID -->
-    <div class="bg-white rounded-2xl shadow-xl px-6 py-6 max-w-full mx-auto relative">
-        <LoadingOverlay :show="loading" />
-        <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
-            :column-auto-width="true" @editor-preparing="onEditorPreparing" @saving="onSaving">
+    <!-- Main Content Area -->
+    <div
+        class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-            <DxSearchPanel :visible="true" placeholder="Buscar..." />
-            <DxPaging :page-size="15" />
+        <div class="p-8">
+            <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="false"
+                :column-auto-width="true" :load-panel="{ enabled: false }" @editor-preparing="onEditorPreparing"
+                @saving="onSaving" class="modern-grid">
+                <DxSearchPanel :visible="true" placeholder="Buscar por RUT, Nombre o Ciudad..." />
+                <DxPaging :page-size="15" />
 
-            <DxColumn data-field="rut" caption="RUT" />
-            <DxColumn data-field="name" caption="Nombre" />
-            <DxColumn data-field="email" caption="Email" />
-            <DxColumn data-field="phone" caption="Teléfono" />
-            <DxColumn data-field="city" caption="Ciudad" :visible="false" />
-            <DxColumn data-field="address" caption="Dirección" :visible="false" />
-            <DxColumn data-field="country" caption="País" :visible="false" />
-            <DxColumn data-field="status" caption="Estado" :cell-template="statusTextCellTemplate" />
+                <DxColumn data-field="rut" caption="RUT" alignment="left"
+                    css-class="!text-left font-black text-blue-600" />
+                <DxColumn data-field="name" caption="Razón Social"
+                    css-class="!text-left font-bold text-slate-700 dark:!text-slate-200" />
+                <DxColumn data-field="email" caption="Email de Contacto" alignment="right" css-class="!text-left" />
+                <DxColumn data-field="phone" caption="Teléfono" alignment="right" css-class="!text-left" />
+                <DxColumn data-field="status" caption="Estado" :cell-template="statusTextCellTemplate" alignment="right"
+                    css-class="!text-left" />
 
-            <DxColumn type="buttons" width="140" :buttons="customButtons" />
+                <DxColumn type="buttons" width="140" :buttons="customButtons" />
 
-            <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true"
-                :use-icons="true">
-                <DxPopup title="Gestión de Proveedor" :width="600" :height="520" />
-
-                <DxForm>
-                    <DxItem data-field="rut" caption="RUT" editor-type="dxTextBox" :editor-options="{
-                        valueChangeEvent: 'input',
-                        onValueChanged(e) {
-                            if (!e.value) return
-
-                            const formatted = formatearRutConPuntos(e.value)
-
-                            if (formatted !== e.value) {
-                                e.component.option('value', formatted)
-
-                                const form = e.component.option('form')
-                                form?.updateData('rut', formatted)
+                <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true"
+                    :use-icons="true">
+                    <DxPopup title="Gestión de Proveedor" :width="650" :height="500" />
+                    <DxForm>
+                        <DxItem data-field="rut" caption="RUT" editor-type="dxTextBox" :editor-options="{
+                            valueChangeEvent: 'input',
+                            onValueChanged(e) {
+                                if (!e.value) return
+                                const formatted = formatearRutConPuntos(e.value)
+                                if (formatted !== e.value) {
+                                    e.component.option('value', formatted)
+                                    const form = e.component.option('form')
+                                    form?.updateData('rut', formatted)
+                                }
                             }
-                        }
-                    }" :validation-rules="[
-                        { type: 'required', message: 'El RUT es obligatorio' },
-                        {
-                            type: 'custom',
-                            message: 'RUT chileno inválido',
-                            validationCallback: (e) => validarRutChileno(e.value)
-                        }
-                    ]" />
+                        }" :validation-rules="[
+                            { type: 'required', message: 'El RUT es obligatorio' },
+                            { type: 'custom', message: 'RUT chileno inválido', validationCallback: (e) => validarRutChileno(e.value) }
+                        ]" />
 
-
-                    <DxItem data-field="name" caption="Nombre" />
-                    <DxItem data-field="email" caption="Email" />
-                    <DxItem data-field="phone" caption="Teléfono" />
-                    <DxItem data-field="address" caption="Dirección" />
-                    <DxItem data-field="city" caption="Ciudad" />
-                    <!--<DxItem data-field="country" caption="País" :editor-options="{ readOnly: true }" />-->
-                    <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox"
-                        :editor-options="{ items: ['ACTIVE', 'INACTIVE'] }" />
-                </DxForm>
-            </DxEditing>
-        </DxDataGrid>
+                        <DxItem data-field="name" caption="Nombre / Razón Social" />
+                        <DxItem data-field="email" caption="E-mail" />
+                        <DxItem data-field="phone" caption="Teléfono" />
+                        <DxItem data-field="address" caption="Dirección Comercial" />
+                        <DxItem data-field="city" caption="Ciudad" />
+                        <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox"
+                            :editor-options="{ items: ['ACTIVE', 'INACTIVE'] }" />
+                    </DxForm>
+                </DxEditing>
+            </DxDataGrid>
+        </div>
     </div>
 
-    <!-- MODAL VER -->
-    <div v-if="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/40" @click="closeModals"></div>
+    <!-- MODAL VER DETALLE (PREMIUM) -->
+    <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="closeModals"></div>
 
-        <div class="bg-white rounded-xl p-6 w-full max-w-lg z-10">
-            <h2 class="text-xl mb-4 font-semibold">{{ selectedItem.name }}</h2>
+        <div
+            class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-lg z-10 overflow-hidden border border-slate-100 dark:border-navy-700 flex flex-col animate-in slide-in-from-bottom-8 duration-300">
+            <!-- Header -->
+            <div class="p-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-5 mb-4">
+                        <div class="p-4 bg-white/20 rounded-2xl backdrop-blur-md">
+                            <BuildingOfficeIcon class="w-10 h-10 text-white" />
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-black tracking-tight leading-tight">{{ selectedItem?.name }}</h2>
+                            <p class="text-blue-100 font-bold text-sm tracking-widest uppercase mt-1">RUT:
+                                {{ selectedItem?.rut }}
+                            </p>
+                        </div>
+                    </div>
 
-            <p class="text-sm mt-1"><strong>RUT:</strong> {{ selectedItem.rut }}</p>
-            <p class="text-sm mt-1"><strong>Email:</strong> {{ selectedItem.email || 'N/A' }}</p>
-            <p class="text-sm mt-1"><strong>Teléfono:</strong> {{ selectedItem.phone || 'N/A' }}</p>
-            <p class="text-sm mt-1"><strong>Dirección:</strong> {{ selectedItem.address || 'N/A' }}</p>
-            <p class="text-sm mt-1"><strong>Ciudad:</strong> {{ selectedItem.city || 'N/A' }}</p>
-            <p class="text-sm mt-1"><strong>País:</strong> {{ selectedItem.country }}</p>
-            <p class="text-sm mt-1"><strong>Creado:</strong> {{ formatDate(selectedItem.created_at) }}</p>
+                    <div v-if="selectedItem?.status"
+                        :class="`px-5 py-2 rounded-full border-2 inline-flex items-center gap-2 border-white/20 bg-white/10 shadow-sm`">
+                        <span
+                            :class="`w-2.5 h-2.5 rounded-full animate-pulse ${getStatusMeta(selectedItem.status).pulseColor}`"></span>
+                        <span
+                            class="font-black text-[10px] uppercase tracking-[0.2em]">{{ getStatusMeta(selectedItem.status).text }}</span>
+                    </div>
+                </div>
+                <BuildingOfficeIcon class="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 rotate-12" />
+            </div>
 
-            <button class="mt-4 w-full bg-gray-200 py-2 rounded-lg" @click="closeModals">
-                Cerrar
-            </button>
+            <!-- Body -->
+            <div class="p-8 space-y-8">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <div class="w-1 h-4 bg-blue-600 rounded-full"></div>
+                        Información de Contacto & Ubicación
+                    </h3>
+
+                    <div
+                        class="bg-slate-50 dark:bg-navy-900/50 rounded-3xl p-6 border border-slate-100 dark:border-navy-700 space-y-4">
+                        <div
+                            class="flex items-center gap-5 p-4 bg-white dark:bg-navy-800 rounded-2xl shadow-sm border border-slate-50 dark:border-navy-700 transition-all hover:shadow-md">
+                            <div
+                                class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 transition-transform group-hover:scale-110">
+                                <EnvelopeIcon class="w-6 h-6" />
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Correo
+                                    Electrónico</p>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-200">
+                                    {{ selectedItem?.email || 'No registrado' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex items-center gap-5 p-4 bg-white dark:bg-navy-800 rounded-2xl shadow-sm border border-slate-50 dark:border-navy-700 transition-all hover:shadow-md">
+                            <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
+                                <PhoneIcon class="w-6 h-6" />
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">
+                                    Teléfono Movil / Fijo</p>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-200">
+                                    {{ selectedItem?.phone || 'No registrado' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex items-center gap-5 p-4 bg-white dark:bg-navy-800 rounded-2xl shadow-sm border border-slate-50 dark:border-navy-700 transition-all hover:shadow-md">
+                            <div class="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-xl text-amber-600">
+                                <MapPinIcon class="w-6 h-6" />
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">
+                                    Domicilio / Casa Matriz</p>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-200 truncate">
+                                    {{ selectedItem?.address || 'Sin dirección' }}
+                                    {{ selectedItem?.city ? `- ${selectedItem.city}` : '' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center px-2">
+                    <span class="text-xs font-bold text-slate-400 lowercase tracking-tight">Registro creado el: <span
+                            class="text-slate-600 dark:text-slate-500">{{ formatDate(selectedItem?.created_at) }}</span></span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div
+                class="p-8 bg-slate-50/50 dark:bg-navy-900/50 border-t border-slate-100 dark:border-navy-700 flex justify-end">
+                <button @click="closeModals"
+                    class="px-12 py-3 bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 text-slate-700 dark:text-slate-300 font-black rounded-2xl hover:bg-slate-50 transition-all shadow-sm active:scale-95">
+                    Cerrar Detalle
+                </button>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { BuildingOfficeIcon, EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import { DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxItem, DxSearchPanel, DxPaging } from 'devextreme-vue/data-grid'
-import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import conexionApi from '@/services/conexionApi'
-import { formatDate, statusTextCellTemplate, validarRutChileno, formatearRutConPuntos } from '@/utils/herlpers'
+import { formatDate, statusTextCellTemplate, validarRutChileno, formatearRutConPuntos, getStatusMeta } from '@/utils/herlpers'
 import DxValidator, {
     DxRequiredRule,
     DxCustomRule
 } from 'devextreme-vue/validator'
 
-const loading = ref(false)
 const mainGridRef = ref(null)
 const showViewModal = ref(false)
 const selectedItem = ref(null)

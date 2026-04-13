@@ -381,13 +381,24 @@ const getUserInitials = (alertObjOrId) => {
 const markAsRead = async (alertId) => {
     try {
         const targetUserId = selectedUser.value === 0 ? currentUserId : selectedUser.value
-        await conexionApi.put(`/alerts/${alertId}/read`, { user_id: targetUserId })
-        notify('Notificación Atendida', 'success', 1500)
-        notifyAlertsChange()
-        loadAlerts()
+        const { data } = await conexionApi.put(`/alerts/${alertId}/read`, { user_id: targetUserId })
+        
+        if (data.code === 'OK') {
+            notify('Notificación Atendida', 'success', 1500)
+            
+            // Actualización optimista local
+            const alertIndex = alerts.value.findIndex(a => a.id === alertId)
+            if (alertIndex !== -1) {
+                alerts.value[alertIndex].is_read = 1
+            }
+            
+            notifyAlertsChange()
+        } else {
+            notify(data.mensaje || 'No se pudo atender la alerta', 'error', 3000)
+        }
     } catch (error) {
         console.error('Error al marcar como leída:', error)
-        notify('No se pudo marcar la alerta como atendida.', 'error', 2000)
+        notify('No se pudo establecer conexión con el servidor.', 'error', 3000)
     }
 }
 

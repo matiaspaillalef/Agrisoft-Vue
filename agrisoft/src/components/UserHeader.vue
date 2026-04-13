@@ -59,41 +59,99 @@
             </button>
           </span>
 
-          <div class="relative flex items-center">
+          <div class="relative flex items-center" ref="notificationDropdown">
             <!-- Icono de alertas -->
             <button @click="toggleAlerts"
-              class="flex items-center justify-center w-8! h-8! bg-transparent! text-navy-700 rounded-full! shadow-xl shadow-shadow-500 dark:bg-white cursor-pointer p-0!">
-              <BellIcon class="h-4 w-4 text-gray-950 dark:text-white" />
+              class="relative flex items-center justify-center w-10 h-10 !bg-slate-50 !dark:bg-navy-900 !text-slate-600 !dark:text-white rounded-xl shadow-inner hover:bg-slate-100 dark:hover:bg-navy-700 transition-all duration-300">
+              <BellIcon class="h-6 w-6" :class="{ 'animate-swing': unreadAlertsCount > 0 }" />
               <!-- Punto rojo si hay alertas nuevas -->
               <span v-if="unreadAlertsCount > 0"
-                class="absolute top-[7px] right-[7px] w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                class="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-navy-800 animate-pulse"></span>
             </button>
 
-            <!-- Dropdown de alertas -->
-            <div v-if="showAlerts"
-              class="absolute right-0 mt-2 w-80 bg-white dark:bg-navy-800 shadow-lg rounded-lg overflow-hidden z-50 top-[50px]">
-              <transition-group name="fade" tag="ul" class="max-h-64 overflow-y-auto">
-                <li v-for="alert in alerts" :key="alert.id"
-                  class="p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-navy-700 flex justify-between items-center">
-                  <div class="flex flex-col">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ alert.title }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-300">{{ alert.description }}</p>
-                  </div>
-                  <button @click="markAsRead(alert.id)"
-                    class="ml-2 text-green-500! hover:text-green-700 focus:outline-none p-0! bg-transparent! w-auto!">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                      stroke="currentColor" class="size-4">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                  </button>
-                </li>
-                <li v-if="alerts.length === 0" key="empty" class="p-3 text-center text-gray-500 dark:text-gray-300">
-                  No hay alertas
-                </li>
-              </transition-group>
-            </div>
+            <!-- Dropdown de alertas (Premium) -->
+            <transition enter-active-class="transition duration-200 ease-out"
+              enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+              enter-to-class="transform scale-100 opacity-100 translate-y-0"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="transform scale-100 opacity-100 translate-y-0"
+              leave-to-class="transform scale-95 opacity-0 -translate-y-2">
+              <div v-if="showAlerts"
+                class="absolute right-0 top-[110%] w-[380px] bg-white dark:bg-navy-800 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-none dark:border dark:border-white/10 rounded-3xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
 
+                <!-- Header -->
+                <div
+                  class="px-6 py-5 border-b border-slate-50 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-navy-900/50">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-lg text-blue-600 dark:text-blue-400">
+                      <BellIcon class="w-5 h-5" />
+                    </div>
+                    <h3 class="font-black text-slate-800 dark:text-white tracking-tight">Notificaciones</h3>
+                  </div>
+                  <span v-if="unreadAlertsCount > 0"
+                    class="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
+                    {{ unreadAlertsCount }} Nuevas
+                  </span>
+                </div>
+
+                <!-- List Container -->
+                <div class="max-h-[420px] overflow-y-auto scroll-smooth py-2">
+                  <transition-group name="list" tag="ul">
+                    <li v-for="alert in alerts" :key="alert.id"
+                      class="px-6 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 last:border-0 dark:border-white/5 relative group">
+
+                      <div class="flex gap-4">
+                        <div
+                          class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                          <component :is="getAlertIcon(alert.type)" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p
+                            class="text-[14px] font-black !text-slate-950 dark:!text-white leading-tight mb-1 !opacity-100">
+                            {{ alert.title }}
+                          </p>
+                          <p
+                            class="text-[12px] font-bold !text-slate-700 dark:!text-slate-300 leading-snug !opacity-100">
+                            {{ alert.description }}
+                          </p>
+                          <span
+                            class="text-[10px] !text-slate-400 font-black uppercase tracking-widest mt-2 block !opacity-100">
+                            Recibida hoy
+                          </span>
+                        </div>
+
+                        <button @click="markAsRead(alert.id)"
+                          class="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-full !bg-emerald-50 !dark:bg-emerald-500/20 !text-emerald-600 flex items-center justify-center transition-all hover:scale-110 active:scale-90 w-fit!"
+                          title="Marcar como leída">
+                          <CheckIcon class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </li>
+                  </transition-group>
+
+                  <!-- Empty State -->
+                  <div v-if="alerts.length === 0"
+                    class="flex flex-col items-center justify-center py-12 px-10 text-center animate-in fade-in duration-500">
+                    <div
+                      class="w-20 h-20 bg-slate-50 dark:bg-navy-900 rounded-full flex items-center justify-center mb-4">
+                      <BellAlertIcon class="w-10 h-10 text-slate-300 dark:text-white/20" />
+                    </div>
+                    <h4 class="text-sm font-black text-slate-800 dark:text-white mb-1 tracking-tight">Todo al día por
+                      aquí</h4>
+                    <p class="text-xs text-slate-400 font-medium">No tienes notificaciones pendientes de revisión.</p>
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div @click="goToAlerts"
+                  class="p-4 bg-slate-50/50 dark:bg-navy-900/50 border-t border-slate-50 dark:border-white/5 text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors group">
+                  <span
+                    class="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform inline-block">
+                    Ver Centro de Alertas →
+                  </span>
+                </div>
+              </div>
+            </transition>
           </div>
 
 
@@ -133,8 +191,8 @@ import Breadcrumb from '@/components/Breadcrumbs/Breadcrumbs.vue'
 //import TitlePage from './TitlePage.vue'
 import WeatherMini from '@/components/Weather/WeatherMini.vue'
 import { useDarkMode } from '@/plugins/darkMode.js'
-import { MoonIcon, SunIcon, Bars4Icon } from '@heroicons/vue/24/solid'
-import { ChevronDoubleLeftIcon, XCircleIcon, BellIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { MoonIcon, SunIcon, Bars4Icon, BellAlertIcon } from '@heroicons/vue/24/solid'
+import { ChevronDoubleLeftIcon, XCircleIcon, BellIcon, ArrowRightOnRectangleIcon, CheckIcon, ClipboardDocumentListIcon, ShoppingCartIcon, TruckIcon, RectangleGroupIcon } from '@heroicons/vue/24/outline'
 import { MenuService } from '@/api/menu.services'
 import MenuItem from '@/components/Menu/MenuItem.vue'
 import axios from 'axios'
@@ -245,9 +303,31 @@ const logout = () => {
 const alerts = ref<any[]>([])
 const showAlerts = ref(false)
 const unreadAlertsCount = ref(0)
+const notificationDropdown = ref<HTMLElement | null>(null)
 
 const toggleAlerts = () => {
   showAlerts.value = !showAlerts.value
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (notificationDropdown.value && !notificationDropdown.value.contains(event.target as Node)) {
+    showAlerts.value = false
+  }
+}
+
+const goToAlerts = () => {
+  showAlerts.value = false
+  router.push('/dashboard/operations/alerts')
+}
+
+const getAlertIcon = (type: string) => {
+  const icons: any = {
+    'task_assigned': RectangleGroupIcon,
+    'purchase_request': ClipboardDocumentListIcon,
+    'purchase_order': ShoppingCartIcon,
+    'nuevo_transito': TruckIcon
+  }
+  return icons[type] || BellIcon
 }
 
 // Escuchar cambios globales
@@ -287,5 +367,58 @@ onMounted(() => {
   fetchAlerts()
   // Refrescar cada minuto
   setInterval(fetchAlerts, 60000)
+
+  // Click outside listener
+  document.addEventListener('mousedown', handleClickOutside)
+})
+
+// Cleanup listener
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
 })
 </script>
+
+<style scoped>
+@keyframes swing {
+  0% {
+    transform: rotate(0);
+  }
+
+  10% {
+    transform: rotate(10deg);
+  }
+
+  20% {
+    transform: rotate(-10deg);
+  }
+
+  30% {
+    transform: rotate(10deg);
+  }
+
+  40% {
+    transform: rotate(-10deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
+}
+
+.animate-swing {
+  animation: swing 2s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+</style>

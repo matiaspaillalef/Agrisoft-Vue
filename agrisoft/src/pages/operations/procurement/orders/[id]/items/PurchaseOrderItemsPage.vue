@@ -1,45 +1,85 @@
 <template>
-  <div class="max-w-full mx-auto mb-6 flex justify-between items-center pl-2 md:pl-5">
-    <h1 class="text-2xl font-light text-navy-700 dark:text-white">
-      Items de Orden de Compra #{{ purchaseOrderCode || purchaseOrderId }}
-    </h1>
+  <!-- Page Header -->
+  <div class="mb-8 p-8 bg-white dark:bg-navy-800 rounded-[2.5rem] border border-slate-100 dark:border-navy-700 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 hover:shadow-md">
+    <div class="flex items-center gap-6">
+      <div class="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] shadow-xl shadow-blue-200 dark:shadow-none transform transition-transform hover:scale-105">
+        <ShoppingCartIcon class="w-10 h-10 text-white" />
+      </div>
+      <div>
+        <div class="flex items-center gap-3 mb-1">
+          <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Items de Orden de Compra</h1>
+          <span v-if="purchaseOrderCode" class="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-full">
+            #{{ purchaseOrderCode }}
+          </span>
+        </div>
+        <p class="text-slate-500 dark:text-slate-400 font-medium font-inter tracking-tight">
+          Gestionando el detalle de productos y cantidades para esta orden
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button @click="openNewProductPopup" 
+        class="group px-6 py-3 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 dark:shadow-none flex items-center gap-2">
+        <PlusCircleIcon class="w-5 h-5 transform group-hover:rotate-90 transition-transform duration-300" />
+        Registar Nuevo Producto
+      </button>
+      <button @click="$router.back()" 
+        class="px-6 py-3 bg-slate-50 dark:bg-navy-700 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-100 dark:hover:bg-navy-600 transition-all border border-slate-100 dark:border-navy-600">
+        Volver
+      </button>
+    </div>
   </div>
 
-  <div class="mt-[3px] max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
-    <div class="datagrid-container">
-      <div class="mb-2 flex gap-2 align-middle  w-fit z-10 mr-0 ml-auto">
-        <button
-          class="btn btn-tprimary inline-flex max-w-[200px] h-[34px] mt-[3px] items-center justify-center text-sm! cursor-pointer hover:bg-black"
-          @click="openNewProductPopup">
-          <PlusCircleIcon class="w-5 h-5 mr-2" />
-          Nuevo Producto
-        </button>
+  <!-- Main Content Area -->
+  <div class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div class="p-8 border-b border-slate-100 dark:border-navy-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+        <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+          Listado de Ítems
+        </h3>
       </div>
-      <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
-        @editor-preparing="onEditorPreparing">
-        <DxSearchPanel :visible="true" placeholder="Buscar..." />
+    </div>
 
+    <div class="p-8">
+      <DxDataGrid 
+        ref="dxGrid" 
+        :data-source="dataSource" 
+        key-expr="id" 
+        :show-borders="false" 
+        :column-auto-width="true"
+        :load-panel="{ enabled: false }" 
+        @editor-preparing="onEditorPreparing"
+        class="modern-grid"
+      >
+        <DxSearchPanel :visible="true" placeholder="Buscar ítems..." />
         <DxHeaderFilter :visible="true" :allow-search="true" />
         <DxPaging :page-size="10" />
 
-        <!-- Columnas -->
-        <DxColumn data-field="product_id" caption="Producto" :calculate-cell-value="getProductName" alignment="right"
-          css-class="!text-left" :editor-options="{
+        <DxColumn data-field="product_id" caption="Producto" :calculate-cell-value="getProductName" 
+          css-class="!text-left font-bold text-slate-700 dark:!text-slate-200" :editor-options="{
             ...productsEditorOptions,
             value: (editingRow?.product_id ?? null)
           }" />
-        <DxColumn data-field="quantity" caption="Cantidad" data-type="number" alignment="right"
-          css-class="!text-left" />
-        <DxColumn data-field="price" caption="Precio" data-type="number"
-          :format="{ type: 'currency', currency: 'USD', precision: 0, formatter: priceFormatter }" alignment="right"
-          css-class="!text-left" />
+        
+        <DxColumn data-field="quantity" caption="Cantidad" data-type="number" alignment="center" 
+          cell-template="qtyTemplate" />
+        
+        <DxColumn data-field="price" caption="Precio Unitario" data-type="number"
+          :format="{ type: 'currency', currency: 'USD', precision: 0, formatter: priceFormatter }" 
+          alignment="right" css-class="!font-black text-blue-600 dark:text-blue-400" />
+        
         <DxColumn data-field="received_quantity" caption="Recibido" data-type="number" format="#,##0.00"
-          alignment="right" css-class="!text-left" />
+          alignment="center" cell-template="qtyTemplate" />
 
-        <!-- Agregar / Editar Item -->
+        <template #qtyTemplate="{ data }">
+          <span class="font-medium text-slate-600 dark:text-slate-400">{{ data.value }}</span>
+        </template>
+
         <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true"
           @editing-start="e => editingRow.value = e.data" @init-new-row="e => editingRow.value = {}">
-          <DxPopup title="Agregar / Editar Item" :width="400" :height="300" />
+          <DxPopup title="Gestión de Ítem" :width="500" :height="400" />
           <DxForm :col-count="1">
             <DxItem data-field="product_id" caption="Producto" editor-type="dxSelectBox" :editor-options="{
               items: products.value,
@@ -63,51 +103,81 @@
     </div>
   </div>
 
-  <!-- Modal Nuevo Producto -->
-  <div v-if="showNewProductPopup" class="fixed inset-0 flex items-center justify-center z-50">
-    <div class="fixed inset-0 bg-[#ffffff66] backdrop-blur-sm">
-      <div
-        class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto top-[50%] translate-y-[-50%]">
-        <h2 class="text-xl font-semibold mb-4">Nuevo Producto</h2>
-        <form @submit.prevent="saveNewProduct" class="space-y-4">
-          <div>
-            <label class="block mb-1 text-sm">SKU</label>
-            <input type="text" v-model="newProduct.sku" class="input" required
-              :class="'w-full border border-gray-300 rounded-lg p-2'" />
-          </div>
-          <div>
-            <label class="block mb-1 text-sm">Nombre</label>
-            <input type="text" v-model="newProduct.name" class="input" required
-              :class="'w-full border border-gray-300 rounded-lg p-2'" />
-          </div>
-          <div>
-            <label class="block mb-1 text-sm">Ingrediente Activo</label>
-            <input type="text" v-model="newProduct.active_ingredient" class="input"
-              :class="'w-full border border-gray-300 rounded-lg p-2'" />
-          </div>
-          <div>
-            <label class="block mb-1 text-sm">Descripción</label>
-            <textarea v-model="newProduct.description" class="input"
-              :class="'w-full border border-gray-300 rounded-lg p-2'"></textarea>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block mb-1 text-sm">Cantidad</label>
-              <input v-model="newProduct.quantity" class="input" type="number"
-                :class="'w-full border border-gray-300 rounded-lg p-2'"></input>
-            </div>
-            <div>
-              <label class="block mb-1 text-sm">Precio</label>
-              <input v-model="newProduct.price" class="input" type="number"
-                :class="'w-full border border-gray-300 rounded-lg p-2'"></input>
-            </div>
-          </div>
-          <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-secondary" @click="showNewProductPopup = false">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar</button>
-          </div>
-        </form>
+  <!-- Modal Nuevo Producto (Optimized) -->
+  <div v-if="showNewProductPopup" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="showNewProductPopup = false"></div>
+    
+    <div class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-lg z-10 overflow-hidden border border-slate-100 dark:border-navy-700 flex flex-col animate-in zoom-in duration-300">
+      <!-- Header -->
+      <div class="p-8 bg-slate-50/50 dark:bg-navy-900/50 border-b border-slate-100 dark:border-navy-700 flex items-center gap-4">
+        <div class="p-3 bg-blue-600 rounded-2xl shadow-lg">
+          <PlusCircleIcon class="w-8 h-8 text-white" />
+        </div>
+        <div>
+          <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Nuevo Producto</h2>
+          <p class="text-slate-500 dark:text-slate-400 font-medium">Crea un ítem y agrégalo a la orden</p>
+        </div>
       </div>
+
+      <!-- Body -->
+      <form @submit.prevent="saveNewProduct" class="p-8 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">Nombre del Producto</label>
+            <input type="text" v-model="newProduct.name" 
+              class="w-full rounded-2xl border-slate-200 dark:border-navy-600 bg-slate-50 dark:bg-navy-900/50 p-4 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 dark:focus:ring-blue-900/20 transition-all font-bold" 
+              placeholder="Ej: Fertilizante Triple 15" required />
+          </div>
+
+          <div>
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">SKU / Código</label>
+            <input type="text" v-model="newProduct.sku" 
+              class="w-full rounded-2xl border-slate-200 dark:border-navy-600 bg-slate-50 dark:bg-navy-900/50 p-4 focus:border-blue-500 transition-all font-bold" 
+              placeholder="PROD-001" required />
+          </div>
+
+          <div>
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">Ingrediente Activo</label>
+            <input type="text" v-model="newProduct.active_ingredient" 
+              class="w-full rounded-2xl border-slate-200 dark:border-navy-600 bg-slate-50 dark:bg-navy-900/50 p-4 focus:border-blue-500 transition-all font-bold" 
+              placeholder="Opcional" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">Descripción</label>
+            <textarea v-model="newProduct.description" rows="2"
+              class="w-full rounded-2xl border-slate-200 dark:border-navy-600 bg-slate-50 dark:bg-navy-900/50 p-4 focus:border-blue-500 transition-all" 
+              placeholder="Detalles adicionales..."></textarea>
+          </div>
+
+          <div>
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Cantidad OC</label>
+            <input type="number" v-model="newProduct.quantity" 
+              class="w-full rounded-2xl border-slate-200 dark:border-navy-600 bg-slate-50 dark:bg-navy-900/50 p-4 focus:border-blue-500 transition-all font-black text-blue-600" 
+              required />
+          </div>
+
+          <div>
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Precio Unit.</label>
+            <input type="number" v-model="newProduct.price" 
+              class="w-full rounded-2xl border-slate-200 dark:border-navy-600 bg-slate-50 dark:bg-navy-900/50 p-4 focus:border-blue-500 transition-all font-black text-emerald-600" 
+              required />
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="pt-6 flex justify-end gap-4 border-t border-slate-100 dark:border-navy-700 mt-2">
+          <button type="button" 
+            class="px-8 py-3 bg-white dark:bg-navy-800 border-2 border-slate-100 dark:border-navy-700 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-50 transition-all" 
+            @click="showNewProductPopup = false">
+            Cancelar
+          </button>
+          <button type="submit" 
+            class="px-10 py-3 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 dark:shadow-none">
+            Guardar Ítem
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
@@ -123,6 +193,7 @@ import {
 import { DxRequiredRule } from 'devextreme-vue/validator'
 import conexionApi from '@/services/conexionApi'
 import { priceFormatter } from '@/utils/herlpers'
+import { ShoppingCartIcon } from '@heroicons/vue/24/solid'
 import { PlusCircleIcon } from '@heroicons/vue/24/outline'
 
 const companyId = localStorage.getItem('userIdCompany')

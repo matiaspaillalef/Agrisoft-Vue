@@ -1,127 +1,191 @@
 <template>
-  <!-- =========================
-       TÍTULO
-  ========================== -->
-  <div class="max-w-full mx-auto mb-6 pl-2 md:pl-5">
-    <h1 class="text-2xl font-light text-navy-700 dark:text-white">
-      Solicitudes de Compra
-    </h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400">
-      Solicitudes internas previas a la creación de una orden de compra.
-    </p>
+  <!-- Page Header -->
+  <div
+    class="mb-8 p-8 bg-white dark:bg-navy-800 rounded-[2.5rem] border border-slate-100 dark:border-navy-700 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 hover:shadow-md">
+    <div class="flex items-center gap-6">
+      <div
+        class="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] shadow-xl shadow-blue-200 dark:shadow-none transform transition-transform hover:scale-105">
+        <ClipboardDocumentListIcon class="w-10 h-10 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Solicitudes de Compra</h1>
+        <p class="text-slate-500 dark:text-slate-400 font-medium font-inter tracking-tight">Gestión de requerimientos y
+          suministros internos</p>
+      </div>
+    </div>
   </div>
-  <div class="mt-[3px] max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl relative">
-    <LoadingOverlay :show="loading" />
-    <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
-      :column-hiding-enabled="true">
-      <DxColumnFixing :enabled="true" />
-      <DxHeaderFilter :visible="true" :allow-search="true" />
-      <DxSearchPanel :visible="true" placeholder="Buscar..." />
-      <DxPaging :page-size="15" />
-      <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true"
-        :texts="{
-          confirmDeleteMessage: '¿Está seguro que desea eliminar este registro?',
-        }">
-        <DxPopup title="Solicitud de Compra" :show-title="true" :width="520" :height="300" />
 
-        <DxForm :col-count="1">
-          <DxItem data-field="justification" caption="Justificación" editor-type="dxTextArea" :editor-options="{
-            height: 140,
-            placeholder: 'Explique el motivo de la compra'
-          }">
-            <DxRequiredRule message="La justificación es obligatoria" />
-          </DxItem>
-          <DxItem data-field="requester" caption="Solicitante" :visible="true" />
-        </DxForm>
-      </DxEditing>
-      <DxColumn data-field="tracking_code" caption="#Código de solicitud" :allow-editing="false"
-        :css-class="'text-left!'" alignment="right" />
-      <DxColumn data-field="requester" caption="Solicitante" :allow-editing="false" :css-class="'text-left!'"
-        alignment="right" />
-      <DxColumn data-field="justification" caption="Justificación" :allow-editing="true" :css-class="'text-left!'"
-        :visible="false" alignment="right" />
-      <DxColumn data-field="status" caption="Estado" :allow-editing="false" :css-class="'text-left!'"
-        :cell-template="statusTextCellTemplate" alignment="right" />
+  <!-- Main Content Grid -->
+  <div
+    class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-      <DxColumn data-field="created_at" caption="Fecha" data-type="date" format="dd/MM/yyyy" :allow-editing="false"
-        :css-class="'text-left!'" alignment="right" />
-      <DxColumn type="buttons" :buttons="customButtons" />
-    </DxDataGrid>
+
+    <div class="p-8">
+      <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="false" :column-auto-width="true"
+        :column-hiding-enabled="true" :load-panel="{ enabled: false }" class="modern-grid">
+        <DxColumnFixing :enabled="true" />
+        <DxHeaderFilter :visible="true" :allow-search="true" />
+        <DxSearchPanel :visible="true" placeholder="Buscar solicitudes..." />
+        <DxPaging :page-size="15" />
+
+        <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true"
+          :texts="{ confirmDeleteMessage: '¿Está seguro que desea eliminar este registro?' }">
+          <DxPopup title="Nueva Solicitud" :width="600" :height="400" />
+          <DxForm :col-count="1">
+            <DxItem data-field="justification" caption="Justificación" editor-type="dxTextArea" :editor-options="{
+              height: 120,
+              placeholder: 'Explique brevemente la necesidad de esta compra...'
+            }">
+              <DxRequiredRule message="La justificación es obligatoria" />
+            </DxItem>
+            <DxItem data-field="requester" caption="Solicitante" :visible="true" />
+          </DxForm>
+        </DxEditing>
+
+        <DxColumn data-field="tracking_code" caption="Código" :allow-editing="false" alignment="right"
+          css-class="!font-black text-blue-600 dark:text-blue-400 !text-left" />
+
+        <DxColumn data-field="requester" caption="Solicitante" :allow-editing="false" alignment="right"
+          css-class="!text-left font-bold" />
+
+        <DxColumn data-field="status" caption="Estado" :allow-editing="false" :cell-template="statusTextCellTemplate"
+          alignment="right" css-class="!text-left" />
+
+        <DxColumn data-field="created_at" caption="Fecha Solicitud" data-type="date" format="dd/MM/yyyy"
+          :allow-editing="false" alignment="right" css-class="text-slate-500 !text-left" />
+
+        <DxColumn type="buttons" :buttons="customButtons" />
+      </DxDataGrid>
+    </div>
   </div>
-  <!-- Modal de solo lectura con Tailwind -->
-  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
-    <!-- Fondo oscuro -->
-    <div class="fixed inset-0 bg-[#0000003d] bg-opacity-50" @click="closeModals"></div>
 
-    <!-- Contenedor del modal -->
+  <!-- MODAL VER DETALLE (PREMIUM) -->
+  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="closeModals"></div>
+
     <div
-      class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl w-full p-6 relative z-10 max-w-full md:max-w-lg mx-auto">
-      <h2 class="text-xl mb-4">
-        Detalles de la solicitud
-        <span class="font-bold rounded-sm">
-          {{ selectedItem?.tracking_code }}
-        </span>
-      </h2>
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-lg z-10 overflow-hidden border border-slate-100 dark:border-navy-700 flex flex-col animate-in slide-in-from-bottom-8 duration-300">
+      <!-- Header -->
+      <div
+        class="p-8 bg-slate-50/50 dark:bg-navy-900/50 border-b border-slate-100 dark:border-navy-700 flex justify-between items-start">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-blue-600 rounded-2xl shadow-lg">
+            <ClipboardDocumentListIcon class="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Detalle de Solicitud</h2>
+            <p class="text-slate-500 dark:text-slate-400 font-medium tracking-tight">Folio: <span
+                class="text-blue-600">#{{ selectedItem?.tracking_code }}</span></p>
+          </div>
+        </div>
 
-      <div class="space-y-2">
-        <p class="text-sm">
-          <strong>Solicitante:</strong>
-          {{ selectedItem?.requester }}
-        </p>
-        <p class="text-sm">
-          <strong>Estado:</strong>
-          {{ formatStatusText(selectedItem?.status) }}
-        </p>
-
-        <p class="text-sm">
-          <strong>Fecha:</strong>
-          {{ formatDateHrs(selectedItem?.created_at) }}
-        </p>
-        <p class="text-sm">
-          <strong>Justificación:</strong>
-          {{ selectedItem?.justification }}
-        </p>
-
-
+        <div v-if="selectedItem?.status"
+          :class="`px-4 py-2 rounded-full border flex items-center gap-2 ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor} border-slate-100 dark:border-navy-600 shadow-sm`">
+          <span
+            :class="`w-2.5 h-2.5 rounded-full animate-pulse ${getStatusMeta(selectedItem.status).pulseColor}`"></span>
+          <span class="font-bold text-xs uppercase tracking-widest">{{ getStatusMeta(selectedItem.status).text }}</span>
+        </div>
       </div>
 
-      <p class="text-sm bg-amber-200 text-amber-800 p-3 rounded-lg mt-3" v-if="selectedItem?.status === 'APPROVED'">
-        <strong>Aprobado por:</strong> {{ selectedItem.approver_name }}<br>
-        <strong>Fecha de aprobación:</strong> {{ formatDateHrs(selectedItem.approved_at) }}<br>
-        <span v-if="selectedItem.purchase_order_code"
-          v-html="`<strong>Orden de compra creada:</strong> #${selectedItem.purchase_order_code}`"></span>
+      <!-- Body -->
+      <div class="p-8 space-y-6">
+        <div class="space-y-4">
+          <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <div class="w-1 h-4 bg-blue-600 rounded-full"></div>
+            Información de Origen
+          </h3>
 
-      </p>
+          <div
+            class="bg-slate-50 dark:bg-navy-900/50 rounded-2xl p-6 space-y-4 border border-slate-100 dark:border-navy-700">
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-slate-500 font-medium">Solicitante:</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedItem?.requester }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-slate-500 font-medium">Fecha Emisión:</span>
+              <span
+                class="font-bold text-slate-800 dark:text-slate-200">{{ formatDateHrs(selectedItem?.created_at) }}</span>
+            </div>
+            <div class="pt-4 border-t border-slate-200/60 dark:border-navy-700">
+              <span class="text-slate-500 text-xs uppercase tracking-widest block mb-2 font-black">Justificación:</span>
+              <p
+                class="text-slate-700 dark:text-slate-300 text-sm italic leading-relaxed bg-white dark:bg-navy-800 p-4 rounded-xl border border-slate-100 dark:border-navy-700 shadow-inner">
+                "{{ selectedItem?.justification }}"
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <!-- Botón cerrar -->
-      <button @click="closeModals" class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg">
-        Cerrar
-      </button>
+        <!-- Approval block -->
+        <div v-if="selectedItem?.status === 'APPROVED'"
+          class="bg-emerald-50 dark:bg-emerald-900/20 rounded-[1.5rem] p-6 border border-emerald-100 dark:border-emerald-900/30 space-y-3">
+          <h4
+            class="text-emerald-800 dark:text-emerald-400 font-black flex items-center gap-2 text-xs uppercase tracking-widest">
+            <InformationCircleIcon class="w-5 h-5" />
+            Control de Aprobación
+          </h4>
+          <div class="grid grid-cols-1 gap-1 text-sm text-emerald-700 dark:text-emerald-300/80">
+            <p><strong>Aprobador:</strong> {{ selectedItem.approver_name }}</p>
+            <p><strong>Fecha:</strong> {{ formatDateHrs(selectedItem.approved_at) }}</p>
+            <div v-if="selectedItem.purchase_order_code"
+              class="mt-3 p-3 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex justify-between items-center">
+              <span class="font-bold">Orden de Compra Asociada:</span>
+              <span
+                class="font-black text-emerald-900 dark:text-emerald-200">#{{ selectedItem.purchase_order_code }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="p-6 bg-slate-50/50 dark:bg-navy-900/50 border-t border-slate-100 dark:border-navy-700 flex justify-end">
+        <button @click="closeModals"
+          class="px-10 py-3 bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-sm">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
 
-  <div v-if="showCreateOCModal" class="fixed inset-0 flex items-center justify-center z-50">
-    <div class="fixed inset-0 bg-black/30" @click="cerrarModalOC"></div>
+  <!-- MODAL CREAR OC (PREMIUM RE-DESIGN) -->
+  <div v-if="showCreateOCModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="cerrarModalOC"></div>
 
-    <div class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl p-6 max-w-md w-full z-10">
-      <h2 class="text-xl mb-4">
-        Crear Orden de Compra
-      </h2>
+    <div
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-md z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in zoom-in duration-300">
+      <div class="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden">
+        <div class="relative z-10">
+          <h2 class="text-2xl font-black tracking-tight mb-2">Generar Orden de Compra</h2>
+          <p class="text-blue-100 text-sm font-medium">Vinculando solicitud <span
+              class="text-white font-black">#{{ selectedRequestForOC?.tracking_code }}</span></p>
+        </div>
+        <ShoppingCartIcon class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12" />
+      </div>
 
-      <p class="text-sm mb-3">
-        <strong>Solicitud:</strong>
-        {{ selectedRequestForOC?.tracking_code }}
-      </p>
+      <div class="p-8 space-y-6">
+        <div>
+          <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">Proveedor
+            Asignado</label>
+          <DxSelectBox :items="suppliers" v-model="selectedSupplier" value-expr="id"
+            :display-expr="item => item ? `${item.name} (${item.rut})` : ''"
+            placeholder="Buscar y seleccionar proveedor..." class="premium-select" search-enabled="true" />
+        </div>
 
-      <DxSelectBox :items="suppliers" v-model="selectedSupplier" value-expr="id"
-        :display-expr="item => item ? `${item.name} (${item.rut})` : ''" placeholder="Seleccione proveedor" />
-
-      <button @click="confirmarCrearOC" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
-        Crear Orden
-      </button>
+        <div class="flex flex-col gap-3">
+          <button @click="confirmarCrearOC"
+            class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2 active:scale-95">
+            <DocumentCheckIcon class="w-5 h-5" />
+            Confirmar y Generar OC
+          </button>
+          <button @click="cerrarModalOC"
+            class="w-full bg-slate-50 dark:bg-navy-700 text-slate-500 dark:text-slate-400 font-bold py-3 rounded-2xl hover:bg-slate-100 transition-all">
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-
 </template>
 
 <script setup>
@@ -139,13 +203,13 @@ import {
   DxColumnFixing,
   DxHeaderFilter,
 } from 'devextreme-vue/data-grid'
-import LoadingOverlay from '@/components/LoadingOverlay.vue'
+import { ClipboardDocumentListIcon, InformationCircleIcon } from '@heroicons/vue/24/solid'
 import DxSelectBox from 'devextreme-vue/select-box'
 import DxTextArea from 'devextreme-vue/text-area';
 import { DxRequiredRule } from 'devextreme-vue/validator'
 import conexionApi from '@/services/conexionApi'
 import { ref, onMounted } from 'vue'
-import { formatDate, formatDateHrs, formatStatusText, statusTextCellTemplate } from '@/utils/herlpers'
+import { formatDate, formatDateHrs, formatStatusText, statusTextCellTemplate, getStatusMeta } from '@/utils/herlpers'
 
 // Simulación de usuario logueado
 const userId = localStorage.getItem('userId') || '1'
@@ -154,7 +218,6 @@ const userRole = Number(localStorage.getItem('rol') || 0)
 const currentUser = userId
 const FullName = localStorage.getItem('userName') + ' ' + localStorage.getItem('userLastName')
 
-const loading = ref(false)
 const dxGrid = ref(null)
 const showViewModal = ref(false)
 const selectedItem = ref(null)
@@ -171,14 +234,13 @@ const dataSource = new CustomStore({
      LOAD
   ========================== */
   load: async () => {
-    loading.value = true
     try {
       const { data } = await conexionApi.get('/purchase-requests', {
         params: { company_id: companyId }
       })
       return data.requests
     } finally {
-      loading.value = false
+      //
     }
   },
 

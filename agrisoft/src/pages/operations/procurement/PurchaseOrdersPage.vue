@@ -1,136 +1,222 @@
 <template>
-  <div class="max-w-full mx-auto mb-6 pl-2 md:pl-5 flex items-start justify-between">
-    <div>
-      <h1 class="text-2xl font-light text-navy-700 dark:text-white">
-        Órdenes de Compra
-      </h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Órdenes generadas a partir de solicitudes aprobadas.
-      </p>
+  <!-- Page Header -->
+  <div
+    class="mb-8 p-8 bg-white dark:bg-navy-800 rounded-[2.5rem] border border-slate-100 dark:border-navy-700 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 hover:shadow-md">
+    <div class="flex items-center gap-6">
+      <div
+        class="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] shadow-xl shadow-blue-200 dark:shadow-none transform transition-transform hover:scale-105">
+        <ShoppingCartIcon class="w-10 h-10 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Órdenes de Compra</h1>
+        <p class="text-slate-500 dark:text-slate-400 font-medium font-inter tracking-tight">Gestión y seguimiento de
+          pedidos de compra activos</p>
+      </div>
     </div>
 
-    <button class="text-gray-400 hover:text-navy-600 transition max-w-fit" @click="showHelp = true"
-      title="¿Qué hace cada acción?">
-      <InformationCircleIcon class="w-6 h-6" />
-    </button>
-  </div>
-
-  <div class="mt-[3px] max-w-full mx-auto rounded-2xl bg-white dark:!bg-navy-800 py-6 px-2 md:px-10 shadow-xl">
-    <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true">
-      <DxSearchPanel :visible="true" placeholder="Buscar..." />
-      <DxHeaderFilter :visible="true" :allow-search="true" />
-      <DxPaging :page-size="15" />
-
-      <DxEditing mode="popup" :allow-adding="false" :allow-updating="false" :allow-deleting="false" :use-icons="true">
-        <DxPopup title="Orden de Compra" :show-title="true" :width="450" :height="320" />
-
-        <DxForm :col-count="1">
-
-          <DxItem data-field="request_id" caption="Solicitud Aprobada" editor-type="dxSelectBox"
-            :editor-options="approvedRequestsEditorOptions">
-            <DxRequiredRule message="Debe seleccionar una solicitud" />
-          </DxItem>
-
-          <DxItem data-field="supplier_id" caption="Proveedor" editor-type="dxSelectBox"
-            :editor-options="suppliersEditorOptions">
-            <DxRequiredRule message="Debe seleccionar un proveedor" />
-          </DxItem>
-        </DxForm>
-      </DxEditing>
-
-      <DxColumn data-field="order_code" caption="#Orden de Compra" alignment="right" css-class="!text-left" />
-      <DxColumn data-field="tracking_code" caption="Solicitud" alignment="right" css-class="!text-left" />
-      <DxColumn data-field="supplier_name" caption="Proveedor" alignment="right" css-class="!text-left" />
-      <DxColumn data-field="supplier_rut" caption="RUT Proveedor" alignment="right" css-class="!text-left"
-        :visible="false" />
-      <DxColumn data-field="status" caption="Estado" :cell-template="statusTextCellTemplate" alignment="right"
-        css-class="!text-left" />
-      <DxColumn data-field="created_at" caption="Fecha" data-type="date" format="dd/MM/yyyy" alignment="right"
-        css-class="!text-left" />
-
-      <DxColumn type="buttons" :buttons="customButtons" />
-    </DxDataGrid>
-  </div>
-
-  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-50">
-    <div class="fixed inset-0 bg-black/30" @click="closeModals"></div>
-
-    <div class="bg-white dark:bg-navy-700 rounded-2xl shadow-xl p-6 max-w-3xl w-full z-10 overflow-y-auto max-h-[80vh]">
-      <h2 class="text-xl mb-4 flex justify-between items-center">
-        Orden de Compra <span class="font-bold bg-gray-200 p-1 rounded-sm">#{{ selectedItem?.order_code }}</span>
-      </h2>
-
-      <p class="text-sm mb-2"><strong>Solicitud:</strong> {{ selectedItem?.tracking_code }}</p>
-      <p class="text-sm mb-2"><strong>Solicitante:</strong> {{ selectedItem?.requester_name }}</p>
-
-      <p class="text-sm mb-2"><strong>Creador:</strong> {{ selectedItem?.created_by_name }}</p>
-      <p class="text-sm mb-2"><strong>Fecha de creación:</strong> {{ formatDateHrs(selectedItem?.created_at) }}</p>
-      <p class="text-sm mb-2"><strong>Proveedor:</strong> {{ selectedItem?.supplier_name }} ({{
-        selectedItem?.supplier_rut }})</p>
-
-      <p class="text-sm mb-4"><strong>Estado:</strong> {{ formatStatusText(selectedItem?.status) }}</p>
-
-      <!-- GRID DE ITEMS -->
-      <div v-if="modalItemsDataSource?.length > 0">
-        <DxDataGrid ref="modalGrid" :data-source="modalItemsDataSource" key-expr="id" :show-borders="true"
-          :column-auto-width="true">
-          <DxColumn data-field="product_name" caption="Producto" alignment="right" css-class="!text-left" />
-          <DxColumn data-field="quantity" caption="Cantidad" data-type="number" alignment="right"
-            css-class="!text-left" />
-          <DxColumn data-field="price" caption="Precio" data-type="number"
-            :format="{ type: 'currency', currency: 'USD', precision: 0, formatter: priceFormatter }" alignment="right"
-            css-class="!text-left" />
-          <DxColumn data-field="received_quantity" caption="Recibido" data-type="number" alignment="right"
-            css-class="!text-left" />
-          <DxColumn type="buttons">
-            <DxEditing allow-updating allow-deleting />
-          </DxColumn>
-          <DxEditing mode="popup" :allow-adding="false" :allow-updating="false" :allow-deleting="false"
-            :use-icons="true">
-            <DxPopup title="Editar Item" :width="400" :height="300" />
-          </DxEditing>
-        </DxDataGrid>
-      </div>
-
-      <button @click="closeModals" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 py-2 rounded-lg">
-        Cerrar
+    <div class="flex items-center gap-3">
+      <button
+        class="p-4 bg-slate-50 dark:bg-navy-900 text-slate-400 hover:text-blue-600 rounded-2xl transition-all duration-300 shadow-inner"
+        @click="showHelp = true" title="¿Qué hace cada acción?">
+        <InformationCircleIcon class="w-7 h-7" />
       </button>
     </div>
   </div>
 
-  <DxPopup v-model:visible="showHelp" title="Acciones disponibles" :width="420" :height="auto" :show-close-button="true"
-    :drag-enabled="false">
-    <div class="space-y-3 text-sm">
+  <!-- Main Content Area -->
+  <div
+    class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-navy-700 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-      <div class="flex items-center gap-3">
-        <EyeIcon class="w-5 h-5 text-gray-600" />
-        <span><b>Ver</b>: Visualiza el detalle de la orden</span>
+    <div class="p-8">
+      <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="false" :column-auto-width="true"
+        :load-panel="{ enabled: false }" class="modern-grid">
+        <DxSearchPanel :visible="true" placeholder="Filtrar por proveedor, folio..." />
+        <DxHeaderFilter :visible="true" :allow-search="true" />
+        <DxPaging :page-size="15" />
+
+        <DxEditing mode="popup" :allow-adding="false" :allow-updating="false" :allow-deleting="false" :use-icons="true">
+          <DxPopup title="Detalles de Orden" :width="500" :height="400" />
+          <DxForm :col-count="1">
+            <DxItem data-field="request_id" caption="Solicitud Origen" editor-type="dxSelectBox"
+              :editor-options="approvedRequestsEditorOptions" />
+            <DxItem data-field="supplier_id" caption="Proveedor" editor-type="dxSelectBox"
+              :editor-options="suppliersEditorOptions" />
+          </DxForm>
+        </DxEditing>
+
+        <DxColumn data-field="order_code" caption="Folio OC" alignment="right"
+          css-class="!font-black text-blue-600 dark:text-blue-400 !text-left" />
+
+        <DxColumn data-field="tracking_code" caption="Ref. Solicitud" alignment="right"
+          css-class="text-slate-500 !text-left" />
+
+        <DxColumn data-field="supplier_name" caption="Proveedor" alignment="right"
+          css-class="!text-left font-bold !text-left" />
+
+        <DxColumn data-field="status" caption="Estado" :cell-template="statusTextCellTemplate" alignment="right"
+          css-class="!text-left" />
+
+        <DxColumn data-field="created_at" caption="Fecha Emisión" data-type="date" format="dd/MM/yyyy" alignment="right"
+          css-class="!text-left" />
+
+        <DxColumn type="buttons" :buttons="customButtons" />
+      </DxDataGrid>
+    </div>
+  </div>
+
+  <!-- MODAL VER DETALLE (PREMIUM STYLE) -->
+  <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="closeModals"></div>
+
+    <div
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-4xl z-10 overflow-hidden border border-slate-100 dark:border-navy-700 flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 duration-300">
+      <!-- Header -->
+      <div
+        class="p-8 bg-slate-50/50 dark:bg-navy-900/50 border-b border-slate-100 dark:border-navy-700 flex justify-between items-start">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-blue-600 rounded-2xl shadow-lg">
+            <ShoppingCartIcon class="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Resumen de Orden</h2>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Folio: <span
+                class="text-blue-600">#{{ selectedItem?.order_code }}</span></p>
+          </div>
+        </div>
+
+        <div v-if="selectedItem?.status"
+          :class="`px-4 py-2 rounded-full border flex items-center gap-2 ${getStatusMeta(selectedItem.status).bgColor} ${getStatusMeta(selectedItem.status).textColor} border-slate-100 dark:border-navy-600 shadow-sm`">
+          <span
+            :class="`w-2.5 h-2.5 rounded-full animate-pulse ${getStatusMeta(selectedItem.status).pulseColor}`"></span>
+          <span class="font-bold text-xs uppercase tracking-widest">{{ getStatusMeta(selectedItem.status).text }}</span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <ArchiveBoxArrowDownIcon class="w-5 h-5 text-yellow-600" />
-        <span><b>Ver ítems</b>: Agregar o editar productos</span>
+      <!-- Body -->
+      <div class="p-8 overflow-y-auto flex-grow space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- General info -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <div class="w-1 h-4 bg-blue-600 rounded-full"></div>
+              Información Logística
+            </h3>
+            <div
+              class="bg-slate-50 dark:bg-navy-900/30 rounded-2xl p-6 space-y-4 border border-slate-100 dark:border-navy-700">
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">Ref. Solicitud:</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedItem?.tracking_code }}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">Solicitante:</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedItem?.requester_name }}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">Emitida por:</span>
+                <span
+                  class="font-bold text-slate-800 dark:text-slate-200 text-right">{{ selectedItem?.created_by_name || 'Autogestionada' }}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">Fecha Sistema:</span>
+                <span
+                  class="font-bold text-slate-800 dark:text-slate-200">{{ formatDateHrs(selectedItem?.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supplier info -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <div class="w-1 h-4 bg-indigo-600 rounded-full"></div>
+              Información de Facturación
+            </h3>
+            <div
+              class="bg-indigo-50/30 dark:bg-indigo-900/10 rounded-2xl p-6 space-y-4 border border-indigo-100 dark:border-indigo-900/30 relative overflow-hidden">
+              <div class="flex items-center gap-3 relative z-10">
+                <div class="p-3 bg-white dark:bg-navy-800 rounded-xl shadow-sm">
+                  <BuildingOfficeIcon class="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <div class="font-black text-slate-800 dark:text-white text-lg">{{ selectedItem?.supplier_name }}</div>
+                  <div class="text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-widest">RUT:
+                    {{ selectedItem?.supplier_rut }}
+                  </div>
+                </div>
+              </div>
+              <BuildingOfficeIcon
+                class="absolute -right-6 -bottom-6 w-24 h-24 text-indigo-200/20 dark:text-indigo-900/10" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Items table -->
+        <div class="space-y-4 pt-4">
+          <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <div class="w-1 h-4 bg-emerald-600 rounded-full"></div>
+            Detalle de Productos
+          </h3>
+          <div
+            class="border border-slate-100 dark:border-navy-700 rounded-3xl overflow-hidden shadow-sm bg-white dark:bg-navy-900/50">
+            <DxDataGrid :data-source="modalItemsDataSource" key-expr="id" :show-borders="false"
+              :column-auto-width="true" class="custom-view-grid">
+              <DxColumn data-field="product_name" caption="Producto"
+                css-class="!font-bold !text-slate-700 dark:!text-slate-200" />
+              <DxColumn data-field="quantity" caption="Cant." alignment="center" />
+              <DxColumn data-field="price" caption="Precio Unit."
+                :format="{ type: 'currency', currency: 'USD', precision: 0, formatter: priceFormatter }"
+                alignment="right" css-class="!font-black text-blue-600 dark:text-blue-400" />
+              <DxColumn data-field="received_quantity" caption="Recibido" alignment="center"
+                css-class="text-emerald-600" />
+              <DxScrolling mode="virtual" />
+            </DxDataGrid>
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <DocumentCheckIcon class="w-5 h-5 text-blue-600" />
-        <span><b>Aprobar</b>: Aprueba la orden (estado DRAFT)</span>
+      <!-- Footer Actions -->
+      <div
+        class="p-8 bg-slate-50/50 dark:bg-navy-900/50 border-t border-slate-100 dark:border-navy-700 flex justify-end gap-3">
+        <button @click="closeModals"
+          class="px-10 py-3 bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-sm">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HELP POPUP (PREMIUM) -->
+  <DxPopup v-model:visible="showHelp" :width="500" :height="'auto'" :show-close-button="true" :drag-enabled="false"
+    class="premium-popup">
+    <template #title>
+      <div class="flex items-center gap-4 py-2">
+        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl shadow-sm">
+          <InformationCircleIcon class="w-7 h-7 text-blue-600 dark:text-blue-400" />
+        </div>
+        <span class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Acciones y Guía</span>
+      </div>
+    </template>
+
+    <div class="p-2 space-y-4">
+      <div v-for="action in actionsHelp" :key="action.title"
+        class="flex items-start gap-5 p-5 rounded-[1.5rem] transition-all hover:bg-slate-50 dark:hover:bg-navy-900 group border border-transparent hover:border-slate-100 dark:hover:border-navy-700">
+        <div
+          :class="`p-4 rounded-2xl shadow-xl flex-shrink-0 group-hover:scale-110 transition-transform ${action.bgClass} text-white shadow-sm`">
+          <component :is="action.icon" class="w-6 h-6" />
+        </div>
+        <div>
+          <h4 class="font-black text-slate-800 dark:text-white text-lg tracking-tight">{{ action.title }}</h4>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{{ action.description }}</p>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <DocumentArrowDownIcon class="w-5 h-5 text-green-600" />
-        <span><b>Generar PDF</b>: Descarga la OC en PDF</span>
+      <div class="pt-6 mt-4 border-t border-slate-100 dark:border-navy-700 flex justify-end">
+        <button @click="showHelp = false"
+          class="px-10 py-3 bg-slate-100 dark:bg-navy-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 transition-all">
+          Entendido
+        </button>
       </div>
-
-      <div class="flex items-center gap-3">
-        <XCircleIcon class="w-5 h-5 text-red-600" />
-        <span><b>Cancelar</b>: Cancela la orden</span>
-      </div>
-
     </div>
   </DxPopup>
-
-
 </template>
 
 <script setup>
@@ -150,11 +236,12 @@ import {
 import { useRouter } from 'vue-router'
 import { DxRequiredRule } from 'devextreme-vue/validator'
 import conexionApi from '@/services/conexionApi'
-import { formatDateHrs, formatStatusText, statusTextCellTemplate } from '@/utils/herlpers'
+import { formatDateHrs, formatStatusText, statusTextCellTemplate, getStatusMeta } from '@/utils/herlpers'
 import { priceFormatter } from '@/utils/herlpers'
+import { ShoppingCartIcon, BuildingOfficeIcon } from '@heroicons/vue/24/solid'
 import { InformationCircleIcon, EyeIcon, DocumentCheckIcon, XCircleIcon, ArchiveBoxArrowDownIcon, DocumentArrowDownIcon } from '@heroicons/vue/24/outline'
 import DxPopup from 'devextreme-vue/popup'
-import { Document } from 'postcss'
+import { DxScrolling } from 'devextreme-vue/data-grid'
 
 const companyId = localStorage.getItem('userIdCompany') || '1'
 const userRole = Number(localStorage.getItem('rol') || '0')
@@ -172,6 +259,45 @@ const suppliers = ref([])
 const router = useRouter()
 
 const haveProducts = ref(false)
+
+const actionsHelp = [
+  {
+    title: 'Ver Detalle',
+    description: 'Visualiza la información completa de la orden, incluyendo productos y proveedor.',
+    icon: EyeIcon,
+    bgClass: 'bg-slate-500'
+  },
+  {
+    title: 'Gestionar Ítems',
+    description: 'Permite agregar, editar o eliminar productos de la orden mientras esté en borrador.',
+    icon: ArchiveBoxArrowDownIcon,
+    bgClass: 'bg-yellow-500'
+  },
+  {
+    title: 'Aprobar Orden',
+    description: 'Valida la orden de compra para que pueda ser enviada y procesada.',
+    icon: DocumentCheckIcon,
+    bgClass: 'bg-blue-600'
+  },
+  {
+    title: 'Descargar PDF',
+    description: 'Genera y descarga el documento oficial de la orden de compra en formato PDF.',
+    icon: DocumentArrowDownIcon,
+    bgClass: 'bg-emerald-500'
+  },
+  {
+    title: 'Registrar Recepción',
+    description: 'Permite anotar la entrada de productos recibidos asociados a esta orden.',
+    icon: ArchiveBoxArrowDownIcon,
+    bgClass: 'bg-indigo-500'
+  },
+  {
+    title: 'Cancelar',
+    description: 'Anula la orden de compra permanentemente.',
+    icon: XCircleIcon,
+    bgClass: 'bg-red-500'
+  }
+]
 
 
 /* =========================

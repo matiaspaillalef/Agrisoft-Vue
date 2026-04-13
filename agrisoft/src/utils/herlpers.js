@@ -246,13 +246,15 @@ export function getStatusMeta(status) {
     case 1:
     case '1':
     case 'APPROVED':
+    case 'ACTIVE':
       bgColor = 'bg-green-50'
       textColor = 'text-green-800'
       pulseColor = 'bg-green-400'
       break
     case 0:
-    case '0':  
+    case '0':
     case 'REJECTED':
+    case 'INACTIVE':
       bgColor = 'bg-red-50'
       textColor = 'text-red-800'
       pulseColor = 'bg-red-400'

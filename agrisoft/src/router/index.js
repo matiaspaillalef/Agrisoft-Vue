@@ -383,7 +383,7 @@ const routes = [
         },
       },
       {
-        path: 'dashboard/operations/suppliers',
+        path: 'dashboard/operations/procurement/suppliers',
         name: 'Suppliers',
         component: SuppliersPage,
         meta: {
