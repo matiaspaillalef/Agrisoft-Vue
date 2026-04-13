@@ -277,7 +277,7 @@ const filteredChildren = computed(() => {
 
   const rid = Number(currentRolId)
   if (rid === 8) {
-    return allItems.filter((item) => [19, 20, 21].includes(item.id))
+    return allItems.filter((item) => [19, 20, 21, 25, 26].includes(item.id))
   } else if (rid === 7) {
     return allItems.filter((item) => [19, 20].includes(item.id))
   } else if (rid === 10) {

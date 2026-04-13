@@ -44,6 +44,7 @@ import FieldBookPage from '@/pages/operations/FieldBookPage.vue'
 import ForgotPassword from '@/pages/ForgotPassword.vue'
 import ResetPassword from '@/pages/ResetPassword.vue'
 import SupportTicketsPage from '@/pages/support/SupportTicketsPage.vue'
+import NotFoundPage from '@/pages/NotFoundPage.vue'
 
 
 import ProductionReportsPage from '@/pages/reports/ProductionReportsPage.vue'
@@ -405,7 +406,7 @@ const routes = [
         meta: {
           title: 'Libro de Campo',
           requiresAuth: true,
-          roles: [1, 2, 10, 11],
+          roles: [1, 2, 8, 10, 11],
         },
       },
       {
@@ -429,6 +430,12 @@ const routes = [
         },
       },
     ],
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFoundPage,
+    meta: { requiresAuth: false },
   },
 ]
 
