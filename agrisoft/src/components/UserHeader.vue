@@ -339,6 +339,8 @@ watch(alertsUpdateTrigger, () => {
 const fetchAlerts = async () => {
   try {
     const userId = localStorage.getItem('userId') || ''
+    // Si el userId no está disponible aún (primer ciclo de login), no hacemos la petición
+    if (!userId) return
     const { data } = await conexionApi.get(`/alerts/user/${userId}?unread=true`)
     alerts.value = data.alerts || []
     unreadAlertsCount.value = alerts.value.length
