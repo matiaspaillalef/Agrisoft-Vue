@@ -21,8 +21,9 @@
 
 
     <div class="p-8">
-      <DxDataGrid ref="dxGrid" :data-source="dataSource" key-expr="id" :show-borders="false" :column-auto-width="true"
-        :column-hiding-enabled="true" :load-panel="{ enabled: false }" class="modern-grid">
+      <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true"
+        :column-auto-width="true" :column-hiding-enabled="true" :load-panel="{ enabled: false }" class="modern-grid"
+        @init-new-row="onInitNewRow" @editor-preparing="onEditorPreparing">
         <DxColumnFixing :enabled="true" />
         <DxHeaderFilter :visible="true" :allow-search="true" />
         <DxSearchPanel :visible="true" placeholder="Buscar solicitudes..." />
@@ -30,23 +31,36 @@
 
         <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true"
           :texts="{ confirmDeleteMessage: '¿Está seguro que desea eliminar este registro?' }">
-          <DxPopup title="Nueva Solicitud" :width="600" :height="400" />
+          <DxPopup title="Nueva Solicitud" :width="600" :height="450" />
           <DxForm :col-count="1">
+            <DxItem data-field="requester_id" caption="Persona Solicitante" editor-type="dxSelectBox" :editor-options="{
+              items: users,
+              displayExpr: 'fullName',
+              valueExpr: 'id',
+              searchEnabled: true,
+              placeholder: 'Seleccionar solicitante...',
+              readOnly: ![1, 2].includes(userRole)
+            }">
+              <DxRequiredRule message="El solicitante es obligatorio" />
+            </DxItem>
+
             <DxItem data-field="justification" caption="Justificación" editor-type="dxTextArea" :editor-options="{
               height: 120,
               placeholder: 'Explique brevemente la necesidad de esta compra...'
             }">
               <DxRequiredRule message="La justificación es obligatoria" />
             </DxItem>
-            <DxItem data-field="requester" caption="Solicitante" :visible="true" />
           </DxForm>
         </DxEditing>
 
+        <DxColumn data-field="requester_id" caption="Solicitante" alignment="right" css-class="!text-left font-bold">
+          <DxLookup :data-source="users" display-expr="fullName" value-expr="id" />
+        </DxColumn>
+
+        <DxColumn data-field="justification" :visible="false" caption="Justificación" />
+
         <DxColumn data-field="tracking_code" caption="Código" :allow-editing="false" alignment="right"
           css-class="!font-black text-blue-600 dark:text-blue-400 !text-left" />
-
-        <DxColumn data-field="requester" caption="Solicitante" :allow-editing="false" alignment="right"
-          css-class="!text-left font-bold" />
 
         <DxColumn data-field="status" caption="Estado" :allow-editing="false" :cell-template="statusTextCellTemplate"
           alignment="right" css-class="!text-left" />
@@ -153,33 +167,35 @@
     <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="cerrarModalOC"></div>
 
     <div
-      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-md z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in zoom-in duration-300">
-      <div class="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden">
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-[480px] z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in zoom-in duration-300">
+      <div class="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden group">
         <div class="relative z-10">
-          <h2 class="text-2xl font-black tracking-tight mb-2">Generar Orden de Compra</h2>
-          <p class="text-blue-100 text-sm font-medium">Vinculando solicitud <span
-              class="text-white font-black">#{{ selectedRequestForOC?.tracking_code }}</span></p>
+          <h2 class="text-2xl font-black tracking-tight mb-1 text-white!">Generar Orden de Compra</h2>
+          <p class="text-blue-100/80 text-[10px] font-black uppercase tracking-widest">
+            SOLICITUD #{{ selectedRequestForOC?.tracking_code }}
+          </p>
         </div>
-        <ShoppingCartIcon class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12" />
+        <ShoppingCartIcon
+          class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12 transition-transform group-hover:scale-110" />
       </div>
 
-      <div class="p-8 space-y-6">
-        <div>
-          <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">Proveedor
-            Asignado</label>
-          <DxSelectBox :items="suppliers" v-model="selectedSupplier" value-expr="id"
-            :display-expr="item => item ? `${item.name} (${item.rut})` : ''"
-            placeholder="Buscar y seleccionar proveedor..." class="premium-select" search-enabled="true" />
+      <div class="p-8 text-left!">
+        <div class="mb-10 text-left!">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-left!">
+            Proveedor Asignado
+          </label>
+          <DxSelectBox v-model:value="selectedSupplier" :items="suppliers" display-expr="fullName" value-expr="id"
+            :search-enabled="true" placeholder="Buscar proveedor..."
+            class="premium-selectbox h-14 !rounded-2xl !border-slate-100 !bg-slate-50/50" />
         </div>
 
         <div class="flex flex-col gap-3">
           <button @click="confirmarCrearOC"
-            class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2 active:scale-95">
-            <DocumentCheckIcon class="w-5 h-5" />
+            class="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all uppercase">
             Confirmar y Generar OC
           </button>
           <button @click="cerrarModalOC"
-            class="w-full bg-slate-50 dark:bg-navy-700 text-slate-500 dark:text-slate-400 font-bold py-3 rounded-2xl hover:bg-slate-100 transition-all">
+            class="w-full py-4.5 bg-white text-slate-400 rounded-2xl font-black text-sm tracking-widest hover:bg-slate-50 hover:text-slate-600 active:scale-95 transition-all uppercase">
             Cancelar
           </button>
         </div>
@@ -218,7 +234,7 @@ const userRole = Number(localStorage.getItem('rol') || 0)
 const currentUser = userId
 const FullName = localStorage.getItem('userName') + ' ' + localStorage.getItem('userLastName')
 
-const dxGrid = ref(null)
+const mainGridRef = ref(null)
 const showViewModal = ref(false)
 const selectedItem = ref(null)
 
@@ -226,6 +242,25 @@ const showCreateOCModal = ref(false)
 const selectedRequestForOC = ref(null)
 const selectedSupplier = ref(null)
 const suppliers = ref([])
+const users = ref([])
+
+function onInitNewRow(e) {
+  e.data.requester_id = Number(localStorage.getItem('userId'))
+}
+
+function onEditorPreparing(e) {
+  if (e.dataField === 'requester_id' && e.parentType === 'dataRow') {
+    // Forzamos la carga de datos y configuración aquí para evitar el "Sin datos"
+    e.editorOptions.items = users.value
+    e.editorOptions.displayExpr = 'fullName'
+    e.editorOptions.valueExpr = 'id'
+    e.editorOptions.searchEnabled = true
+
+    if (e.row.isNewRow && !e.value) {
+      e.editorOptions.value = Number(localStorage.getItem('userId'))
+    }
+  }
+}
 
 const dataSource = new CustomStore({
   key: 'id',
@@ -250,14 +285,19 @@ const dataSource = new CustomStore({
   insert: async values => {
     const payload = {
       justification: values.justification,
-      user_id: Number(userId),
+      user_id: values.requester_id || Number(userId),
       company_id: Number(companyId)
     }
 
     const { data } = await conexionApi.post('/purchase-requests', payload)
+
+    // Buscar el nombre para la UI optimista
+    const user = users.value.find(u => u.id === payload.user_id)
+
     return {
       id: data.id,
       ...payload,
+      requester: user ? user.fullName : '',
       status: 'REQUESTED',
       created_at: new Date()
     }
@@ -285,10 +325,33 @@ const dataSource = new CustomStore({
 })
 
 onMounted(async () => {
-  const { data } = await conexionApi.get('/suppliers', {
-    params: { company_id: companyId }
-  })
-  suppliers.value = data.suppliers
+  try {
+    const [suppliersRes, usersRes, rolesRes] = await Promise.all([
+      conexionApi.get('/suppliers', { params: { company_id: companyId } }),
+      conexionApi.get('/configuracion/usuarios/getUsuarios'),
+      conexionApi.get('/configuracion/usuarios/getRoles')
+    ])
+
+    const allRoles = rolesRes.data.roles || []
+    suppliers.value = (suppliersRes.data.suppliers || []).map(s => ({
+      ...s,
+      fullName: `${s.name} (${s.rut || 'Sin RUT'})`
+    }))
+    
+    users.value = (usersRes.data.usuarios || [])
+      .filter(u => u.id_company === Number(companyId))
+      .map(u => {
+        const rol = allRoles.find(r => r.id_rol === u.id_rol)
+        return {
+          id: u.id,
+          fullName: `${u.name} ${u.lastname} (${rol ? rol.descripcion : 'S/R'})`
+        }
+      })
+
+    console.log('Catálogo de usuarios con roles cargado:', users.value.length, 'registros');
+  } catch (err) {
+    console.error('Error cargando catálogos:', err)
+  }
 })
 
 function abrirModalCrearOC(request) {
@@ -325,7 +388,7 @@ async function confirmarCrearOC() {
     }
 
     showCreateOCModal.value = false
-    dxGrid.value?.instance.refresh()
+    mainGridRef.value?.instance.refresh()
 
     alert(`Orden de compra creada correctamente (ID: ${data.id})`)
   } catch (err) {
@@ -363,7 +426,7 @@ async function aprobarSolicitud(request) {
       approved_at: data.approved_at
     })
 
-    dxGrid.value?.instance.refresh()
+    mainGridRef.value?.instance.refresh()
 
     alert(`Solicitud #${request.tracking_code} aprobada por ${data.approver_name}`)
   } catch (err) {
@@ -426,7 +489,7 @@ const customButtons = [
     cssClass: 'w-[25px]! h-[25px]! bg-green-400 rounded-full animate-pulse p-[4px]!',
     visible: (e) => {
       const status = e.row.data.status
-      return (userRole === 1 || userRole === 9) && status === 'REQUESTED'
+      return (userRole === 1 || userRole === 2 || userRole === 9) && status === 'REQUESTED'
     },
     onClick: (e) => aprobarSolicitud(e.row.data)
   },

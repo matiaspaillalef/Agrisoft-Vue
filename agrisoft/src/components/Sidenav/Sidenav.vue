@@ -226,7 +226,15 @@ onMounted(async () => {
   ===================== */
   try {
     menuLoading.value = true
-    menu.value = await MenuService.getMenuByRol(rolId)
+    const rawMenu = await MenuService.getMenuByRol(rolId)
+    // Reordenar: Configuración siempre primero
+    menu.value = rawMenu.sort((a, b) => {
+      const nameA = a.name?.toLowerCase() || ''
+      const nameB = b.name?.toLowerCase() || ''
+      if (nameA.includes('configuraci')) return -1
+      if (nameB.includes('configuraci')) return 1
+      return 0
+    })
   } catch (error) {
     console.error('Error cargando menú:', error)
     menu.value = []

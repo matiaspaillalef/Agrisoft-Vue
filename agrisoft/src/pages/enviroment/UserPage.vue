@@ -21,12 +21,11 @@
     </div>
   </div>
 
-  <!-- GRID -->
   <div class="mt-[3px] flex w-full flex-grow items-center justify-around gap-2 rounded-2xl
            bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative">
     <LoadingOverlay :show="loading" />
     <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
-      :width="'100%'">
+      @init-new-row="onInitNewRow" :width="'100%'">
       <!-- Panel adaptable -->
 
       <DxColumnFixing :enabled="true" />
@@ -82,7 +81,8 @@
             valueExpr: 'id',
             displayExpr: 'name_company',
             searchEnabled: true,
-            placeholder: 'Seleccione empresa'
+            placeholder: 'Seleccione empresa',
+            readOnly: userRol !== 1
           }" />
 
           <DxItem data-field="password" :is-required="true">
@@ -190,7 +190,14 @@ const mainGridRef = ref(null)
 const { companyID: selectedCompanyID, onCompanyChange } = useCompanyStore()
 
 const userRol = Number(localStorage.getItem('rol')) || 0
+const currentCompanyId = Number(localStorage.getItem('userIdCompany'))
 const isImpersonating = !!localStorage.getItem('original_token')
+
+function onInitNewRow(e) {
+  if (userRol !== 1) {
+    e.data.id_company = currentCompanyId
+  }
+}
 
 const showImpersonatePopup = ref(false)
 const targetUserId = ref(null)
@@ -232,9 +239,14 @@ watch(companies, () => {
   mainGridRef.value?.instance?.refresh()
 })
 
-const rolesDS = computed(() => ({
-  store: roles.value
-}))
+const rolesDS = computed(() => {
+  let filteredRoles = roles.value
+  if (userRol !== 1) {
+    // Si no es superadmin, no puede ver ni asignar rol 1 ni 2
+    filteredRoles = filteredRoles.filter(r => r.id_rol !== 1 && r.id_rol !== 2)
+  }
+  return { store: filteredRoles }
+})
 
 const companiesDS = computed(() => ({
   store: companies.value
@@ -288,8 +300,21 @@ const dataSource = new CustomStore({
 
 // --- Botones personalizados ---
 const customButtons = [
-  'edit',
-  'delete',
+  {
+    name: 'edit',
+    visible: (e) => {
+      if (userRol === 1) return true // Superadmin edita todo
+      // Los admins no pueden editar a otros admins (rol 1 o 2)
+      return e.row.data.id_rol !== 1 && e.row.data.id_rol !== 2
+    }
+  },
+  {
+    name: 'delete',
+    visible: (e) => {
+      if (userRol === 1) return true
+      return e.row.data.id_rol !== 1 && e.row.data.id_rol !== 2
+    }
+  }
 ]
 
 // --- Impersonation ---

@@ -23,9 +23,16 @@
               <!-- Campo Contraseña -->
               <div class="mb-3">
                 <label class="text-sm text-navy-700 dark:text-white font-medium">Contraseña:</label>
-                <input type="password" v-model="password"
-                  class="mt-2 flex h-12 w-full items-center justify-center rounded-md border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:bg-white dark:text-blue-950"
-                  placeholder="******" required autocomplete="current-password" />
+                <div class="relative">
+                  <input :type="showPassword ? 'text' : 'password'" v-model="password"
+                    class="mt-2 flex h-12 w-full items-center justify-center rounded-md border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:bg-white dark:text-blue-950 pr-10"
+                    placeholder="******" required autocomplete="current-password" />
+                  <button type="button" @click="showPassword = !showPassword"
+                    class="absolute right-3 top-[calc(50%+0px)] -translate-y-1/2 !bg-transparent !text-gray-400 hover:text-navy-700 dark:text-blue-950 transition-colors !w-fit !m-0">
+                    <EyeIcon v-if="!showPassword" class="h-5 w-5" />
+                    <EyeSlashIcon v-else class="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
 
@@ -94,12 +101,14 @@ import conexionApi from '@/services/conexionApi.js'
 
 // Icons
 import { MoonIcon, SunIcon } from '@heroicons/vue/24/solid'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
 const usuario = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const errorMessage = ref('')
-const loading = ref(false) // 👈 Loading state
+const loading = ref(false)
+const showPassword = ref(false)
 const router = useRouter()
 
 const { isDarkMode, toggleDarkMode } = useDarkMode()

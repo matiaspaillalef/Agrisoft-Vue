@@ -109,7 +109,7 @@ const routes = [
         name: 'UserCreation',
         component: UserCreation,
         meta: {
-          roles: [1],
+          roles: [1, 2],
         },
       },
       {

@@ -1,5 +1,5 @@
 <template>
-  <li :class="levelClass">
+  <li v-if="isVisible" :class="levelClass">
     <div v-if="hasChildren">
       <button @click="toggleOpen"
         class="flex items-center gap-3 px-4 py-3 cursor-pointer w-full group transition-all duration-300 rounded-2xl mb-1 mt-1 bg-transparent!"
@@ -44,7 +44,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 import * as HeroIcons from '@heroicons/vue/24/outline'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps({
   item: Object,
@@ -59,11 +59,39 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
+const userRol = Number(localStorage.getItem('rol') || 0)
 const isOpen = ref(false)
 
 const hasChildren = computed(
   () => Array.isArray(props.item?.children) && props.item.children.length > 0,
 )
+
+const canAccess = (item: any): boolean => {
+  if (!item) return false
+
+  // Si tiene URL, verificamos contra el router
+  if (item.url && item.url !== '#') {
+    const resolved = router.resolve(item.url)
+    // resolve() devuelve la ruta 'NotFound' si no existe, pero nosotros queremos ver los roles
+    if (resolved && resolved.matched.length > 0) {
+      // Buscamos roles en cualquier nivel de la ruta matched
+      const requiredRoles = resolved.matched.find(m => m.meta && m.meta.roles)?.meta?.roles as number[] | undefined
+      if (requiredRoles && !requiredRoles.includes(userRol)) {
+        return false
+      }
+    }
+  }
+
+  // Si es un padre, debe tener al menos un hijo accesible
+  if (item.children && item.children.length > 0) {
+    return item.children.some((child: any) => canAccess(child))
+  }
+
+  return true
+}
+
+const isVisible = computed(() => canAccess(props.item))
 
 const toggleOpen = () => {
   isOpen.value = !isOpen.value
