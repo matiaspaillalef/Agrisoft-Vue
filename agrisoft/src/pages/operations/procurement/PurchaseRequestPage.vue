@@ -382,15 +382,15 @@ async function confirmarCrearOC() {
 
     // 🔹 Guardar el ID de la OC en el objeto de la solicitud
     selectedItem.value = {
-      ...selectedRequestForOC.value,      // copia los datos de la solicitud
-      purchase_order_id: data.id,         // agrega el ID de la OC
-      purchase_order_code: data.code || data.id // opcional: código
+      ...selectedRequestForOC.value,
+      purchase_order_id: data.purchase_order_id,
+      purchase_order_code: data.order_code
     }
 
     showCreateOCModal.value = false
     mainGridRef.value?.instance.refresh()
 
-    alert(`Orden de compra creada correctamente (ID: ${data.id})`)
+    alert(`Orden de compra creada correctamente (ID: ${data.purchase_order_id} - Código: ${data.order_code})`)
   } catch (err) {
     alert(err.response?.data?.mensaje || 'Error al crear la orden')
   }
