@@ -122,9 +122,9 @@
                 :show-borders="false" :column-auto-width="true" :row-alternation-enabled="false"
                 :hover-state-enabled="true" class="custom-grid-reports" @exporting="onExporting"
                 :load-panel="{ enabled: false }">
-                <DxScrolling mode="virtual" />
-                <DxPaging :page-size="20" />
-                <DxPager :show-page-size-selector="true" :allowed-page-sizes="[10, 20, 50]" :show-info="true" />
+                <DxScrolling mode="standard" />
+                <DxPaging :page-size="40" />
+                <DxPager :show-page-size-selector="true" :allowed-page-sizes="[20, 40, 100]" :show-info="true" :show-navigation-buttons="true" />
                 <DxHeaderFilter :visible="true" />
 
                 <DxToolbar>

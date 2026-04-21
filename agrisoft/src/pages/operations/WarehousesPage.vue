@@ -95,8 +95,9 @@
           <DxColumn data-field="users" caption="Responsables" :calculate-cell-value="usersLabel"
             css-class="!text-left" />
 
-          <DxColumn type="buttons" :width="110">
+          <DxColumn type="buttons" :width="140">
             <DxButton icon="custom-view" hint="Ver Detalles" @click="openViewModal" />
+            <DxButton icon="custom-inventory" hint="Ver Inventario" @click="openInventoryModal" />
             <DxButton name="edit" />
             <DxButton name="delete" />
           </DxColumn>
@@ -184,6 +185,79 @@
       </div>
     </div>
   </div>
+
+  <!-- ===================== MODAL INVENTARIO ===================== -->
+  <div v-if="showInventoryModal" class="fixed inset-0 flex items-center justify-center z-[110] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showInventoryModal = false"></div>
+    <div
+      class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl z-10 overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+
+      <!-- Header -->
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
+            <ClipboardDocumentListIcon class="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-slate-800 tracking-tight leading-none">Inventario</h2>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+              {{ selectedInventoryWarehouse?.name }} · {{ inventoryProducts.length }} productos ·
+              {{ totalInventoryStock }} unidades
+            </p>
+          </div>
+        </div>
+        <button @click="showInventoryModal = false"
+          class="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 w-fit!">
+          <XMarkIcon class="w-6 h-6" />
+        </button>
+      </div>
+
+      <!-- Grid -->
+      <div class="p-6 flex-grow overflow-hidden relative">
+        <LoadingOverlay :show="inventoryLoading" />
+        <DxDataGrid
+          :data-source="inventoryProducts"
+          key-expr="product_id"
+          :show-borders="true"
+          :column-auto-width="true"
+          :width="'100%'"
+          :height="420"
+          @exporting="onInventoryExporting"
+          ref="inventoryGridRef"
+        >
+          <DxExport :enabled="true" :allow-export-selected-data="false" />
+          <DxColumnFixing :enabled="true" />
+          <DxScrolling column-rendering-mode="virtual" />
+          <DxPaging :page-size="20" />
+          <DxSearchPanel :visible="true" placeholder="Buscar producto..." />
+
+          <DxToolbar>
+            <DxToolbarItem name="exportButton" location="after" />
+            <DxToolbarItem name="searchPanel" location="after" />
+          </DxToolbar>
+
+          <DxColumn data-field="sku" caption="SKU" css-class="!text-left" :width="120" />
+          <DxColumn data-field="name" caption="Producto" css-class="!text-left" />
+          <DxColumn data-field="active_ingredient" caption="Comp. Activo" css-class="!text-left" />
+          <DxColumn data-field="quantity" caption="Stock" alignment="right" :width="90" />
+          <DxColumn data-field="min_stock" caption="Stock Mín." alignment="right" :width="100"
+            :cell-template="minStockTemplate" />
+          <DxColumn data-field="max_stock" caption="Stock Máx." alignment="right" :width="100" />
+          <DxColumn caption="Estado" :calculate-cell-value="calcEstado"
+            :cell-template="estadoCellTemplate" css-class="!text-center" :width="120" />
+        </DxDataGrid>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-8 py-4 border-t border-slate-100 bg-slate-50/30 flex justify-end flex-shrink-0">
+        <button @click="showInventoryModal = false"
+          class="px-8 py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
@@ -192,7 +266,8 @@ import {
   EyeIcon,
   XMarkIcon,
   UserGroupIcon,
-  SparklesIcon
+  SparklesIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
 import {
@@ -205,14 +280,23 @@ import {
   DxSearchPanel,
   DxSelection,
   DxFilterRow,
-  DxButton
+  DxButton,
+  DxExport,
+  DxColumnFixing,
+  DxScrolling,
+  DxPaging,
+  DxToolbar,
+  DxItem as DxToolbarItem
 } from 'devextreme-vue/data-grid'
+import { exportDataGrid } from 'devextreme/excel_exporter'
+import { Workbook } from 'exceljs'
+import { saveAs } from 'file-saver'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 
 import { loadMessages, locale } from 'devextreme/localization'
 import axios from 'axios'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import conexionApi from '@/services/conexionApi.js'
 
 import { statusCellTemplate } from '@/utils/herlpers'
@@ -446,5 +530,135 @@ const onCellPrepared = (e) => {
     }
   }
 };
+
+/* =========================
+   INVENTARIO POR BODEGA
+========================= */
+const showInventoryModal = ref(false)
+const inventoryLoading = ref(false)
+const selectedInventoryWarehouse = ref(null)
+const inventoryProducts = ref([])
+const inventoryGridRef = ref(null)
+
+const totalInventoryStock = computed(() =>
+  inventoryProducts.value.reduce((sum, p) => sum + Number(p.quantity || 0), 0)
+)
+
+const openInventoryModal = async (e) => {
+  selectedInventoryWarehouse.value = e.row.data
+  showInventoryModal.value = true
+  inventoryLoading.value = true
+  try {
+    const compID = Number(localStorage.getItem('userIdCompany')) || 0
+    const { data } = await conexionApi.get(`/products/${compID}`)
+    const products = data.products || []
+    const whId = e.row.data.id
+    inventoryProducts.value = products
+      .filter(p => p.warehouses?.some(w => w.warehouse_id === whId))
+      .map(p => {
+        const whData = p.warehouses.find(w => w.warehouse_id === whId)
+        return {
+          product_id: p.id,
+          sku: p.sku,
+          name: p.name,
+          active_ingredient: p.active_ingredient || '—',
+          quantity: whData?.quantity ?? 0,
+          min_stock: whData?.min_stock ?? null,
+          max_stock: whData?.max_stock ?? null,
+        }
+      })
+      .sort((a, b) => b.quantity - a.quantity)
+  } catch (err) {
+    console.error('Error cargando inventario:', err)
+    inventoryProducts.value = []
+  } finally {
+    inventoryLoading.value = false
+  }
+}
+
+function calcEstado(rowData) {
+  const { quantity, min_stock } = rowData
+  if (quantity === 0) return 'sinstock'
+  if (min_stock !== null && min_stock !== undefined && quantity <= min_stock) return 'bajo'
+  return 'normal'
+}
+
+function minStockTemplate(cellElement, cellInfo) {
+  const val = cellInfo.value
+  const qty = cellInfo.data.quantity
+  if (val === null || val === undefined) {
+    cellElement.innerHTML = `<span class="text-slate-300 text-xs">—</span>`
+    return
+  }
+  const color = qty <= val ? 'text-red-600 font-black' : 'text-slate-600'
+  cellElement.innerHTML = `<span class="${color}">${val}</span>`
+}
+
+function estadoCellTemplate(cellElement, cellInfo) {
+  const estado = cellInfo.value
+  const map = {
+    sinstock: { label: 'Sin stock', cls: 'bg-red-100 text-red-700 border-red-200' },
+    bajo:     { label: 'Stock bajo', cls: 'bg-orange-100 text-orange-700 border-orange-200' },
+    normal:   { label: 'Disponible', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  }
+  const { label, cls } = map[estado] || map.normal
+  cellElement.innerHTML = `
+    <span class="inline-flex px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border ${cls}">
+      ${label}
+    </span>`
+}
+
+function onInventoryExporting(e) {
+  const workbook = new Workbook()
+  const whName = selectedInventoryWarehouse.value?.name || 'Bodega'
+  const worksheet = workbook.addWorksheet(`Inventario - ${whName}`)
+
+  exportDataGrid({
+    component: e.component,
+    worksheet,
+    autoFilterEnabled: true,
+    customizeCell: ({ gridCell, excelCell }) => {
+      if (gridCell.rowType === 'header') {
+        excelCell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+        excelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } }
+        excelCell.alignment = { horizontal: 'center' }
+      }
+      if (gridCell.rowType === 'data') {
+        excelCell.border = {
+          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        }
+        if (gridCell.column.caption === 'Estado') {
+          excelCell.value =
+            gridCell.value === 'sinstock' ? 'Sin stock' :
+            gridCell.value === 'bajo' ? 'Stock bajo' : 'Disponible'
+        }
+        if (gridCell.column.dataField === 'quantity') {
+          const qty = gridCell.data?.quantity
+          const min = gridCell.data?.min_stock
+          if (qty === 0) {
+            excelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }
+            excelCell.font = { bold: true, color: { argb: 'FFDC2626' } }
+          } else if (min !== null && qty <= min) {
+            excelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFEDD5' } }
+            excelCell.font = { bold: true, color: { argb: 'FFEA580C' } }
+          }
+        }
+      }
+    }
+  }).then(() => {
+    workbook.xlsx.writeBuffer().then(buffer => {
+      const now = new Date()
+      const date = now.toISOString().split('T')[0]
+      const name = whName.replace(/\s+/g, '_').toLowerCase()
+      saveAs(
+        new Blob([buffer], { type: 'application/octet-stream' }),
+        `inventario_${name}_${date}.xlsx`
+      )
+    })
+  })
+}
 
 </script>

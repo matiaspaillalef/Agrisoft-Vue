@@ -24,6 +24,7 @@ import Shifts from '@/pages/people-management/ShiftsPage.vue'
 import Workers from '@/pages/people-management/WorkersPage.vue'
 
 import Warehouses from '@/pages/operations/WarehousesPage.vue'
+import WarehouseInventory from '@/pages/operations/WarehouseInventoryPage.vue'
 import Transit from '@/pages/operations/TransitPage.vue'
 import Products from '@/pages/operations/ProductsPage.vue'
 import Resume from '@/pages/operations/ResumePage.vue'
@@ -325,6 +326,14 @@ const routes = [
         component: Warehouses,
         meta: {
           roles: [1, 2, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/warehouse-inventory',
+        name: 'WarehouseInventory',
+        component: WarehouseInventory,
+        meta: {
+          roles: [1, 2, 7, 8],
         },
       },
       {

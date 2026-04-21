@@ -384,6 +384,9 @@ const currentUser = {
   role: Number(localStorage.getItem('rol') || 0),
 }
 
+// Roles con acceso administrativo total sobre tránsitos
+const isAdmin = [1, 2].includes(currentUser.role)
+
 // Bodegas asignadas al usuario
 const userWarehouses = ref(
   JSON.parse(localStorage.getItem('userWarehouses') || '[]')
@@ -537,7 +540,7 @@ function onInitNewRow(e) {
   e.data.destiny_id = null
 
   // Asignación automática de origen según rol
-  if ([1, 7, 8, 9].includes(currentUser.role)) {
+  if ([1, 2, 7, 8, 9].includes(currentUser.role)) {
     const origin = JSON.parse(localStorage.getItem('userOriginWarehouses') || '[]')
     if (origin.length === 1) {
       e.data.origin_id = origin[0].id
@@ -545,11 +548,9 @@ function onInitNewRow(e) {
     }
   }
 
-  // Responsable automático
-  if (currentUser.role === 8) {
-    e.data.responsible_name = currentUser.name
-    e.data.responsible_id = currentUser.id
-  }
+  // Responsable automático para todos los roles permitidos
+  e.data.responsible_name = currentUser.name
+  e.data.responsible_id = currentUser.id
 }
 
 
@@ -577,7 +578,7 @@ function onEditorPreparing(e) {
 
   const canEdit =
     row.status === 1 &&
-    row.responsible_id === currentUser.id
+    (row.responsible_id === currentUser.id || isAdmin)
 
   if (!canEdit) {
     e.editorOptions.readOnly = true
@@ -705,7 +706,7 @@ const customButtons = [
     cssClass: 'w-[25px]! h-[25px]! bg-orange-400 rounded-full animate-pulse p-[4px]!',
     visible: e =>
       e.row?.data?.status === 1 &&
-      e.row?.data?.responsible_id === currentUser.id,
+      (e.row?.data?.responsible_id === currentUser.id || isAdmin),
     onClick: e => procesarTransito(e.row.data)
   },
   {
@@ -714,7 +715,7 @@ const customButtons = [
     cssClass: 'w-[25px]! h-[25px]! bg-red-400 rounded-full animate-pulse p-[4px]!',
     visible: e =>
       e.row?.data?.status === 2 &&
-      e.row?.data?.responsible_id === currentUser.id,
+      (e.row?.data?.responsible_id === currentUser.id || isAdmin),
     onClick: e => cancelarTransito(e.row.data)
   },
   {
@@ -725,7 +726,7 @@ const customButtons = [
       const destinyId = e.row?.data?.destiny_id
       return (
         e.row?.data?.status === 2 &&
-        userWarehouses.value.some(w => w.id === destinyId)
+        (userWarehouses.value.some(w => w.id === destinyId) || isAdmin)
       )
     },
     onClick: e => recibirTransito(e.row.data)
@@ -738,9 +739,6 @@ const customButtons = [
   {
     hint: 'Editar',
     icon: 'edit',
-    /*visible: e =>
-      e.row?.data?.status === 1 &&
-      e.row?.data?.responsible_id === currentUser.id,*/
     visible: e => false,
     onClick: e => e.component.editRow(e.row.rowIndex)
   },
@@ -749,7 +747,7 @@ const customButtons = [
     icon: 'trash',
     visible: e =>
       e.row?.data?.status === 1 &&
-      e.row?.data?.responsible_id === currentUser.id,
+      (e.row?.data?.responsible_id === currentUser.id || isAdmin),
     onClick: e => e.component.deleteRow(e.row.rowIndex)
   }
 ]
