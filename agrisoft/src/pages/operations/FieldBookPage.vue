@@ -12,6 +12,11 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <button v-if="userRoleId === 11" @click="openRequirementModal()"
+          class="flex items-center gap-2 !px-6 !py-4 !bg-amber-500 !text-white !rounded-full !hover:bg-amber-600 transition-all font-black text-xs shadow-lg shadow-amber-200">
+          <ExclamationTriangleIcon class="w-4 h-4" />
+          Reportar Requerimiento
+        </button>
         <router-link v-if="userRoleId !== 11" to="/dashboard/operations/field-book/config"
           class="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-slate-100">
           <AdjustmentsHorizontalIcon class="w-5 h-5" />
@@ -22,6 +27,40 @@
           Nueva Tarea
         </button>
       </div>
+    </div>
+
+    <!-- PREMIUM TABS NAVIGATION -->
+    <div
+      class="flex items-center gap-4 mb-8 bg-white/40 p-2 rounded-[2rem] border border-white/60 shadow-inner w-fit backdrop-blur-sm">
+      <button @click="activeTab = 'plan'" :class="[
+        'flex items-center gap-3 !px-8 !py-4 !rounded-full text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 relative overflow-hidden group !w-auto',
+        activeTab === 'plan' ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 translate-y-[-2px]' : 'text-slate-400 hover:bg-white/80 hover:text-slate-600'
+      ]">
+        <div class="relative z-10 flex items-center gap-3">
+          <BookOpenIcon
+            :class="['w-4 h-4 transition-transform group-hover:scale-110', activeTab === 'plan' ? 'text-blue-100' : 'text-slate-300']" />
+          Planificación
+        </div>
+        <div v-if="activeTab === 'plan'"
+          class="absolute inset-0 bg-gradient-to-tr from-blue-700 to-blue-500 opacity-100"></div>
+      </button>
+
+      <button @click="activeTab = 'reqs'" :class="[
+        'flex items-center gap-3 !px-8 !py-4 !rounded-full text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 relative overflow-hidden group !w-auto',
+        activeTab === 'reqs' ? 'bg-amber-500 text-white shadow-xl shadow-amber-200 translate-y-[-2px]' : 'text-slate-400 hover:bg-white/80 hover:text-slate-600'
+      ]">
+        <div class="relative z-10 flex items-center gap-3">
+          <ExclamationTriangleIcon
+            :class="['w-4 h-4 transition-transform group-hover:scale-110', activeTab === 'reqs' ? 'text-amber-100' : 'text-slate-300']" />
+          Requerimientos
+          <div v-if="requirements.filter(r => r.status === 'PENDING').length > 0"
+            class="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-rose-500 text-white text-[9px] font-black rounded-full shadow-lg shadow-rose-200 animate-pulse">
+            {{requirements.filter(r => r.status === 'PENDING').length}}
+          </div>
+        </div>
+        <div v-if="activeTab === 'reqs'"
+          class="absolute inset-0 bg-gradient-to-tr from-amber-600 to-amber-400 opacity-100"></div>
+      </button>
     </div>
     <!-- ROLE 11 SUMMARY STATS -->
     <div v-if="userRoleId === 11" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -69,144 +108,249 @@
         </div>
       </div>
     </div>
-    <!-- FILTERS AND GENERAL TOOLS -->
-    <div
-      class="mb-6 p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-6">
-      <!--
-      <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
-          <FunnelIcon class="w-5 h-5" />
+    <!-- MAIN CONTENT AREA -->
+    <div v-if="activeTab === 'plan'" class="space-y-6">
+      <!-- FILTERS AND GENERAL TOOLS -->
+      <div
+        class="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-6">
+        <div class="flex flex-1 min-w-[300px] items-center gap-3">
+          <div class="flex-1 space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Desde</label>
+            <input type="date" v-model="filterFrom"
+              class="w-full px-4 py-2.5 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+          </div>
+          <div class="flex-1 space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Hasta</label>
+            <input type="date" v-model="filterTo"
+              class="w-full px-4 py-2.5 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+          </div>
         </div>
-        
-        <div>
-          <p class="text-[10px] font-black text-slate-800 uppercase leading-none">Filtros de Fecha</p>
-          <p class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 whitespace-nowrap">Reporte por Periodo</p>
-        </div>
-       
-      </div>
- -->
-      <div class="flex flex-1 min-w-[300px] items-center gap-3">
-        <div class="flex-1 space-y-1">
-          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Desde</label>
-          <input type="date" v-model="filterFrom"
-            class="w-full px-4 py-2.5 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
-        </div>
-        <div class="flex-1 space-y-1">
-          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Hasta</label>
-          <input type="date" v-model="filterTo"
-            class="w-full px-4 py-2.5 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+
+        <div class="flex items-center gap-2 flex-auto justify-end">
+          <button v-if="filterFrom || filterTo" @click="resetFilters"
+            class="p-3 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-2xl transition-all border border-rose-100 shadow-sm w-fit!"
+            title="Limpiar Filtros">
+            <XMarkIcon class="w-5 h-5" />
+          </button>
+          <button v-if="userRoleId !== 11" @click="handleExportGeneralExcel"
+            class="flex items-center gap-2 px-6 py-3! bg-emerald-600! text-white! rounded-2xl hover:bg-emerald-700! transition-all! font-black! text-[10px]! uppercase! tracking-widest! shadow-lg! shadow-emerald-200! w-fit!">
+            <ArrowDownTrayIcon class="w-4 h-4" />
+            Descargar Reporte General
+          </button>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 flex-auto justify-end">
-        <button v-if="filterFrom || filterTo" @click="resetFilters"
-          class="p-3 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-2xl transition-all border border-rose-100 shadow-sm w-fit!"
-          title="Limpiar Filtros">
-          <XMarkIcon class="w-5 h-5" />
-        </button>
-        <button v-if="userRoleId !== 11" @click="handleExportGeneralExcel"
-          class="flex items-center gap-2 px-6 py-3! bg-emerald-600! text-white! rounded-2xl hover:bg-emerald-700! transition-all! font-black! text-[10px]! uppercase! tracking-widest! shadow-lg! shadow-emerald-200! w-fit!">
-          <ArrowDownTrayIcon class="w-4 h-4" />
-          Descargar Reporte General
-        </button>
+      <!-- MAIN GRID -->
+      <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6 relative">
+        <LoadingOverlay :show="loading" />
+        <DxDataGrid :data-source="filteredOrders" :show-borders="false" :column-auto-width="true" class="premium-grid">
+          <DxHeaderFilter :visible="true" />
+          <DxFilterRow :visible="false" />
+          <DxPaging :page-size="20" />
+
+          <DxColumn data-field="order_number" caption="N° Orden" cell-template="orderNumTemplate" alignment="right"
+            css-class="!text-left" />
+          <DxColumn data-field="issue_date" caption="Fecha" data-type="date" format="dd/MM/yyyy" alignment="right"
+            css-class="!text-left" />
+          <DxColumn data-field="ground_name" caption="Campo" alignment="right" css-class="!text-left" />
+          <DxColumn data-field="specie_name" caption="Especie" alignment="right" css-class="!text-left" />
+          <DxColumn data-field="area_name" caption="Área" alignment="right" css-class="!text-left" />
+          <DxColumn data-field="task_name" caption="Tarea" alignment="right" css-class="!text-left" />
+          <DxColumn data-field="status" caption="Estado" cell-template="statusTemplate" :width="120" alignment="right"
+            css-class="!text-left" />
+          <DxColumn caption="" cell-template="actionsTemplate" :width="140" h-alignment="center" alignment="right"
+            css-class="!text-left" />
+
+          <template #orderNumTemplate="{ data }">
+            <span class="font-black text-blue-600">{{ data.data.order_number }}</span>
+          </template>
+
+          <template #statusTemplate="{ data }">
+            <span :class="[
+              'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
+              data.data.status === 'PENDING' ? 'bg-amber-100 text-amber-600' :
+                data.data.status === 'GENERATED' ? 'bg-blue-100 text-blue-600' :
+                  data.data.status === 'PARTIAL' ? 'bg-orange-100 text-orange-600' :
+                    data.data.status === 'APPLIED' ? 'bg-indigo-100 text-indigo-600' :
+                      'bg-emerald-100 text-emerald-600'
+            ]">
+              {{
+                data.data.status === 'PENDING' ? 'Borrador' :
+                  data.data.status === 'GENERATED' ? 'Pendiente' :
+                    data.data.status === 'PARTIAL' ? 'Parcial' :
+                      data.data.status === 'APPLIED' ? 'Aplicada' : 'Cerrada'
+              }}
+            </span>
+          </template>
+
+          <template #actionsTemplate="{ data }">
+            <div class="flex items-center gap-1 justify-center">
+              <!-- Ver Detalles Siempre -->
+              <button @click="openEditModal(data.data, true)"
+                class="p-0! text-slate-800! bg-transparent! border-none w-fit!" title="Ver Detalles">
+                <EyeIcon class="w-4 h-4" />
+              </button>
+
+              <!-- Editar solo si es PENDING y tiene permiso -->
+              <button v-if="data.data.status === 'PENDING' && userRoleId !== 11" @click="openEditModal(data.data)"
+                class="p-0! text-slate-800! bg-transparent! border-none w-fit!" title="Editar">
+                <PencilSquareIcon class="w-4 h-4" />
+              </button>
+
+              <!-- Generar Orden (Tech/Admin) -->
+              <button
+                v-if="data.data.status === 'PENDING' && userRoleId !== 11 && (canChangeResponsible || Number(data.data.responsible_id) === currentUserId)"
+                @click="handleFinalize(data.data)" class="p-0! text-slate-800! bg-transparent! border-none  w-fit!"
+                title="Generar Orden">
+                <CheckBadgeIcon class="w-4 h-4" />
+              </button>
+
+              <!-- Aplicar (Solo Applicator Asignado, cuando esta Generada o Parcial) -->
+              <button
+                v-if="['GENERATED', 'PARTIAL'].includes(data.data.status) && Number(data.data.applicator_id) === currentUserId"
+                @click="openConfirmModal(data.data)" class="p-0! text-indigo-600! bg-transparent! border-none w-fit!"
+                title="Registrar Aplicación">
+                <BeakerIcon class="w-4 h-4" />
+              </button>
+
+              <!-- Validar/Cerrar (Tech/Admin/Roles 1-2, cuando esta Aplicada o Parcial si ya no hay mas restos) -->
+              <button
+                v-if="['APPLIED', 'PARTIAL'].includes(data.data.status) && canChangeResponsible && userRoleId !== 11"
+                @click="handleCloseOrder(data.data)" class="p-0! text-emerald-600! bg-transparent! border-none w-fit!"
+                title="Validar y Cerrar">
+                <ShieldCheckIcon class="w-4 h-4" />
+              </button>
+
+              <!-- Descargar Excel (Para cualquier orden generada) -->
+              <button v-if="data.data.status !== 'PENDING' && userRoleId !== 11" @click="handleExportExcel(data.data)"
+                class="p-0! text-emerald-600! bg-transparent! border-none w-fit!" title="Descargar Orden Excel">
+                <ArrowDownTrayIcon class="w-4 h-4" />
+              </button>
+
+              <button v-if="(data.data.status === 'PENDING' || canChangeResponsible) && userRoleId !== 11"
+                @click="handleDelete(data.data)"
+                class="p-0! text-slate-400! hover:text-rose-600! bg-transparent! border-none w-fit!" title="Eliminar">
+                <TrashIcon class="w-4 h-4" />
+              </button>
+            </div>
+          </template>
+        </DxDataGrid>
       </div>
     </div>
 
-    <!-- MAIN GRID -->
-    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6 relative">
-      <LoadingOverlay :show="loading" />
-      <DxDataGrid :data-source="filteredOrders" :show-borders="false" :column-auto-width="true" class="premium-grid">
-        <DxHeaderFilter :visible="true" />
-        <DxFilterRow :visible="false" />
-        <DxPaging :page-size="20" />
+    <!-- REQUIREMENTS VIEW -->
+    <div v-if="activeTab === 'reqs'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div v-if="requirements.length === 0"
+        class="p-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm shadow-slate-200/20">
+        <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+          <InformationCircleIcon class="w-12 h-12 text-slate-200" />
+        </div>
+        <h3 class="text-2xl font-black text-slate-800 tracking-tight">Todo está en orden</h3>
+        <p class="text-slate-400 mt-2 font-medium">No hay requerimientos pendientes en el campo.</p>
+      </div>
 
-        <DxColumn data-field="order_number" caption="N° Orden" cell-template="orderNumTemplate" alignment="right"
-          css-class="!text-left" />
-        <DxColumn data-field="issue_date" caption="Fecha" data-type="date" format="dd/MM/yyyy" alignment="right"
-          css-class="!text-left" />
-        <DxColumn data-field="ground_name" caption="Campo" alignment="right" css-class="!text-left" />
-        <DxColumn data-field="specie_name" caption="Especie" alignment="right" css-class="!text-left" />
-        <DxColumn data-field="area_name" caption="Área" alignment="right" css-class="!text-left" />
-        <DxColumn data-field="task_name" caption="Tarea" alignment="right" css-class="!text-left" />
-        <DxColumn data-field="status" caption="Estado" cell-template="statusTemplate" :width="120" alignment="right"
-          css-class="!text-left" />
-        <DxColumn caption="" cell-template="actionsTemplate" :width="140" h-alignment="center" alignment="right"
-          css-class="!text-left" />
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-for="req in requirements" :key="req.id"
+          class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group overflow-hidden relative">
 
-        <template #orderNumTemplate="{ data }">
-          <span class="font-black text-blue-600">{{ data.data.order_number }}</span>
-        </template>
-
-        <template #statusTemplate="{ data }">
-          <span :class="[
-            'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
-            data.data.status === 'PENDING' ? 'bg-amber-100 text-amber-600' :
-              data.data.status === 'GENERATED' ? 'bg-blue-100 text-blue-600' :
-                data.data.status === 'PARTIAL' ? 'bg-orange-100 text-orange-600' :
-                  data.data.status === 'APPLIED' ? 'bg-indigo-100 text-indigo-600' :
-                    'bg-emerald-100 text-emerald-600'
+          <div :class="[
+            'absolute top-0 right-0 px-8 py-2.5 rounded-bl-[2rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-sm z-10',
+            req.status === 'PENDING' ? 'bg-amber-100 text-amber-600' :
+              req.status === 'RESOLVED' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
           ]">
-            {{
-              data.data.status === 'PENDING' ? 'Borrador' :
-                data.data.status === 'GENERATED' ? 'Pendiente' :
-                  data.data.status === 'PARTIAL' ? 'Parcial' :
-                    data.data.status === 'APPLIED' ? 'Aplicada' : 'Cerrada'
-            }}
-          </span>
-        </template>
+            {{ req.status === 'PENDING' ? 'Pendiente' : req.status === 'RESOLVED' ? 'Resuelto' : 'Rechazado' }}
+          </div>
 
-        <template #actionsTemplate="{ data }">
-          <div class="flex items-center gap-1 justify-center">
-            <!-- Ver Detalles Siempre -->
-            <button @click="openEditModal(data.data, true)"
-              class="p-0! text-slate-800! bg-transparent! border-none w-fit!" title="Ver Detalles">
-              <EyeIcon class="w-4 h-4" />
+          <!-- Priority Indicator Strip -->
+          <div :class="[
+            'absolute top-0 left-0 w-1.5 h-full opacity-60',
+            req.priority === 'HIGH' ? 'bg-rose-500' :
+              req.priority === 'MEDIUM' ? 'bg-amber-500' : 'bg-blue-500'
+          ]"></div>
+
+          <div class="flex items-start justify-between mb-8">
+            <div class="flex items-center gap-4">
+              <div :class="[
+                'p-4 rounded-[1.25rem] shadow-lg shadow-current/10',
+                req.priority === 'HIGH' ? 'bg-rose-50 text-rose-600' :
+                  req.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+              ]">
+                <ExclamationTriangleIcon v-if="req.priority === 'HIGH'" class="w-7 h-7" />
+                <WrenchIcon v-else-if="req.type === 'MAQUINARIA'" class="w-7 h-7" />
+                <BeakerIcon v-else-if="req.type === 'FITOSANITARIO'" class="w-7 h-7" />
+                <InformationCircleIcon v-else class="w-7 h-7" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">Solicitud
+                  Técnica</p>
+                <h4 class="text-base font-black text-slate-800 tracking-tight leading-tight">{{ req.type }}</h4>
+              </div>
+            </div>
+
+            <!-- Action buttons for creator -->
+            <div v-if="Number(req.id_creator) === currentUserId && req.status === 'PENDING'" class="flex gap-2 mt-3">
+              <button @click="openRequirementModal(req)"
+                class="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-slate-100/50"
+                title="Editar mi requerimiento">
+                <PencilSquareIcon class="w-4 h-4" />
+              </button>
+              <button @click="handleDeleteRequirement(req)"
+                class="p-2.5 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-slate-100/50"
+                title="Eliminar mi requerimiento">
+                <TrashIcon class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="bg-slate-50/80 backdrop-blur-sm rounded-3xl p-5 mb-8 italic text-slate-700 text-sm font-bold border border-slate-100/50 leading-relaxed group-hover:bg-white group-hover:shadow-inner transition-all duration-500">
+            "{{ req.description }}"
+          </div>
+
+          <div class="grid grid-cols-2 gap-6 mb-8">
+            <div class="flex flex-col gap-2">
+              <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">Informante</span>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-[10px] font-black">
+                  {{req.creator_name.split(' ').map(n => n[0]).join('')}}
+                </div>
+                <span class="text-[11px] font-black text-slate-700">{{ req.creator_name }}</span>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">Fecha y Hora</span>
+              <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
+                <ClockIcon class="w-3.5 h-3.5 text-slate-300" />
+                {{ new Date(req.created_at).toLocaleDateString() }} <span
+                  class="text-slate-300 ml-1">{{ new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
+              </span>
+            </div>
+            <div v-if="req.ground_name" class="col-span-full flex flex-col gap-2">
+              <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">Localización en
+                Campo</span>
+              <div class="flex items-center gap-2 px-3 py-2 bg-rose-50/30 rounded-xl w-fit border border-rose-100/30">
+                <MapPinIcon class="w-4 h-4 text-rose-500" />
+                <span class="text-[11px] font-black text-slate-800">
+                  {{ req.ground_name }} <span v-if="req.sector_name" class="text-rose-300 mx-1">/</span> <span
+                    v-if="req.sector_name" class="text-slate-600">{{ req.sector_name }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="req.status === 'PENDING' && userRoleId !== 11" class="pt-8 border-t border-slate-50 flex gap-3">
+            <button @click="updateReqStatus(req, 'RESOLVED')"
+              class="!flex-1 !py-4 !bg-emerald-600 !text-white !rounded-2xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-emerald-200">
+              Marcar Resuelto
             </button>
-
-            <!-- Editar solo si es PENDING y tiene permiso -->
-            <button v-if="data.data.status === 'PENDING' && userRoleId !== 11" @click="openEditModal(data.data)"
-              class="p-0! text-slate-800! bg-transparent! border-none w-fit!" title="Editar">
-              <PencilSquareIcon class="w-4 h-4" />
-            </button>
-
-            <!-- Generar Orden (Tech/Admin) -->
-            <button
-              v-if="data.data.status === 'PENDING' && userRoleId !== 11 && (canChangeResponsible || Number(data.data.responsible_id) === currentUserId)"
-              @click="handleFinalize(data.data)" class="p-0! text-slate-800! bg-transparent! border-none  w-fit!"
-              title="Generar Orden">
-              <CheckBadgeIcon class="w-4 h-4" />
-            </button>
-
-            <!-- Aplicar (Solo Applicator Asignado, cuando esta Generada o Parcial) -->
-            <button
-              v-if="['GENERATED', 'PARTIAL'].includes(data.data.status) && Number(data.data.applicator_id) === currentUserId"
-              @click="openConfirmModal(data.data)" class="p-0! text-indigo-600! bg-transparent! border-none w-fit!"
-              title="Registrar Aplicación">
-              <BeakerIcon class="w-4 h-4" />
-            </button>
-
-            <!-- Validar/Cerrar (Tech/Admin/Roles 1-2, cuando esta Aplicada o Parcial si ya no hay mas restos) -->
-            <button
-              v-if="['APPLIED', 'PARTIAL'].includes(data.data.status) && canChangeResponsible && userRoleId !== 11"
-              @click="handleCloseOrder(data.data)" class="p-0! text-emerald-600! bg-transparent! border-none w-fit!"
-              title="Validar y Cerrar">
-              <ShieldCheckIcon class="w-4 h-4" />
-            </button>
-
-            <!-- Descargar Excel (Para cualquier orden generada) -->
-            <button v-if="data.data.status !== 'PENDING' && userRoleId !== 11" @click="handleExportExcel(data.data)"
-              class="p-0! text-emerald-600! bg-transparent! border-none w-fit!" title="Descargar Orden Excel">
-              <ArrowDownTrayIcon class="w-4 h-4" />
-            </button>
-
-            <button v-if="(data.data.status === 'PENDING' || canChangeResponsible) && userRoleId !== 11"
-              @click="handleDelete(data.data)"
-              class="p-0! text-slate-400! hover:text-rose-600! bg-transparent! border-none w-fit!" title="Eliminar">
-              <TrashIcon class="w-4 h-4" />
+            <button @click="updateReqStatus(req, 'REJECTED')"
+              class="!flex-1 px-6 !py-4 !bg-slate-900 !text-slate-400 !rounded-2xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-rose-50 hover:text-rose-600 transition-all">
+              Ignorar
             </button>
           </div>
-        </template>
-      </DxDataGrid>
+        </div>
+      </div>
     </div>
 
     <!-- CREATE/VIEW/EDIT MODAL -->
@@ -243,15 +387,19 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Info Primaria -->
             <div class="col-span-2 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 space-y-6">
-              <div class="flex items-center justify-between border-b border-slate-50 pb-4">
-                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Información Principal</span>
+              <div class="flex items-center justify-between border-b border-slate-50 pb-6">
+                <div class="flex flex-col">
+                  <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-1">Información
+                    Principal</span>
+                  <p class="text-xs font-bold text-slate-400">Detalles técnicos de la programación</p>
+                </div>
                 <span :class="[
-                  'px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm border',
-                  form.status === 'PENDING' ? 'bg-amber-100 text-amber-600 border-amber-200' :
-                    form.status === 'GENERATED' ? 'bg-blue-100 text-blue-600 border-blue-200' :
-                      form.status === 'PARTIAL' ? 'bg-orange-100 text-orange-600 border-orange-200' :
-                        form.status === 'APPLIED' ? 'bg-indigo-100 text-indigo-600 border-indigo-200' :
-                          'bg-emerald-100 text-emerald-600 border-emerald-200'
+                  'px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border transition-all',
+                  form.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100 shadow-amber-100/20' :
+                    form.status === 'GENERATED' ? 'bg-blue-50 text-blue-600 border-blue-100 shadow-blue-100/20' :
+                      form.status === 'PARTIAL' ? 'bg-orange-50 text-orange-600 border-orange-100 shadow-orange-100/20' :
+                        form.status === 'APPLIED' ? 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-indigo-100/20' :
+                          'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-emerald-100/20'
                 ]">
                   {{
                     form.status === 'PENDING' ? 'Borrador' :
@@ -284,31 +432,58 @@
                   <p class="text-sm font-black text-slate-700">{{ form.specie_name }} ({{ form.variety_name || 'N/A' }})
                   </p>
                 </div>
-                <div class="col-span-full bg-slate-50 p-4 rounded-2xl">
-                  <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1 leading-none">
-                    Observaciones
-                    Fenológicas</p>
-                  <p class="text-sm font-bold text-slate-600">"{{ form.phenological_stage || 'Sin observaciones' }}"</p>
+                <div class="col-span-full grid grid-cols-1 md:grid-cols-1 gap-4">
+                  <div class="bg-blue-600/5 p-5 rounded-[1rem] border border-blue-100/50">
+                    <p
+                      class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 leading-none flex items-center gap-2">
+                      <InformationCircleIcon class="w-3 h-3" /> Instrucciones / Observaciones
+                    </p>
+                    <p class="text-sm font-bold text-slate-700 leading-relaxed italic">
+                      "{{ form.observations || 'Sin instrucciones adicionales' }}"
+                    </p>
+                  </div>
+                  <div class="bg-amber-600/5 p-5 rounded-[1rem] border border-amber-100/50">
+                    <p
+                      class="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2 leading-none flex items-center gap-2">
+                      <BeakerIcon class="w-3 h-3" /> Obs. Fenológicas
+                    </p>
+                    <p class="text-sm font-bold text-slate-700 leading-relaxed italic">
+                      "{{ form.phenological_stage || 'Sin observaciones' }}"
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Personal Card -->
-            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 space-y-6 flex flex-col">
-              <div class="border-b border-slate-50 pb-4 flex items-center gap-2">
-                <UsersIcon class="w-4 h-4 text-blue-500" />
-                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Personal Responsable</span>
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col">
+              <div class="border-b border-slate-50 pb-6 mb-6 flex flex-col">
+                <span
+                  class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1 leading-none">Equipos</span>
+                <p class="text-xs font-bold text-slate-400">Responsables asignados</p>
               </div>
               <div class="space-y-4 flex-1">
-                <div class="group relative p-4 bg-slate-50 rounded-2xl transition-all border border-slate-50">
-                  <div class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1.5">Res. Técnico</div>
-                  <div class="text-xs font-black text-slate-700">{{ form.responsible_name }}
+                <div
+                  class="group relative p-5 bg-slate-50/50 hover:bg-white rounded-3xl transition-all border border-transparent hover:border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 overflow-hidden">
+                  <div class="absolute -right-2 -bottom-2 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">
+                    <UserIcon class="w-16 h-16 text-slate-900" />
+                  </div>
+                  <div class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">
+                    Responsable
+                    Técnico</div>
+                  <div class="text-sm font-black text-slate-800 leading-none">{{ form.responsible_name }}
                     {{ form.responsible_lastname }}
                   </div>
                 </div>
-                <div class="group relative p-4 bg-blue-50/50 rounded-2xl transition-all border border-blue-50">
-                  <div class="text-[8px] font-black text-blue-400 uppercase leading-none mb-1.5">Aplicador</div>
-                  <div class="text-xs font-black text-slate-700">{{ form.applicator_name }}
+                <div
+                  class="group relative p-5 bg-blue-50/30 hover:bg-white rounded-3xl transition-all border border-transparent hover:border-blue-100 hover:shadow-xl hover:shadow-blue-500/10 overflow-hidden">
+                  <div class="absolute -right-2 -bottom-2 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">
+                    <BeakerIcon class="w-16 h-16 text-blue-900" />
+                  </div>
+                  <div class="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] leading-none mb-2">
+                    Aplicador /
+                    Operador</div>
+                  <div class="text-sm font-black text-slate-800 leading-none">{{ form.applicator_name }}
                     {{ form.applicator_lastname || '-' }}
                   </div>
                 </div>
@@ -322,8 +497,11 @@
                   <BeakerIcon class="w-4 h-4 text-indigo-500" />
                   <span class="text-xs text-slate-400 uppercase tracking-widest leading-none">Listado de Insumos</span>
                 </div>
+                <span v-if="!form.products || form.products.length === 0"
+                  class="text-[9px] font-black text-amber-500 uppercase">Sin Insumos (Solo Instrucciones)</span>
               </div>
-              <div class="overflow-x-auto border border-slate-50 rounded-2xl">
+              <div v-if="form.products && form.products.length > 0"
+                class="overflow-x-auto border border-slate-50 rounded-2xl">
                 <table class="w-full text-left min-w-[1000px]">
                   <thead>
                     <tr class="bg-slate-50/50">
@@ -354,38 +532,46 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-50">
-                    <tr v-for="(p, i) in form.products" :key="i" class="hover:bg-slate-50/30 transition-all">
-                      <td class="p-4">
-                        <p class="text-sm font-black text-slate-700 leading-none mb-1">{{ p.brand_name }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">
+                    <tr v-for="(p, i) in form.products" :key="i" class="hover:bg-slate-50/30 transition-all group">
+                      <td class="p-5">
+                        <p
+                          class="text-sm font-black text-slate-700 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">
+                          {{ p.brand_name }}
+                        </p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
                           {{ p.active_ingredient || 'Sin Ingrediente' }}
                         </p>
                       </td>
-                      <td class="p-4 text-center font-black text-blue-600">
-                        <span class="px-3 py-1 bg-blue-50 rounded-lg text-sm">{{ p.dosage }}</span>
+                      <td class="p-5 text-center">
+                        <span
+                          class="inline-flex items-center px-4 py-1.5 bg-blue-600/5 text-blue-600 rounded-xl text-[13px] font-black shadow-sm shadow-blue-100/20">
+                          {{ p.dosage }}
+                        </span>
                       </td>
-                      <td class="p-4 text-center text-xs font-bold text-slate-500">{{ p.water_volume || '-' }}</td>
-                      <td class="p-4 text-center">
+                      <td class="p-5 text-center text-xs font-bold text-slate-500">{{ p.water_volume || '-' }}</td>
+                      <td class="p-5 text-center">
                         <span v-if="p.reentry_period"
-                          class="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black">
+                          class="px-3 py-1 bg-amber-50 text-amber-600 rounded-xl text-[10px] font-black border border-amber-100 shadow-sm shadow-amber-100/20">
                           {{ p.reentry_period }} Hrs
                         </span>
                         <span v-else class="text-slate-300">-</span>
                       </td>
-                      <td class="p-4 text-center text-[10px] font-black text-rose-500">
-                        {{ p.withholding_label || '-' }} / {{ p.withholding_asoex || '-' }}
+                      <td class="p-5 text-center text-[10px] font-black text-rose-500 bg-rose-50/30">
+                        {{ p.withholding_label || '-' }} <span class="text-slate-300 mx-1">|</span>
+                        {{ p.withholding_asoex || '-' }}
                       </td>
-                      <td class="p-4 text-center text-xs font-bold text-slate-500">{{ p.app_interval || '-' }}</td>
-                      <td class="p-4 text-center text-xs font-black text-slate-600">{{ p.season_app_number || '-' }}
+                      <td class="p-5 text-center text-xs font-bold text-slate-500">{{ p.app_interval || '-' }}</td>
+                      <td class="p-5 text-center text-xs font-black text-slate-600">{{ p.season_app_number || '-' }}
                       </td>
-                      <td class="p-4 text-center">
+                      <td class="p-5 text-center">
                         <span
-                          :class="['text-[10px] font-black uppercase px-2 py-0.5 rounded-md', p.is_mix ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400']">
-                          {{ p.is_mix ? 'SI' : 'NO' }}
+                          :class="['text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-sm transition-all', p.is_mix ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-indigo-100/20' : 'bg-slate-50 text-slate-400 border border-slate-100']">
+                          {{ p.is_mix ? 'SÍ' : 'NO' }}
                         </span>
                       </td>
-                      <td class="p-4 text-center">
-                        <span class="px-2 py-1 bg-rose-50 text-rose-600 rounded-lg text-[11px] font-black">
+                      <td class="p-5 text-center">
+                        <span
+                          class="inline-flex items-center px-3 py-1 bg-rose-50 text-rose-600 rounded-xl text-[11px] font-black border border-rose-100 shadow-sm shadow-rose-100/20">
                           {{ (parseFloat(p.dosage) - parseFloat(p.applied_quantity || 0)).toFixed(2) }}
                         </span>
                       </td>
@@ -402,15 +588,46 @@
                 <span class="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">Ubicaciones
                   Asignadas</span>
               </div>
-              <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-2">
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
                 <div v-for="(q, i) in form.quartersDetail" :key="i"
-                  class="p-4 bg-slate-50 rounded-3xl flex flex-col items-center gap-1 border border-slate-100 shadow-sm hover:translate-y-[-2px] transition-all min-w-[120px]">
-                  <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full mb-1"></div>
-                  <p class="text-[11px] font-black text-slate-800">{{ q.quarter_number }}</p>
-                  <p class="text-[8px] font-black text-blue-500 uppercase tracking-tight">
-                    {{allVarieties.find(v => Number(v.id) === Number(q.id_variety))?.name || 'V. Genérica'}}
-                  </p>
-                  <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest">{{ q.surface }} Ha</p>
+                  class="group relative overflow-hidden p-5 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
+                  <!-- Decorative background element -->
+                  <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                    <MapPinIcon class="w-24 h-24 text-slate-900" />
+                  </div>
+
+                  <div class="flex items-start justify-between mb-3 relative z-10">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Sector
+                        /
+                        Cuartel</span>
+                    </div>
+                    <div
+                      class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-tighter">
+                      {{ q.surface }} Ha
+                    </div>
+                  </div>
+
+                  <div class="relative z-10">
+                    <h4
+                      class="text-base font-black text-slate-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
+                      {{ q.quarter_number }}
+                    </h4>
+                    <div class="flex items-center gap-1.5 mt-2">
+                      <div class="p-1 bg-amber-50 text-amber-600 rounded-md">
+                        <TagIcon class="w-3 h-3" />
+                      </div>
+                      <span class="text-[10px] font-bold text-slate-500 truncate uppercase tracking-tight">
+                        {{allVarieties.find(v => Number(v.id) === Number(q.id_variety))?.name || 'V. Genérica'}}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Bottom accent line -->
+                  <div
+                    class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                  </div>
                 </div>
               </div>
             </div>
@@ -532,6 +749,13 @@
               <input v-model="form.phenological_stage" placeholder="..."
                 class="w-full px-4 py-[11px] bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-1 focus:ring-blue-100" />
             </div>
+            <div class="col-span-full space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Instrucciones Generales
+                (Opcional)</label>
+              <textarea v-model="form.observations"
+                placeholder="Escribe aquí las instrucciones para el aplicador o detalles de la labor..."
+                class="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-1 focus:ring-blue-100 min-h-[80px]"></textarea>
+            </div>
 
             <div class="col-span-full border-b border-slate-50 pb-2 mt-4 flex items-center justify-between font-black">
               <span class="text-[10px] text-blue-600 uppercase tracking-[0.2em] leading-none">4. Receta e Insumos</span>
@@ -589,8 +813,14 @@
                       class="px-3 py-1.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[70px]">
                       <span
                         class="text-[7px] font-black text-slate-400 truncate uppercase tracking-tighter">{{ s.warehouse_name || getWarehouseName(s.id_warehouse || s.warehouse_id) }}</span>
-                      <span
-                        class="text-[10px] font-bold text-blue-600 leading-none mt-1">{{ s.quantity || s.stock || 0 }}</span>
+                      <div class="flex items-center gap-1.5 mt-1">
+                        <span class="text-[10px] font-bold text-blue-600 leading-none" title="Disponible">
+                          {{ s.quantity || s.stock || 0 }}
+                        </span>
+                        <span v-if="s.reserved_quantity > 0" class="text-[9px] font-black text-amber-500 bg-amber-50 px-1 rounded-md" title="Reservado">
+                          R: {{ s.reserved_quantity }}
+                        </span>
+                      </div>
                     </div>
                     <div v-if="product.id_product && (!product.stock_info || product.stock_info.length === 0)"
                       class="text-[9px] text-amber-500 font-bold py-1 flex items-center gap-1">
@@ -615,8 +845,8 @@
                     <p class="text-[7px] text-slate-400 font-bold mt-1 uppercase">Notifica retiro a bodega</p>
                     <div v-if="product.id_warehouse"
                       class="mt-1 px-2 py-0.5 bg-blue-600/10 rounded-md border border-blue-600/20 w-fit!">
-                      <span class="text-[8px] font-black text-blue-700 uppercase">Stock:
-                        {{ getSelectedWarehouseStock(product) }}</span>
+                      <span class="text-[8px] font-black text-blue-700 uppercase">Stock Disp:
+                        {{ getSelectedWarehouseStock(product) }} | Res: {{ getSelectedWarehouseReserved(product) }}</span>
                     </div>
                   </div>
                   <button @click="product.reserve_stock = !product.reserve_stock" type="button" :class="[
@@ -948,6 +1178,80 @@
       </div>
     </div>
 
+    <!-- REQUIREMENT CREATION MODAL -->
+    <DxPopup v-model:visible="showRequirementModal" :width="500" :height="'auto'" :show-title="false"
+      class="premium-popup">
+      <div class="p-8 bg-white flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+              <ExclamationTriangleIcon class="w-6 h-6" />
+            </div>
+            <div>
+              <h3 class="text-xl font-black text-slate-800 leading-none">Reportar Requerimiento</h3>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Alerta inmediata para
+                Agrónomos</p>
+            </div>
+          </div>
+          <button @click="showRequirementModal = false"
+            class="p-2 text-slate-400 hover:text-rose-500 transition-all !w-fit">
+            <XMarkIcon class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div class="space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Problema</label>
+            <DxSelectBox v-model:value="reqForm.type" :data-source="requirementTypes" display-expr="name"
+              value-expr="id" class="premium-select" placeholder="Selecciona el tipo..." />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Prioridad</label>
+            <div class="flex gap-2">
+              <button v-for="p in ['LOW', 'MEDIUM', 'HIGH']" :key="p" @click="reqForm.priority = p" :class="[
+                'flex-1 py-2 rounded-xl text-[10px] font-black border transition-all',
+                reqForm.priority === p ?
+                  (p === 'HIGH' ? '!bg-rose-600 !text-white !border-rose-600 !shadow-lg !shadow-rose-200' :
+                    p === 'MEDIUM' ? '!bg-amber-500 !text-white !border-amber-500 !shadow-lg !shadow-amber-200' :
+                      '!bg-blue-500 !text-white !border-blue-500 !shadow-lg !shadow-blue-200') :
+                  'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
+              ]">
+                {{ p === 'HIGH' ? 'Crítica' : p === 'MEDIUM' ? 'Normal' : 'Baja' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Campo
+                (Opcional)</label>
+              <DxSelectBox v-model:value="reqForm.id_ground" :data-source="grounds" display-expr="name" value-expr="id"
+                class="premium-select" placeholder="Global..." />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Cuartel
+                (Opcional)</label>
+              <DxSelectBox v-model:value="reqForm.id_quarter" :data-source="reqFilteredQuarters" display-expr="name"
+                value-expr="id" class="premium-select" :disabled="!reqForm.id_ground" />
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción del
+              Requerimiento</label>
+            <textarea v-model="reqForm.description"
+              class="w-full px-4 py-3 bg-slate-50 rounded-2xl font-bold text-sm border-none shadow-sm outline-none focus:ring-2 focus:ring-amber-500 min-h-[120px]"
+              placeholder="Detalla lo que necesitas o el problema detectado..."></textarea>
+          </div>
+        </div>
+
+        <button @click="handleSaveRequirement"
+          class="w-full !py-4 !bg-blue-600 !text-white !rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 mt-4">
+          Enviar Reporte Ahora
+        </button>
+      </div>
+    </DxPopup>
   </div>
 </template>
 
@@ -962,7 +1266,7 @@ import {
   BookOpenIcon, PlusIcon, AdjustmentsHorizontalIcon, XMarkIcon, TrashIcon, PencilSquareIcon,
   CheckBadgeIcon, EyeIcon, UsersIcon, BeakerIcon, MapPinIcon, ShieldCheckIcon,
   WrenchIcon, IdentificationIcon, PrinterIcon, ArrowDownTrayIcon, FunnelIcon,
-  ExclamationTriangleIcon, ClockIcon, ClipboardDocumentCheckIcon
+  ExclamationTriangleIcon, ClockIcon, ClipboardDocumentCheckIcon, InformationCircleIcon
 } from '@heroicons/vue/24/outline'
 
 async function handleExportExcel(order) {
@@ -1453,6 +1757,32 @@ import fieldBookService from '@/api/field-book.service.js'
 import conexionApi from '@/services/conexionApi.js'
 
 const loading = ref(false)
+const activeTab = ref('plan') // 'plan' o 'reqs'
+const requirements = ref([])
+const showRequirementModal = ref(false)
+const isEditingReq = ref(false)
+const reqForm = ref({
+  id: null,
+  type: '',
+  description: '',
+  priority: 'MEDIUM',
+  id_ground: null,
+  id_quarter: null
+})
+
+const reqFilteredQuarters = computed(() => {
+  if (!reqForm.value.id_ground) return []
+  return allQuarters.value.filter(q => Number(q.ground) === Number(reqForm.value.id_ground))
+})
+
+const requirementTypes = [
+  { id: 'MAQUINARIA', name: 'Falla en Maquinaria' },
+  { id: 'INSUMOS', name: 'Falta de Insumos / Repuestos' },
+  { id: 'FITOSANITARIO', name: 'Alerta Fitosanitaria (Enfermedad/Plaga)' },
+  { id: 'RIEGO', name: 'Problema de Riego' },
+  { id: 'INFRAESTRUCTURA', name: 'Infraestructura / Cerco / Caminos' },
+  { id: 'OTRO', name: 'Otro Requerimiento' }
+]
 const showCreateModal = ref(false)
 const isEditing = ref(false)
 const isReadOnly = ref(false)
@@ -1606,6 +1936,8 @@ async function fetchData() {
       };
     })
 
+    await fetchRequirements()
+
     if (!isEditing.value) resetForm()
   } catch (e) {
     console.error(e)
@@ -1627,6 +1959,7 @@ const resetForm = () => {
     responsible_lastname: currentUser?.lastname || '',
     applicator_id: null, applicator_name: '', applicator_lastname: '',
     phenological_stage: '', machinery: '', ppe_required: '',
+    observations: '',
     status: 'PENDING',
     quarters: [], quartersDetail: [],
     products: [{
@@ -1675,23 +2008,20 @@ const calculateProductNeeded = (product) => {
 
 const getSelectedWarehouseStock = (product) => {
   if (!product.id_warehouse) return 0
-
-  // FALLBACK DE SEGURIDAD
-  if (!product.stock_info || product.stock_info.length === 0) {
-    const master = companyProducts.value.find(p => Number(p.id) === Number(product.id_product))
-    if (master && master.stock_info && master.stock_info.length > 0) {
-      product.stock_info = JSON.parse(JSON.stringify(master.stock_info))
-    } else {
-      return 0
-    }
-  }
-
   const found = (product.stock_info || []).find(s => Number(s.id_warehouse || s.warehouse_id) === Number(product.id_warehouse))
   if (found) {
     const qty = (found.quantity !== undefined ? found.quantity : (found.stock || found.Stock || 0))
     return parseFloat(qty) || 0
   }
+  return 0
+}
 
+const getSelectedWarehouseReserved = (product) => {
+  if (!product.id_warehouse) return 0
+  const found = (product.stock_info || []).find(s => Number(s.id_warehouse || s.warehouse_id) === Number(product.id_warehouse))
+  if (found) {
+    return parseFloat(found.reserved_quantity || 0) || 0
+  }
   return 0
 }
 
@@ -1701,15 +2031,17 @@ async function fetchCurrentWarehouseStock(productRow) {
   try {
     const res = await conexionApi.get(`/products/stock/${productRow.id_product}/${productRow.id_warehouse}`)
     if (res.data.code === 'OK' || res.data.status === 'OK') {
-      const quantity = (res.data.data?.quantity !== undefined ? res.data.data.quantity : res.data.quantity) || 0
+      const quantity = (res.data.quantity !== undefined ? res.data.quantity : res.data.data?.quantity) || 0
+      const reserved = (res.data.reserved_quantity !== undefined ? res.data.reserved_quantity : res.data.data?.reserved_quantity) || 0
 
       if (!productRow.stock_info) productRow.stock_info = []
 
       const idx = productRow.stock_info.findIndex(s => Number(s.id_warehouse || s.warehouse_id) === Number(productRow.id_warehouse))
       if (idx !== -1) {
         productRow.stock_info[idx].quantity = quantity
+        productRow.stock_info[idx].reserved_quantity = reserved
       } else {
-        productRow.stock_info.push({ warehouse_id: productRow.id_warehouse, quantity: quantity })
+        productRow.stock_info.push({ warehouse_id: productRow.id_warehouse, quantity: quantity, reserved_quantity: reserved })
       }
     }
   } catch (e) {
@@ -1813,7 +2145,7 @@ async function openEditModal(order, readOnly = false) {
       });
 
       // AUTO-ENRIQUECER PRODUCTOS
-      const productsData = productsRaw.map(p => {
+      const productsData = productsRaw.map((p, i) => {
         const pName = (p.brand_name || "").trim().toLowerCase();
         const hasTech = (p.active_ingredient?.trim() && p.active_ingredient !== '-') || (p.composition?.trim() && p.composition !== '-');
         if (!hasTech) {
@@ -1828,7 +2160,10 @@ async function openEditModal(order, readOnly = false) {
             }
           }
         }
-        return p
+        return {
+          ...p,
+          _uId: Date.now() + Math.random() + i
+        }
       });
 
       // Inyectar nombres para la vista detalle
@@ -1860,7 +2195,8 @@ async function openEditModal(order, readOnly = false) {
           return found ? found.id : q.id_quarter
         }),
         quartersDetail: quartersData,
-        products: productsData.length > 0 ? productsData : [{ brand_name: '', dosage: '', water_volume: '', active_ingredient: '', composition: '', objective: '', justification: '' }]
+        observations: details.observations || '',
+        products: productsData
       }
       showCreateModal.value = true
     } else {
@@ -1888,10 +2224,13 @@ async function handleSaveOrder() {
       }
     })
 
+    const cleanedProducts = form.value.products.filter(p => (p.brand_name && p.brand_name.trim() !== '') || p.id_product);
+
     const payload = {
       ...form.value,
       id_company: companyId,
       quarters: mappedQuarters,
+      products: cleanedProducts,
       executor_id: form.value.applicator_id // Sync executor with applicator as they are the same
     }
 
@@ -2014,6 +2353,110 @@ async function handleCloseOrder(order) {
     console.error(e)
   } finally {
     loading.value = false
+  }
+}
+
+// --- FIELD REQUIREMENTS METHODS ---
+
+async function fetchRequirements() {
+  try {
+    const res = await fieldBookService.getRequirements(companyId)
+    if (res.data.code === 'OK') {
+      requirements.value = res.data.requirements
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+function openRequirementModal(req = null) {
+  if (req) {
+    isEditingReq.value = true
+    reqForm.value = {
+      id: req.id,
+      type: req.type,
+      description: req.description,
+      priority: req.priority,
+      id_ground: req.id_ground,
+      id_quarter: req.id_quarter
+    }
+  } else {
+    isEditingReq.value = false
+    reqForm.value = {
+      id: null,
+      type: '',
+      description: '',
+      priority: 'MEDIUM',
+      id_ground: grounds.value.length ? grounds.value[0].id : null,
+      id_quarter: null
+    }
+  }
+  showRequirementModal.value = true
+}
+
+async function handleSaveRequirement() {
+  if (!reqForm.value.type || !reqForm.value.description) {
+    alert('Por favor completa el tipo y la descripción')
+    return
+  }
+
+  loading.value = true
+  try {
+    const payload = {
+      ...reqForm.value,
+      id_company: companyId,
+      id_creator: currentUserId
+    }
+
+    let res;
+    if (isEditingReq.value) {
+      res = await fieldBookService.updateRequirement(reqForm.value.id, payload)
+    } else {
+      res = await fieldBookService.createRequirement(payload)
+    }
+
+    if (res.data.code === 'OK') {
+      showRequirementModal.value = false
+      fetchRequirements()
+      alert(isEditingReq.value ? 'Requerimiento actualizado' : 'Requerimiento reportado exitosamente. Los agrónomos han sido notificados.')
+    } else {
+      alert('Error: ' + res.data.mensaje)
+    }
+  } catch (e) {
+    console.error(e)
+    alert('Error de servidor al guardar requerimiento')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleDeleteRequirement(req) {
+  if (!confirm('¿Estás seguro de eliminar este requerimiento?')) return
+  loading.value = true
+  try {
+    const res = await fieldBookService.deleteRequirement(req.id)
+    if (res.data.code === 'OK') {
+      fetchRequirements()
+    } else {
+      alert('Error: ' + res.data.mensaje)
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function updateReqStatus(req, status) {
+  const statusEs = status === 'RESOLVED' ? 'RESUELTO' : 'RECHAZADO'
+  if (!confirm(`¿Deseas marcar este requerimiento como ${statusEs}?`)) return
+  try {
+    const res = await fieldBookService.updateRequirementStatus(req.id, status)
+    if (res.data.code === 'OK') {
+      fetchRequirements()
+    }
+  } catch (e) {
+    console.error(e)
   }
 }
 

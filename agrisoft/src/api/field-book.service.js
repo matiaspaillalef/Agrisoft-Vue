@@ -75,5 +75,22 @@ export default {
   },
   toggleTaskStatus(id, status) {
     return conexionApi.put('/field-book/config/tasks/status', { id, status })
+  },
+
+  // --- FIELD REQUIREMENTS ---
+  getRequirements(companyId) {
+    return conexionApi.get(`/field-book/requirements/company/${companyId}`)
+  },
+  createRequirement(data) {
+    return conexionApi.post('/field-book/requirements', data)
+  },
+  updateRequirement(id, data) {
+    return conexionApi.put(`/field-book/requirements/${id}`, data)
+  },
+  deleteRequirement(id) {
+    return conexionApi.delete(`/field-book/requirements/${id}`)
+  },
+  updateRequirementStatus(id, status) {
+    return conexionApi.put(`/field-book/requirements/${id}/status`, { status })
   }
 }
