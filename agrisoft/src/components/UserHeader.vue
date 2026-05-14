@@ -98,7 +98,8 @@
                 <div class="max-h-[420px] overflow-y-auto scroll-smooth py-2">
                   <transition-group name="list" tag="ul">
                     <li v-for="alert in alerts" :key="alert.id"
-                      class="px-6 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 last:border-0 dark:border-white/5 relative group">
+                      class="px-6 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-50 last:border-0 dark:border-white/5 relative group cursor-pointer"
+                      @click="goToItem(alert)">
 
                       <div class="flex gap-4">
                         <div
@@ -116,15 +117,22 @@
                           </p>
                           <span
                             class="text-[10px] !text-slate-400 font-black uppercase tracking-widest mt-2 block !opacity-100">
-                            Recibida hoy
+                            Recibida recientemente
                           </span>
                         </div>
 
-                        <button @click="markAsRead(alert.id)"
-                          class="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-full !bg-emerald-50 !dark:bg-emerald-500/20 !text-emerald-600 flex items-center justify-center transition-all hover:scale-110 active:scale-90 w-fit!"
-                          title="Marcar como leída">
-                          <CheckIcon class="w-4 h-4" />
-                        </button>
+                        <div class="flex flex-col gap-2">
+                          <button @click.stop="markAsRead(alert.id)"
+                            class="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-full !bg-emerald-50 !dark:bg-emerald-500/20 !text-emerald-600 flex items-center justify-center transition-all hover:scale-110 active:scale-90"
+                            title="Marcar como leída">
+                            <CheckIcon class="w-4 h-4" />
+                          </button>
+                          <button @click.stop="goToItem(alert)"
+                            class="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-full !bg-indigo-50 !dark:bg-indigo-500/20 !text-indigo-600 flex items-center justify-center transition-all hover:scale-110 active:scale-90"
+                            title="Ir al apartado">
+                            <ArrowTopRightOnSquareIcon class="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </li>
                   </transition-group>
@@ -191,7 +199,7 @@ import Breadcrumb from '@/components/Breadcrumbs/Breadcrumbs.vue'
 //import TitlePage from './TitlePage.vue'
 import WeatherMini from '@/components/Weather/WeatherMini.vue'
 import { useDarkMode } from '@/plugins/darkMode.js'
-import { MoonIcon, SunIcon, Bars4Icon, BellAlertIcon } from '@heroicons/vue/24/solid'
+import { MoonIcon, SunIcon, Bars4Icon, BellAlertIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid'
 import { ChevronDoubleLeftIcon, XCircleIcon, BellIcon, ArrowRightOnRectangleIcon, CheckIcon, ClipboardDocumentListIcon, ShoppingCartIcon, TruckIcon, RectangleGroupIcon } from '@heroicons/vue/24/outline'
 import { MenuService } from '@/api/menu.services'
 import MenuItem from '@/components/Menu/MenuItem.vue'
@@ -320,11 +328,39 @@ const goToAlerts = () => {
   router.push('/dashboard/operations/alerts')
 }
 
+const goToItem = (alert: any) => {
+  const type = alert.type
+  let routeName = ''
+
+  switch (type) {
+    case 'purchase_request':
+      routeName = 'PurchaseRequests'
+      break
+    case 'purchase_order_pending':
+      routeName = 'PurchaseOrders'
+      break
+    case 'task_assigned':
+    case 'admin_generated':
+    case 'field_requirement':
+      routeName = 'FieldBook'
+      break
+    case 'nuevo_transito':
+      routeName = 'Transit'
+      break
+    default:
+      routeName = 'Dashboard'
+  }
+
+  showAlerts.value = false
+  router.push({ name: routeName })
+}
+
 const getAlertIcon = (type: string) => {
   const icons: any = {
     'task_assigned': RectangleGroupIcon,
     'purchase_request': ClipboardDocumentListIcon,
-    'purchase_order': ShoppingCartIcon,
+    'purchase_order_pending': ShoppingCartIcon,
+    'field_requirement': ClipboardDocumentListIcon,
     'nuevo_transito': TruckIcon
   }
   return icons[type] || BellIcon

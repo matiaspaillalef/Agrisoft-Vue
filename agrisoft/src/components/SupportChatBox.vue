@@ -94,17 +94,31 @@ import {
 } from '@heroicons/vue/24/outline'
 import { onMounted } from 'vue'
 import { MenuService } from '@/api/menu.services'
+import conexionApi from '@/services/conexionApi'
 
 const isOpen = ref(false)
 const hasUnread = ref(false)
 const isTyping = ref(false)
 const userInput = ref('')
 
+const knowledgeBase = ref([])
+
 onMounted(async () => {
   try {
     const { data } = await MenuService.getUnreadSupport()
     hasUnread.value = data.unread > 0
-  } catch(e) {}
+    
+    // Cargar base de conocimientos dinámica
+    const knowledgeRes = await conexionApi.get('/support/assistant/knowledge')
+    if (knowledgeRes.data.code === 'OK') {
+      knowledgeBase.value = knowledgeRes.data.knowledge.map(item => ({
+        keys: item.keywords.split(',').map(k => k.trim().toLowerCase()),
+        response: item.response
+      }))
+    }
+  } catch(e) {
+    console.error('Error loading chat assistant data:', e)
+  }
 })
 
 const messages = ref([
@@ -125,111 +139,23 @@ const sendMessage = async () => {
     if (chatCont) chatCont.scrollTop = chatCont.scrollHeight
   }, 100)
 
-  // Simulación de IA (Aquí se integraría Gemini/OpenAI)
+  // Procesar respuesta
   setTimeout(async () => {
     let aiResponse = "Lo siento, aún estoy aprendiendo sobre esa parte del sistema. ¿Te gustaría abrir un ticket de soporte para que un experto te ayude?"
     const input = userMsg.toLowerCase()
 
-    const knowledgeBase = [
-      {
-        keys: ['hola', 'buen', 'tal'],
-        response: "¡Hola! Soy tu asistente de Agrisoft. Puedo ayudarte con dudas sobre Predios, Sectores, Cuadrillas, Bodegas, OCs o el Libro de Campo. ¿En qué te apoyo?"
-      },
-      {
-        keys: ['predio', 'campo', 'suelo', 'ground'],
-        response: "Gestiona tus predios en Producción > Parametrización > Predios. Allí defines la ubicación, zona y datos geográficos. Es la base para configurar sectores."
-      },
-      {
-        keys: ['sector', 'barraco', 'cuartel', 'lote'],
-        response: "Los sectores se configuran en Producción > Sectores/Cuarteles. Cada sector debe estar asociado a un predio y tener asignada una especie y variedad específica."
-      },
-      {
-        keys: ['especie', 'variedad', 'fruta', 'cultivo'],
-        response: "Define tus especies y variedades en Producción > Parametrización. Esto permite clasificar la producción y los reportes detallados por tipo de cultivo."
-      },
-      {
-        keys: ['producto', 'insumo', 'artículo', 'material'],
-        response: "La lista de productos está en Operaciones > Productos. Puedes filtrar por categoría, marca o principio activo. También verás el stock real por bodega."
-      },
-      {
-        keys: ['marca', 'fabricante'],
-        response: "Configura las marcas en Operaciones > Parametrización > Marcas. Esto ayuda a clasificar mejor tus insumos y productos."
-      },
-      {
-        keys: ['principio', 'activo', 'quimico', 'formula'],
-        response: "Los principios activos se gestionan en Operaciones > Parametrización. Es vital para el Libro de Campo y el control de aplicaciones fitosanitarias."
-      },
-      {
-        keys: ['orden', 'compra', 'oc', 'adquisicion', 'comprar'],
-        response: "Genera OCs en Operaciones > Adquisiciones > Órdenes de Compra. Recuerda que primero debes tener una Solicitud de Compra aprobada."
-      },
-      {
-        keys: ['solicitud', 'pedido', 'requisicion'],
-        response: "Las solicitudes de compra se crean en Adquisiciones > Solicitudes. Una vez enviadas, el administrador puede aprobarlas para generar la orden de compra."
-      },
-      {
-        keys: ['proveedor', 'vendedor'],
-        response: "Registra a tus proveedores en Adquisiciones > Proveedores. Es necesario para asignarles órdenes de compra y llevar un historial de suministros."
-      },
-      {
-        keys: ['bodega', 'warehouse', 'stock', 'inventario', 'almacen'],
-        response: "Gestiona bodegas en Operaciones > Bodegas. Cada bodega centraliza el stock de sus productos asignados. Puedes ver el detalle de movimientos por fecha."
-      },
-      {
-        keys: ['transito', 'traspaso', 'transferencia', 'mover'],
-        response: "Mueve stock entre bodegas en Operaciones > Tránsito. Debes indicar la bodega de origen, la de destino y los productos con sus cantidades."
-      },
-      {
-        keys: ['libro', 'campo', 'field', 'book', 'cuaderno', 'registro'],
-        response: "El Libro de Campo (Operaciones > Libro de Campo) registra aplicaciones, labores y dosis. Asegúrate de configurar antes tus sectores e insumos."
-      },
-      {
-        keys: ['dosis', 'aplicacion', 'dosificacion'],
-        response: "En el Libro de Campo puedes definir dosis por hectárea o por volumen de agua. El sistema calcula automáticamente el total necesario según el área del sector."
-      },
-      {
-        keys: ['carencia', 'reentrada', 'seguridad', 'vencimiento'],
-        response: "Registra los periodos de carencia y reentrada en el Libro de Campo para garantizar la seguridad alimentaria y el cumplimiento de normativas de exportación."
-      },
-      {
-        keys: ['trabajador', 'empleado', 'persona', 'personal'],
-        response: "Gestiona tu personal en Gestión de Personas > Trabajadores. Puedes registrar datos personales, contratos y asignarlos a cuadrillas."
-      },
-      {
-        keys: ['cuadrilla', 'grupo', 'equipo', 'squad'],
-        response: "Las cuadrillas se crean en Gestión de Personas > Cuadrillas. Facilitan la asignación masiva de labores y el seguimiento de productividad por equipo."
-      },
-      {
-        keys: ['usuario', 'rol', 'permiso', 'acceso', 'perfil'],
-        response: "El administrador gestiona usuarios y roles en Configuración > Usuarios. Cada rol tiene permisos específicos para ver u ocultar módulos."
-      },
-      {
-        keys: ['contraseña', 'password', 'clave', 'acceder', 'olvido'],
-        response: "Recupera tu clave en 'Olvidé mi contraseña' en la pantalla de ingreso. Recibirás un enlace por correo para crear una nueva clave segura."
-      },
-      {
-        keys: ['reporte', 'informe', 'excel', 'descargar', 'pdf'],
-        response: "Todos los módulos principales (Producción, Operaciones, Personas) tienen botón de exportación a Excel para analizar los datos fuera del sistema."
-      },
-      {
-        keys: ['qr', 'código', 'etiqueta', 'barcode'],
-        response: "Crea QRs en Producción > Crear QR. Permiten identificar bines o unidades de cosecha para trazabilidad total desde el campo al packing."
-      },
-      {
-        keys: ['clima', 'tiempo', 'metereologia'],
-        response: "El sistema muestra el clima actual en el Sidenav para ayudarte a planificar labores y aplicaciones según las condiciones ambientales."
-      },
-      {
-        keys: ['suplantar', 'impersonate', 'ver como'],
-        response: "Como Superadmin, puedes entrar al sistema 'como si fueras' otro usuario desde el panel de Gestión de Usuarios para dar soporte remoto."
-      }
-    ]
-
-    for (const item of knowledgeBase) {
-      if (item.keys.some(key => input.includes(key))) {
-        aiResponse = item.response
-        break
-      }
+    // Respuestas predefinidas básicas (Greetings)
+    const greetings = ['hola', 'buen', 'tal', 'hi', 'hello']
+    if (greetings.some(g => input.includes(g))) {
+        aiResponse = "¡Hola! Soy tu asistente de Agrisoft. Puedo ayudarte con dudas sobre Predios, Sectores, Cuadrillas, Bodegas, OCs o el Libro de Campo. ¿En qué te apoyo?"
+    } else {
+        // Buscar en la base de conocimientos dinámica
+        for (const item of knowledgeBase.value) {
+            if (item.keys.some(key => input.includes(key))) {
+                aiResponse = item.response
+                break
+            }
+        }
     }
 
     messages.value.push({ role: 'assistant', content: aiResponse })
@@ -239,7 +165,7 @@ const sendMessage = async () => {
       const chatCont = document.querySelector('.scrollbar-thin')
       if (chatCont) chatCont.scrollTop = chatCont.scrollHeight
     }, 100)
-  }, 1500)
+  }, 1000)
 }
 
 const openWhatsApp = () => {

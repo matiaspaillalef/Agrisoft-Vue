@@ -25,7 +25,7 @@
     <LoadingOverlay :show="loading" />
     <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
       :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow" @saving="onSaving"
-      @exporting="onExporting" @editor-preparing="onEditorPreparing">
+      @exporting="onExporting" @editor-preparing="onEditorPreparing" @row-removing="onRowRemoving">
       <DxExport :enabled="true" :allow-export-selected-data="false" />
       <!-- Panel adaptable -->
       <DxColumnChooser v-if="columnChooser" :enabled="true" mode="select" />
@@ -37,12 +37,16 @@
       <DxSearchPanel :visible="true" placeholder="Filtrar registros..." />
       <DxToolbar>
         <DxToolbarItem v-if="canEdit" name="addRowButton" location="after" />
+        <DxToolbarItem location="after">
+          <DxButton icon="upload" hint="Carga Masiva" @click="showImportModal = true"
+            class="!rounded-xl !bg-indigo-50 !text-indigo-600 hover:!bg-indigo-100 !border-none !h-[42px]" />
+        </DxToolbarItem>
         <DxToolbarItem name="exportButton" location="after" />
         <DxToolbarItem name="searchPanel" location="after" />
       </DxToolbar>
 
       <DxColumn data-field="sku" caption="SKU" css-class="!text-left" />
-      <DxColumn data-field="name" caption="Nombre" css-class="!text-left" />
+      <DxColumn data-field="name" caption="Nombre" css-class="!text-left" :cell-template="'nameTemplate'" />
       <DxColumn data-field="active_ingredient" caption="Comp. Activo" css-class="!text-left" />
       <DxColumn data-field="composition" caption="Composición" css-class="!text-left" />
       <DxColumn data-field="objective" caption="Objetivo / Justificación" css-class="!text-left" />
@@ -54,7 +58,23 @@
       <DxColumn caption="Stock global" :calculate-cell-value="calculateTotalStock" css-class="!text-left"
         :allow-editing="false" />
       <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-center" />
-      <DxColumn type="buttons" width="140" :buttons="customButtons" />
+      <DxColumn data-field="is_global" :visible="false" />
+      <DxColumn data-field="is_sag_authorized" :visible="false" />
+      <DxColumn type="buttons" width="200" :buttons="customButtons" />
+
+      <template #nameTemplate="{ data }">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-700">{{ data.value }}</span>
+          <span v-if="data.data.is_sag_authorized" 
+                class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-md uppercase tracking-tighter border border-emerald-200">
+            Autorizado SAG
+          </span>
+          <span v-if="data.data.is_global" 
+                class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase tracking-tighter border border-indigo-200">
+            Global
+          </span>
+        </div>
+      </template>
 
       <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true"
         :texts="{
@@ -84,6 +104,9 @@
             displayExpr: 'text',
             valueExpr: 'id'
           }" />
+
+          <DxItem v-if="userRol === 1" data-field="is_global" caption="Producto Global" editor-type="dxCheckBox" />
+          <DxItem v-if="userRol === 1" data-field="is_sag_authorized" caption="Autorizado por SAG" editor-type="dxCheckBox" />
           <DxItem data-field="__categoryDirty" :visible="false" />
           <DxItem data-field="__usersDirty" :visible="false" />
         </DxForm>
@@ -119,6 +142,72 @@
     </DxDataGrid>
   </div>
 
+      <!-- MODAL CARGA MASIVA -->
+      <transition enter-active-class="transition duration-300 ease-out" enter-from-class="transform scale-95 opacity-0"
+        enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-200 ease-in"
+        leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
+        <div v-if="showImportModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-md overflow-hidden border border-slate-100">
+            <div class="p-8">
+              <div class="flex items-center gap-4 mb-8">
+                <div class="p-4 bg-indigo-50 rounded-3xl text-indigo-600">
+                  <CloudArrowUpIcon class="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 class="text-xl font-black text-slate-800">Carga Masiva</h3>
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Importar Productos desde Excel</p>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <!-- Paso 1: Descargar Plantilla -->
+                <div class="p-6 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                  <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-black shrink-0">1</div>
+                    <div class="flex-grow">
+                      <p class="text-sm font-bold text-slate-700 mb-1">Descargar Plantilla</p>
+                      <p class="text-xs text-slate-500 mb-4">Usa nuestro formato Excel para asegurar que los datos sean correctos.</p>
+                      <button @click="downloadTemplate" class="w-full py-3 bg-white border-2 border-indigo-100 text-indigo-600 rounded-2xl text-xs font-black hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2">
+                        <ArrowDownTrayIcon class="w-4 h-4" />
+                        DESCARGAR EXCEL
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Paso 2: Subir Archivo -->
+                <div class="p-6 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                  <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-black shrink-0">2</div>
+                    <div class="flex-grow">
+                      <p class="text-sm font-bold text-slate-700 mb-1">Subir Archivo</p>
+                      <p class="text-xs text-slate-500 mb-4">Selecciona el archivo Excel completado.</p>
+                      
+                      <div class="relative">
+                        <input type="file" @change="handleFileUpload" accept=".xlsx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                        <div class="w-full py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200">
+                          <DocumentIcon class="w-4 h-4" />
+                          {{ importFile ? importFile.name : 'SELECCIONAR ARCHIVO' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 mt-10">
+                <button @click="showImportModal = false" class="py-4 rounded-3xl text-sm font-black text-slate-400 hover:bg-slate-50 transition-colors uppercase tracking-widest">
+                  CANCELAR
+                </button>
+                <button @click="processImport" :disabled="isImporting || !importFile" class="py-4 bg-emerald-500 text-white rounded-3xl text-sm font-black hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 disabled:opacity-50 disabled:shadow-none uppercase tracking-widest">
+                  {{ isImporting ? 'PROCESANDO...' : 'INICIAR CARGA' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+
   <!-- Modal de solo lectura Modernizado -->
   <div v-if="showViewModal" class="fixed inset-0 flex items-center justify-center z-[100] px-4">
     <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="closeModals"></div>
@@ -147,13 +236,21 @@
           <!-- Info Al Principal -->
           <div class="col-span-full bg-blue-50/50 rounded-3xl p-6 border border-blue-100/50">
             <h3 class="text-2xl font-black text-blue-900 mb-1">{{ selectedItem?.name }}</h3>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span
                 class="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-lg tracking-wider uppercase">SKU:
                 {{ selectedItem?.sku }}</span>
               <span
                 class="px-3 py-1 bg-white text-blue-600 border border-blue-100 text-[10px] font-black rounded-lg tracking-wider uppercase">{{ calculateTotalStock(selectedItem) }}
                 UNIDADES TOTAL</span>
+              <span v-if="selectedItem?.is_sag_authorized" 
+                class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-black rounded-lg tracking-wider uppercase flex items-center gap-1.5">
+                <CheckBadgeIcon class="w-3 h-3" /> Autorizado SAG
+              </span>
+              <span v-if="selectedItem?.is_global" 
+                class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-lg tracking-wider uppercase flex items-center gap-1.5">
+                <GlobeAltIcon class="w-3 h-3" /> Producto Global
+              </span>
             </div>
           </div>
 
@@ -448,10 +545,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   CubeIcon, BeakerIcon, XMarkIcon, IdentificationIcon, MapPinIcon,
   ArrowDownTrayIcon, DocumentArrowDownIcon, BuildingOfficeIcon, AdjustmentsHorizontalIcon,
-  PlusIcon, TrashIcon
+  PlusIcon, TrashIcon, CheckBadgeIcon, GlobeAltIcon,
+  CloudArrowUpIcon, DocumentIcon
 } from '@heroicons/vue/24/solid'
 import { DxTagBox } from 'devextreme-vue/tag-box'
 import { DxSelectBox } from 'devextreme-vue/select-box'
+import { DxButton } from 'devextreme-vue/button'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import CustomStore from 'devextreme/data/custom_store'
 
@@ -487,6 +586,123 @@ import { formatDate, formatDateHrs, statusCellTemplate } from '@/utils/herlpers'
    STATE
 ====================== */
 const loading = ref(false)
+const showImportModal = ref(false)
+const importFile = ref(null)
+const isImporting = ref(false)
+
+const downloadTemplate = async () => {
+  const workbook = new Workbook()
+  const worksheet = workbook.addWorksheet('Productos')
+
+  const columns = [
+    { header: 'SKU', key: 'sku', width: 15 },
+    { header: 'Nombre', key: 'name', width: 30 },
+    { header: 'Categorización (Formato: Cat > Sub1, Sub2; Cat2 > Sub3)', key: 'categorization', width: 50 },
+    { header: 'Componente Activo', key: 'active_ingredient', width: 20 },
+    { header: 'Composición', key: 'composition', width: 20 },
+    { header: 'Objetivo / Justificación', key: 'objective', width: 30 },
+    { header: 'Descripción', key: 'description', width: 30 },
+    { header: 'Estado (1=Activo, 0=Inactivo)', key: 'status', width: 20 },
+  ]
+
+  if (isSuperadmin) {
+    columns.push({ header: 'Es Global (1=Si, 0=No)', key: 'is_global', width: 20 })
+    columns.push({ header: 'Es autorizado por el SAG (1=Si, 0=No)', key: 'is_sag_authorized', width: 25 })
+  }
+
+  worksheet.columns = columns
+
+  // Ejemplo
+  const exampleRow = {
+    sku: 'PROD-001',
+    name: 'Producto Multi-Categoría',
+    categorization: 'Fertilizantes > Foliar, Granular; Bioestimulantes > Raizal',
+    active_ingredient: 'Nitrógeno',
+    composition: '46%',
+    objective: 'Nutrición completa',
+    description: 'Ejemplo con formato simplificado de categorías',
+    status: 1
+  }
+  if (isSuperadmin) {
+    exampleRow.is_global = 1
+    exampleRow.is_sag_authorized = 1
+  }
+  worksheet.addRow(exampleRow)
+
+  // Estilo
+  worksheet.getRow(1).font = { bold: true }
+  worksheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' }
+  }
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  saveAs(new Blob([buffer]), `Plantilla_Productos_${new Date().toLocaleDateString()}.xlsx`)
+}
+
+const handleFileUpload = (e) => {
+  importFile.value = e.target.files[0]
+}
+
+const processImport = async () => {
+  if (!importFile.value) return alert('Por favor seleccione un archivo')
+  
+  isImporting.value = true
+  try {
+    const workbook = new Workbook()
+    await workbook.xlsx.load(importFile.value)
+    const worksheet = workbook.worksheets[0]
+    
+    const products = []
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return // Skip header
+      
+      const p = {
+        sku: row.getCell(1).value?.toString(),
+        name: row.getCell(2).value?.toString(),
+        categorization: row.getCell(3).value?.toString(),
+        active_ingredient: row.getCell(4).value?.toString(),
+        composition: row.getCell(5).value?.toString(),
+        objective: row.getCell(6).value?.toString(),
+        description: row.getCell(7).value?.toString(),
+        status: Number(row.getCell(8).value) === 0 ? 0 : 1,
+      }
+      
+      if (isSuperadmin) {
+        p.is_global = Number(row.getCell(9).value) === 1 ? 1 : 0
+        p.is_sag_authorized = Number(row.getCell(10).value) === 1 ? 1 : 0
+      }
+      
+      if (p.sku && p.name) {
+        products.push(p)
+      }
+    })
+
+    if (products.length === 0) throw new Error('No se encontraron productos válidos en el archivo')
+
+    const { data } = await conexionApi.post('/products/bulk', {
+      products,
+      company_id: companyID
+    })
+
+    if (data.code === 'OK') {
+      import('devextreme/ui/notify').then(notify => {
+        notify.default(data.mensaje, 'success', 3000);
+      });
+      showImportModal.value = false
+      mainGridRef.value?.instance.refresh()
+    } else {
+      throw new Error(data.mensaje)
+    }
+  } catch (err) {
+    console.error('Error en carga masiva:', err)
+    alert('Error al procesar el archivo: ' + err.message)
+  } finally {
+    isImporting.value = false
+    importFile.value = null
+  }
+}
 const stockModalVisible = ref(false)
 const selectedProduct = ref(null)
 const warehousesStock = ref([])
@@ -495,7 +711,8 @@ const mainGridRef = ref(null)
 const companyID = Number(localStorage.getItem('userIdCompany')) || 0
 
 const userRol = Number(localStorage.getItem('rol')) || 0
-const canEdit = [1, 8].includes(userRol)
+const isSuperadmin = Number(userRol) === 1
+const canEdit = [1, 2, 8, 10].includes(userRol)
 
 const showViewModal = ref(false)
 const selectedItem = ref(null)
@@ -575,7 +792,7 @@ async function openSuppliersModal(product) {
     }
 
     // Load current product suppliers
-    const { data: prodSupData } = await conexionApi.get(`/products/${product.id}/suppliers`)
+    const { data: prodSupData } = await conexionApi.get(`/products/${product.id}/suppliers?companyID=${companyID}`)
     productSuppliers.value = prodSupData.suppliers || []
   } catch (err) {
     console.error('Error al cargar proveedores:', err)
@@ -598,6 +815,8 @@ async function saveProductSuppliers() {
       company_id: companyID
     })
     showSuppliersModal.value = false
+    // Refresh the grid to show new supplier links in View modal
+    mainGridRef.value?.instance.refresh()
     alert('Proveedores actualizados correctamente')
   } catch (err) {
     console.error('Error al guardar proveedores:', err)
@@ -695,11 +914,24 @@ function onInitNewRow(e) {
   e.data.status = 1
   e.data.unit_of_measure = 'un'
   e.data.currency = 'CLP'
+  e.data.is_global = 0
+  e.data.is_sag_authorized = 0
   selectedSubcategoryIds.value = []
   originalSubcategoryIds.value = []
 }
 
 async function onEditingStart(e) {
+  const product = e.data
+  
+  // Si el producto es global y el usuario no es superadmin, cancelar edición
+  if (Number(product.is_global) === 1 && !isSuperadmin) {
+    e.cancel = true
+    import('devextreme/ui/notify').then(notify => {
+      notify.default('Solo los Superadministradores pueden editar productos globales', 'warning', 3000)
+    })
+    return
+  }
+
   editingKey.value = e.key
   // Inicializar clasificaciones del producto para el TreeView
   const ids = e.data.category_links ? e.data.category_links
@@ -709,7 +941,6 @@ async function onEditingStart(e) {
   selectedSubcategoryIds.value = [...ids]
   originalSubcategoryIds.value = [...ids]
 
-  const product = e.data
   if (!product?.id) {
     warehousesStock.value = []
     return
@@ -742,7 +973,6 @@ async function onEditorPreparing(e) {
 }
 
 const onSaving = async (e) => {
-  //console.log('--- onSaving triggered ---', e.changes);
 
   const categoriesChanged = JSON.stringify(selectedSubcategoryIds.value) !== JSON.stringify(originalSubcategoryIds.value);
 
@@ -751,9 +981,11 @@ const onSaving = async (e) => {
     return;
   }
 
+  if (e.changes.length === 0) return;
+
   e.cancel = true;
 
-  const change = e.changes[0] || { type: 'update', key: editingKey.value, data: {} };
+  const change = e.changes[0];
   const newData = { ...change.data };
 
   newData.category_links = selectedSubcategoryIds.value.map(sid => {
@@ -764,7 +996,8 @@ const onSaving = async (e) => {
     };
   }).filter(cl => cl.category_id);
 
-  //console.log('Final data to save:', newData);
+  if (newData.is_global !== undefined) newData.is_global = newData.is_global ? 1 : 0;
+  if (newData.is_sag_authorized !== undefined) newData.is_sag_authorized = newData.is_sag_authorized ? 1 : 0;
 
   try {
     if (change.type === 'insert') {
@@ -786,6 +1019,8 @@ const onSaving = async (e) => {
     import('devextreme/ui/notify').then(notify => {
       notify.default('Producto guardado correctamente', 'success', 2000);
     });
+    // REFRESCAR GRILLA
+    e.component.refresh();
 
   } catch (err) {
     console.error('Error saving product:', err);
@@ -795,6 +1030,15 @@ const onSaving = async (e) => {
   } finally {
     e.component.cancelEditData();
     e.component.refresh();
+  }
+}
+
+function onRowRemoving(e) {
+  if (Number(e.data.is_global) === 1 && !isSuperadmin) {
+    e.cancel = true
+    import('devextreme/ui/notify').then(notify => {
+      notify.default('No tiene permisos para eliminar productos globales', 'error', 4000)
+    })
   }
 }
 
@@ -815,10 +1059,10 @@ function traceRouteValue(rowData) {
 }
 
 // --- Botones personalizados ---
-const customButtons = [
+const customButtons = computed(() => [
   {
     hint: 'Ver',
-    icon: 'custom-view',
+    icon: 'eye',
     onClick: (e) => verRegistro(e.row.data),
   },
   {
@@ -827,9 +1071,40 @@ const customButtons = [
     cssClass: 'w-[25px]! h-[25px]! bg-indigo-100 text-indigo-600 rounded-full p-[4px]!',
     onClick: (e) => openSuppliersModal(e.row.data),
   },
-  'edit',
-  'delete',
-]
+  {
+    hint: 'Trazabilidad',
+    icon: 'map',
+    cssClass: 'w-[25px]! h-[25px]! bg-emerald-100 text-emerald-600 rounded-full p-[4px]!',
+    onClick: (e) => openTraceModal(e.row.data),
+  },
+  {
+    name: 'edit',
+    icon: 'edit',
+    visible: (e) => {
+      const currentRol = Number(localStorage.getItem('rol')) || 0;
+      const currentCompany = Number(localStorage.getItem('userIdCompany')) || 0;
+      const isSuper = currentRol === 1;
+      const isGlobal = Number(e.row.data.is_global) === 1;
+      
+      if (isGlobal) return isSuper;
+      // Para locales: solo si es de su empresa o es superadmin
+      return isSuper || (Number(e.row.data.company_id) === currentCompany);
+    }
+  },
+  {
+    name: 'delete',
+    icon: 'trash',
+    visible: (e) => {
+      const currentRol = Number(localStorage.getItem('rol')) || 0;
+      const currentCompany = Number(localStorage.getItem('userIdCompany')) || 0;
+      const isSuper = currentRol === 1;
+      const isGlobal = Number(e.row.data.is_global) === 1;
+      
+      if (isGlobal) return isSuper;
+      return isSuper || (Number(e.row.data.company_id) === currentCompany);
+    }
+  }
+])
 
 const onExporting = (e) => {
   const workbook = new Workbook()

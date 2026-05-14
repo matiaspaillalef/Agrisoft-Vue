@@ -93,6 +93,23 @@
           </router-link>
         </li>
 
+        <!-- Base de Conocimientos Asistente (Solo SuperAdmin) -->
+        <li v-if="rolId === 1" class="mt-2 px-1">
+          <router-link to="/dashboard/support/assistant-knowledge"
+            class="flex items-center gap-4 px-6 py-4 w-full rounded-2xl transition-all duration-300 group relative overflow-hidden border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/50"
+            :class="[
+              isCollapsed ? 'justify-center !px-0' : '',
+              $route.path === '/dashboard/support/assistant-knowledge' ?
+                'bg-indigo-50 border-indigo-200 text-indigo-600' :
+                'text-slate-500 hover:text-indigo-600'
+            ]">
+            <div class="relative z-10 flex items-center gap-4">
+              <ChatBubbleBottomCenterTextIcon class="h-6 w-6 flex-shrink-0" />
+              <span v-if="!isCollapsed" class="text-[15px] font-semibold tracking-tight">Base Conocimiento IA</span>
+            </div>
+          </router-link>
+        </li>
+
         <!-- CERRAR SESIÓN (REDISEÑADO) -->
         <li class="pt-8 mt-4 border-t border-slate-50 px-1">
           <button @click="logout"
@@ -131,7 +148,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MenuItem from '../Menu/MenuItem.vue'
-import { XCircleIcon, ChevronLeftIcon, BuildingOfficeIcon, CameraIcon, ChevronDownIcon, LifebuoyIcon } from '@heroicons/vue/24/outline'
+import { XCircleIcon, ChevronLeftIcon, BuildingOfficeIcon, CameraIcon, ChevronDownIcon, LifebuoyIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/vue/24/outline'
 import { MenuService } from '@/api/menu.services'
 import { CompanyService } from '@/api/company.services'
 import { useCompanyStore } from '@/stores/companyStore'
@@ -243,12 +260,12 @@ onMounted(async () => {
       }
     }*/
 
-    // Reordenar: Configuración siempre primero
+    // Reordenar: Configuración siempre al final
     menu.value = rawMenu.sort((a, b) => {
       const nameA = a.name?.toLowerCase() || ''
       const nameB = b.name?.toLowerCase() || ''
-      if (nameA.includes('configuraci')) return -1
-      if (nameB.includes('configuraci')) return 1
+      if (nameA.includes('configuraci')) return 1
+      if (nameB.includes('configuraci')) return -1
       return 0
     })
   } catch (error) {

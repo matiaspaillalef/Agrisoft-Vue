@@ -466,6 +466,16 @@ const routes = [
           roles: [1, 2],
         },
       },
+      {
+        path: 'dashboard/support/assistant-knowledge',
+        name: 'SupportAssistantKnowledge',
+        component: () => import('@/pages/support/SupportAssistantKnowledgePage.vue'),
+        meta: {
+          title: 'Base de Conocimientos Asistente',
+          requiresAuth: true,
+          roles: [1],
+        },
+      },
     ],
   },
   {

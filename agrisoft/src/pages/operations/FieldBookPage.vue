@@ -1270,7 +1270,7 @@
           <div class="space-y-1">
             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Problema</label>
             <DxSelectBox v-model:value="reqForm.type" :data-source="requirementTypes" display-expr="name"
-              value-expr="id" class="premium-select" placeholder="Selecciona el tipo..." />
+              value-expr="id" class="premium-select" placeholder="Selecciona el tipo..." :show-clear-button="true" />
           </div>
 
           <div class="space-y-1">
@@ -1294,13 +1294,14 @@
               <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Campo
                 (Opcional)</label>
               <DxSelectBox v-model:value="reqForm.id_ground" :data-source="grounds" display-expr="name" value-expr="id"
-                class="premium-select" placeholder="Global..." />
+                class="premium-select" placeholder="Seleccionar campo..." :show-clear-button="true" />
             </div>
             <div class="space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Cuartel
                 (Opcional)</label>
               <DxSelectBox v-model:value="reqForm.id_quarter" :data-source="reqFilteredQuarters" display-expr="name"
-                value-expr="id" class="premium-select" :disabled="!reqForm.id_ground" />
+                value-expr="id" class="premium-select" :disabled="!reqForm.id_ground" placeholder="Seleccionar cuartel..."
+                :show-clear-button="true" />
             </div>
           </div>
 

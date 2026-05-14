@@ -181,7 +181,7 @@
                             <div class="flex items-center gap-3">
                                 <span
                                     class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
-                                    {{ selectedAlert.type || 'Tipo No Definido' }}
+                                    {{ getAlertLabel(selectedAlert.type) }}
                                 </span>
                                 <span class="text-slate-400 font-bold text-xs">
                                     {{ formatDateTime(selectedAlert.created_at) }}
@@ -206,9 +206,10 @@
                             <p class="text-sm font-bold text-navy-900">{{ getUserFullName(selectedAlert.user_id) }}</p>
                         </div>
                         <div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm text-right">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado de
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-left">
+                                Estado de
                                 Lectura</p>
-                            <div class="flex items-center justify-end gap-2 text-sm font-black"
+                            <div class="flex items-center justify-end gap-2 text-sm font-black justify-start"
                                 :class="selectedAlert.is_read ? 'text-emerald-600' : 'text-rose-600'">
                                 <span v-if="!selectedAlert.is_read"
                                     class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
@@ -217,13 +218,32 @@
                         </div>
                     </div>
 
-                    <button @click="viewModalVisible = false"
-                        class="w-full bg-navy-900 hover:bg-slate-800 text-white font-black py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-navy-100 flex items-center justify-center gap-2 uppercase text-xs tracking-widest">
-                        Entendido, Cerrar
-                    </button>
+                    <div class="flex flex-col gap-3">
+                        <!-- Botón de Acción Principal: Ir al Apartado -->
+                        <button @click="goToItem(selectedAlert)"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 uppercase text-[10px] tracking-widest">
+                            <ArrowTopRightOnSquareIcon class="w-4 h-4" />
+                            Ver / Gestionar en Apartado
+                        </button>
+
+                        <div class="flex gap-3">
+                            <button v-if="!selectedAlert.is_read"
+                                @click="markAsRead(selectedAlert.id); viewModalVisible = false"
+                                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-blue-100 flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest">
+                                <CheckBadgeIcon class="w-4 h-4" />
+                                Atender Alerta
+                            </button>
+                            <button @click="viewModalVisible = false"
+                                class="flex-1 bg-navy-900 hover:bg-slate-800 text-white font-black py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-navy-100 flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest">
+                                <XMarkIcon class="w-4 h-4" />
+                                Entendido, Cerrar
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div v-else class="flex flex-col items-center justify-center h-full gap-4 text-slate-400 p-10">
-                    <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                    <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin">
+                    </div>
                     <p class="text-sm font-bold animate-pulse">Cargando detalles de la alerta...</p>
                 </div>
             </template>
@@ -234,8 +254,9 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
-import { BellIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/solid'
+import { BellIcon, PlusIcon, MagnifyingGlassIcon, CheckBadgeIcon, ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid'
 import {
     DxDataGrid,
     DxColumn,
@@ -262,8 +283,36 @@ import { saveAs } from 'file-saver'
 import notify from 'devextreme/ui/notify'
 import { confirm } from 'devextreme/ui/dialog'
 
+const router = useRouter()
 const loading = ref(true)
 const gridRef = ref(null)
+
+const goToItem = (alert) => {
+    const type = alert.type
+    let routeName = ''
+
+    switch (type) {
+        case 'purchase_request':
+            routeName = 'PurchaseRequests'
+            break
+        case 'purchase_order_pending':
+            routeName = 'PurchaseOrders'
+            break
+        case 'task_assigned':
+        case 'admin_generated':
+        case 'field_requirement':
+            routeName = 'FieldBook'
+            break
+        case 'nuevo_transito':
+            routeName = 'Transit'
+            break
+        default:
+            routeName = 'Dashboard'
+    }
+
+    router.push({ name: routeName })
+    viewModalVisible.value = false
+}
 const alerts = ref([])
 const users = ref([])
 const selectedUser = ref(null)
@@ -369,29 +418,37 @@ const getUserFullName = (userId) => {
 }
 
 const getUserInitials = (alertObjOrId) => {
-    if (alertObjOrId && alertObjOrId.user_name) {
-        const parts = alertObjOrId.user_name.split(' ')
-        return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : parts[0][0]
+    try {
+        if (alertObjOrId && alertObjOrId.user_name) {
+            const parts = alertObjOrId.user_name.trim().split(' ')
+            if (parts.length > 1 && parts[0][0] && parts[1][0]) {
+                return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+            }
+            return parts[0][0] ? parts[0][0].toUpperCase() : 'AG'
+        }
+        const uid = alertObjOrId?.user_id || alertObjOrId
+        const user = users.value.find(u => u.id == uid)
+        if (!user || !user.name) return 'AG'
+        return `${user.name[0]}${user.lastname ? user.lastname[0] : ''}`.toUpperCase()
+    } catch (e) {
+        return 'AG'
     }
-    const user = users.value.find(u => u.id == (alertObjOrId?.user_id || alertObjOrId))
-    if (!user) return 'AG'
-    return `${user.name[0]}${user.lastname[0]}`
 }
 
 const markAsRead = async (alertId) => {
     try {
         const targetUserId = selectedUser.value === 0 ? currentUserId : selectedUser.value
         const { data } = await conexionApi.put(`/alerts/${alertId}/read`, { user_id: targetUserId })
-        
+
         if (data.code === 'OK') {
             notify('Notificación Atendida', 'success', 1500)
-            
+
             // Actualización optimista local
             const alertIndex = alerts.value.findIndex(a => a.id === alertId)
             if (alertIndex !== -1) {
                 alerts.value[alertIndex].is_read = 1
             }
-            
+
             notifyAlertsChange()
         } else {
             notify(data.mensaje || 'No se pudo atender la alerta', 'error', 3000)
@@ -407,6 +464,8 @@ const getAlertLabel = (type) => {
         'task_assigned': 'TAREA ASIGNADA',
         'admin_generated': 'ORDEN ADMIN',
         'purchase_request': 'SOLICITUD COMPRA',
+        'purchase_order_pending': 'ORDEN PENDIENTE',
+        'field_requirement': 'REQUERIMIENTO CAMPO',
         'nuevo_transito': 'NUEVO TRÁNSITO'
     }
     return labels[type] || type?.toUpperCase() || 'GENERAL'

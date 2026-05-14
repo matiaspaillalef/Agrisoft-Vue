@@ -469,6 +469,7 @@ async function updateTicketStatus() {
     await conexionApi.patch(`/support/tickets/${selectedTicket.value.id}`, {
       status: selectedTicket.value.status
     })
+    gridRef.value?.instance.refresh()
     notify({ message: 'Estado actualizado', type: 'info', displayTime: 2000, position: 'top center' })
   } catch (err) {
     notify({ message: 'Error al actualizar estado', type: 'error', displayTime: 2000, position: 'top center' })
