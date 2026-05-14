@@ -87,6 +87,7 @@ export function formatStatusText(status) {
     CANCELLED: 'Cancelado',
     PARTIAL_RECEIVED: 'Recibido P.',
     RECEIVED: 'Recibido',
+    CLOSED_MANUALLY: 'Terminada Manual',
     ACTIVE: 'Activo',
     INACTIVE: 'Inactivo',
     0: 'Inactivo',
@@ -105,8 +106,10 @@ export function capitalize(text) {
 
 export function priceFormatter(value) {
   if (value == null) return ''
-  // Formato chileno: separador de miles, sin decimales
-  return '$ ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return '$ ' + Number(value).toLocaleString('es-CL', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  })
 }
 
 //Cell template para status 
@@ -213,9 +216,14 @@ export function statusTextCellTemplate(cellElement, cellInfo) {
       pulseColor = 'bg-blue-400'
       break
     case 'RECEIVED':
-      bgColor = 'bg-green-400'
-      textColor = 'text-green-900'
-      pulseColor = 'bg-green-900'
+      bgColor = 'bg-green-50'
+      textColor = 'text-green-800'
+      pulseColor = 'bg-green-400'
+      break
+    case 'CLOSED_MANUALLY':
+      bgColor = 'bg-amber-100 dark:bg-amber-900/20'
+      textColor = 'text-amber-700 dark:text-amber-400'
+      pulseColor = 'bg-amber-500'
       break
   }
 
@@ -273,6 +281,11 @@ export function getStatusMeta(status) {
       bgColor = 'bg-blue-50'
       textColor = 'text-blue-800'
       pulseColor = 'bg-blue-400'
+      break
+    case 'CLOSED_MANUALLY':
+      bgColor = 'bg-orange-50'
+      textColor = 'text-orange-800'
+      pulseColor = 'bg-orange-500'
       break
   }
 

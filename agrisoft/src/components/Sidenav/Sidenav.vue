@@ -227,6 +227,22 @@ onMounted(async () => {
   try {
     menuLoading.value = true
     const rawMenu = await MenuService.getMenuByRol(rolId)
+
+    // Inyectar Ingreso de Materiales si existe la sección de Recepción
+    /*const recepcionSec = rawMenu.find(m => m.name.includes('Recepción de Materiales'))
+    if (recepcionSec) {
+      if (!recepcionSec.children) recepcionSec.children = []
+      // Solo añadir si no existe ya (para evitar duplicados si el backend lo añade luego)
+      if (!recepcionSec.children.find(c => c.name === 'Ingreso de Materiales')) {
+        recepcionSec.children.push({
+          id: 'manual-entry-id',
+          name: 'Ingreso de Materiales',
+          url: '/dashboard/operations/procurement/receipts/direct/new',
+          icon: 'PlusCircleIcon'
+        })
+      }
+    }*/
+
     // Reordenar: Configuración siempre primero
     menu.value = rawMenu.sort((a, b) => {
       const nameA = a.name?.toLowerCase() || ''

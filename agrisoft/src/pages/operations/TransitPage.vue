@@ -34,7 +34,7 @@
           :show-navigation-buttons="true" info-text="Página {0} de {1} ({2} registros)" />
         <DxEditing :allow-updating="true" :allow-adding="true" :allow-deleting="true" mode="popup" :use-icons="true"
           :texts="{ confirmDeleteMessage: '¿Está seguro que desea eliminar este registro?' }">
-          <DxPopup :show-title="true" :width="700" :height="525" title="Editar tránsito" />
+          <DxPopup :show-title="true" :width="800" :height="600" title="Editar tránsito" />
           <DxForm>
             <DxItem data-field="responsible_name" editor-type="dxTextBox"
               :editor-options="{ readOnly: currentUser.role != 1 }" />
@@ -47,28 +47,76 @@
             <DxItem data-field="origin_id" editor-type="dxSelectBox" :set-cell-value="setOriginValue" />
             <DxItem data-field="destiny_id" editor-type="dxSelectBox" />
             <!--<DxItem data-field="products" editor-type="dxTextArea" :editor-options="{ height: 90 }" />-->
-            <DxSelectBox :data-source="availableProducts" display-expr="display" value-expr="id"
-              placeholder="Buscar producto por SKU, nombre o componente activo" search-enabled search-mode="contains"
-              @value-changed="onProductSelected" />
-            <!-- Productos -->
-            <DxItem item-type="simple" caption="Productos" :col-span="2">
+            <!-- Buscador de productos -->
+            <DxItem :col-span="2">
               <template #default>
-                <DxDataGrid :data-source="filteredProducts" key-expr="id" height="320" :show-borders="true"
-                  ref="(el) => { if (el) productsGridRef = el }" :editing="{
-                    mode: 'batch',
-                    allowUpdating: true,
-                    allowAdding: false,
-                    allowDeleting: false
-                  }" @cell-value-changed="onCellValueChanged" @row-updated="onRowUpdated" @saving="onProductsSaving">
-                  <DxSearchPanel :visible="true" placeholder="Buscar producto..." />
-                  <DxColumn data-field="sku" caption="SKU" css-class="!text-left" :allow-editing="false" />
-                  <DxColumn data-field="name" caption="Nombre" css-class="!text-left" :allow-editing="false" />
-                  <DxColumn data-field="active_ingredient" caption="Componente activo" css-class="!text-left"
-                    :allow-editing="false" />
-                  <DxColumn data-field="quantity" caption="Stock" css-class="!text-left" :allow-editing="false" />
-                  <DxColumn data-field="move_quantity" caption="Cantidad a mover" css-class="!text-left"
-                    editor-type="dxNumberBox" :allow-editing="true" :show-editor-always="true" />
-                </DxDataGrid>
+                <div class="relative group">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MagnifyingGlassIcon class="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                  </div>
+                  <input 
+                    type="text" 
+                    v-model="productFilterText"
+                    placeholder="Filtrar productos por SKU, nombre o componente..."
+                    class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[10px] focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </template>
+            </DxItem>
+            <!-- Productos (Tabla Nativa para evitar problemas de sincronización) -->
+            <DxItem item-type="simple" caption="Productos seleccionados" :col-span="2">
+              <template #default>
+                <div class="mt-2 border border-slate-100 rounded-2xl overflow-hidden bg-slate-50/30 text-[10px]">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-slate-100/50 text-slate-500 font-black uppercase tracking-widest">
+                        <th class="px-4 py-3">SKU</th>
+                        <th class="px-4 py-3">Producto</th>
+                        <th class="px-4 py-3 text-right">Físico</th>
+                        <th class="px-4 py-3 text-right text-amber-600">Reservado</th>
+                        <th class="px-4 py-3 text-right text-indigo-500">En Tránsito</th>
+                        <th class="px-4 py-3 text-right text-emerald-600">Disponible</th>
+                        <th class="px-4 py-3 text-right w-[140px]">Cant. a Mover</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      <tr v-for="prod in displayedProducts" :key="prod.id" class="bg-white hover:bg-blue-50/30 transition-colors">
+                        <td class="px-4 py-3 font-bold text-slate-600">{{ prod.sku }}</td>
+                        <td class="px-4 py-3">
+                          <p class="font-black text-slate-700">{{ prod.name }}</p>
+                          <p class="text-[10px] text-slate-400 italic">{{ prod.active_ingredient }}</p>
+                        </td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-400">{{ prod.quantity }}</td>
+                        <td class="px-4 py-3 text-right font-bold text-amber-600">{{ prod.reserved_quantity }}</td>
+                        <td class="px-4 py-3 text-right font-bold text-indigo-500">{{ prod.in_transit_quantity }}</td>
+                        <td :class="['px-4 py-3 text-right font-black', prod.available_quantity <= 0 ? 'text-slate-300' : 'text-emerald-600']">
+                          {{ prod.available_quantity }}
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                          <input 
+                            type="number" 
+                            v-model.number="prod.move_quantity" 
+                            @input="syncProductValue(prod)"
+                            min="0"
+                            :max="prod.available_quantity"
+                            step="0.01"
+                            :disabled="prod.available_quantity <= 0"
+                            :class="[
+                              'w-full px-3 py-1.5 rounded-lg border-none font-black text-right outline-none transition-all text-[10px]',
+                              prod.available_quantity <= 0 ? 'bg-slate-50 text-slate-300 cursor-not-allowed' :
+                              prod.move_quantity > prod.available_quantity ? 'bg-rose-50 text-rose-600 ring-2 ring-rose-500' : 'bg-slate-100 focus:bg-white focus:ring-2 focus:ring-blue-500 text-slate-700'
+                            ]"
+                          />
+                        </td>
+                      </tr>
+                      <tr v-if="displayedProducts.length === 0">
+                        <td colspan="7" class="px-4 py-10 text-center text-slate-400 italic bg-white">
+                          {{ selectedWarehouseId ? (productFilterText ? 'No se encontraron productos que coincidan con la búsqueda.' : 'No hay productos con stock en esta bodega.') : 'Seleccione una bodega de origen primero.' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </template>
             </DxItem>
 
@@ -233,10 +281,20 @@
                     </div>
                   </td>
                   <td class="px-6 py-4 text-right">
-                    <span
-                      class="px-3 py-1 bg-slate-100 dark:bg-navy-800 rounded-lg text-xs font-black text-slate-600 dark:text-slate-300">
-                      {{ product.Quantity }}
-                    </span>
+                    <div class="flex flex-col items-end gap-1">
+                      <span
+                        class="px-3 py-1 bg-slate-100 dark:bg-navy-800 rounded-lg text-xs font-black text-slate-600 dark:text-slate-300">
+                        {{ product.Quantity }} <small class="text-[9px] opacity-50 uppercase tracking-tighter">Enviados</small>
+                      </span>
+                      <span v-if="selectedItem?.status == 3 && product.ReceivedQuantity !== null && product.ReceivedQuantity != product.Quantity"
+                        class="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-xs font-black text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30">
+                        {{ product.ReceivedQuantity }} <small class="text-[9px] uppercase tracking-tighter">Recibidos</small>
+                      </span>
+                      <p v-if="selectedItem?.status == 3 && Number(product.ReceivedQuantity) < Number(product.Quantity)"
+                        class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight mt-2 text-right w-full">
+                        +{{ (Number(product.Quantity) - Number(product.ReceivedQuantity)).toFixed(2) }} Reintegrados a origen
+                      </p>
+                    </div>
                   </td>
                 </tr>
                 <tr v-if="!selectedItem?.products?.length">
@@ -423,6 +481,18 @@ const selectedProducts = ref([])      // Productos seleccionados
 const selectedWarehouseId = ref(null) // Bodega seleccionada
 const productsChanged = ref(false)
 const productosEditados = ref([])
+const productsEditedSet = ref(new Set())
+const productFilterText = ref('')
+
+const displayedProducts = computed(() => {
+  if (!productFilterText.value) return filteredProducts.value;
+  const search = productFilterText.value.toLowerCase();
+  return filteredProducts.value.filter(p => 
+    p.sku?.toLowerCase().includes(search) || 
+    p.name?.toLowerCase().includes(search) || 
+    p.active_ingredient?.toLowerCase().includes(search)
+  );
+});
 
 
 
@@ -525,21 +595,21 @@ function formatDate(date) {
 // ======================================================
 
 function onInitNewRow(e) {
-
+  // Limpieza absoluta de estados previos
   productosEditados.value = [];
-  filteredProducts.value = filteredProducts.value.map(p => ({ ...p, move_quantity: 0 }));
+  filteredProducts.value = [];
+  selectedWarehouseId.value = null;
+  productsEditedSet.value.clear();
+  productFilterText.value = '';
 
   const unique = Date.now().toString()
-
   e.data.id_transito = `TRK-${companyID}-${unique}`
   e.data.date = new Date()
   e.data.status = 1
   e.data.products = []
-
   e.data.origin_id = null
   e.data.destiny_id = null
 
-  // Asignación automática de origen según rol
   if ([1, 2, 7, 8, 9].includes(currentUser.role)) {
     const origin = JSON.parse(localStorage.getItem('userOriginWarehouses') || '[]')
     if (origin.length === 1) {
@@ -547,8 +617,6 @@ function onInitNewRow(e) {
       selectedWarehouseId.value = origin[0].id
     }
   }
-
-  // Responsable automático para todos los roles permitidos
   e.data.responsible_name = currentUser.name
   e.data.responsible_id = currentUser.id
 }
@@ -779,7 +847,8 @@ const dataSource = new CustomStore({
             products: t.products.map(p => ({
               id: p.product_id,
               Name: p.name,
-              Quantity: p.quantity
+              Quantity: p.quantity,
+              ReceivedQuantity: p.received_quantity
             }))
           }))
           .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -829,17 +898,31 @@ watch(selectedWarehouseId, (warehouseId) => {
   }
 
   const warehouse = bodegas.value.find(b => b.id === warehouseId)
-  selectedWarehouseId.value = warehouseId
-
   if (!warehouse) return
 
   filteredProducts.value = allProducts.value
     .filter(p => p.warehouses?.some(w => w.warehouse_name === warehouse.name))
-    .map(p => ({
-      ...p,
-      quantity: p.warehouses.find(w => w.warehouse_name === warehouse.name)?.quantity || 0,
-      move_quantity: 0
-    }))
+    .map(p => {
+      const whInfo = p.warehouses.find(w => w.warehouse_name === warehouse.name);
+      const total = Number(whInfo?.quantity || 0);
+      const reserved = Number(whInfo?.reserved_quantity || 0);
+      const inTransit = Number(whInfo?.in_transit_quantity || 0);
+      return {
+        ...p,
+        quantity: total,
+        reserved_quantity: reserved,
+        in_transit_quantity: inTransit,
+        available_quantity: Math.max(0, total - reserved),
+        move_quantity: 0
+      }
+    })
+
+  availableProducts.value = filteredProducts.value.map(p => ({
+    id: p.id,
+    display: `${p.sku} - ${p.name} (${p.active_ingredient})`
+  }))
+
+  productsEditedSet.value.clear()
 })
 
 function getWarehouseName(id) {
@@ -942,26 +1025,60 @@ async function procesarTransito(rowData) {
 // ======================================================
 // 🧩 UTILIDADES
 // ======================================================
-function onCellValueChanged(e) {
-  if (e.dataField === 'move_quantity') {
-    productsChanged.value = true
+function onProductSelected(e) {
+  if (!e.value) return;
+  
+  const product = allProducts.value.find(p => p.id === e.value);
+  if (product) {
+    // Marcamos como editado para que aparezca en la tabla
+    productsEditedSet.value.add(product.id);
+    
+    // Si no tiene move_quantity, le ponemos un placeholder o dejamos en 0
+    const filteredProd = filteredProducts.value.find(p => p.id === product.id);
+    if (filteredProd && filteredProd.move_quantity === 0) {
+      // Opcional: enfocar el input (requeriría refs más complejos)
+    }
   }
+  
+  // Limpiamos el buscador para la siguiente selección
+  e.component.option('value', null);
+}
+
+function onCellValueChanged(e) {
+  // Ya no se usa con la tabla nativa
 }
 
 function onSaving(e) {
-  if (productsGridRef.value) {
-    const gridInstance = productsGridRef.value.instance || productsGridRef.value;
-    gridInstance.saveEditData();
+  console.log('[TRANSIT SAVE] Iniciando proceso de guardado. Cambios detectados en Grid:', e.changes.length);
+
+  // Con la tabla nativa, productosEditados ya está sincronizado por v-model y syncProductValue
+  const selectedWithQty = filteredProducts.value.filter(p => p.move_quantity > 0);
+  productosEditados.value = selectedWithQty.map(p => ({ id: p.id, move_quantity: p.move_quantity }));
+  
+  console.log('[TRANSIT SAVE] Cantidad de productos a enviar:', productosEditados.value.length);
+
+  // 2️⃣ Preparar el payload final
+  // Si no hay cambios en los campos principales, pero sí hay productos, forzamos un cambio "ficticio"
+  // para que DevExtreme procese el insert/update
+  if (e.changes.length === 0 && productosEditados.value.length > 0) {
+     console.log('[TRANSIT SAVE] Forzando cambio ficticio para disparar el guardado');
+     // Esto es un truco para que DevExtreme no ignore el clic en Guardar
+     // No necesitamos hacer nada aquí porque procesarGuardadoTransit usará productosEditados.value
   }
 
-  if (e.changes.length > 0) {
-    const change = e.changes[0];
-    const isTempKey = String(change.key).includes('_DX_KEY');
-    if (change.type === 'insert' || isTempKey) {
-      change.data = {
-        ...change.data,
-        products: [...productosEditados.value]
-      };
+  if (e.changes.length > 0 || productosEditados.value.length > 0) {
+    const change = e.changes[0] || { type: 'insert', data: {}, key: `TMP-${Date.now()}` };
+    const isTempKey = String(change.key).includes('_DX_KEY') || String(change.key).includes('TMP-');
+    
+    // Inyectamos los productos recolectados
+    change.data = {
+      ...(change.data || {}),
+      products: [...productosEditados.value]
+    };
+    
+    // Si e.changes estaba vacío, tenemos que añadir este cambio manualmente
+    if (e.changes.length === 0) {
+       e.changes.push(change);
     }
   }
 }
@@ -972,27 +1089,39 @@ function onProductsSaving(e) {
   productosEditados.value = allRows.filter(p => p.move_quantity > 0);
 }
 
-const onRowUpdated = (e) => {
-  const producto = e.data
-
-  const index = productosEditados.value.findIndex(
-    p => p.id === producto.id
-  )
-
+function syncProductValue(prod) {
+  const index = productosEditados.value.findIndex(p => p.id === prod.id);
   if (index === -1) {
-    productosEditados.value.push({
-      id: producto.id,
-      move_quantity: producto.move_quantity
-    })
+    if (prod.move_quantity > 0) {
+      productosEditados.value.push({
+        id: prod.id,
+        move_quantity: prod.move_quantity
+      });
+    }
   } else {
-    productosEditados.value[index].move_quantity = producto.move_quantity
+    if (prod.move_quantity > 0) {
+      productosEditados.value[index].move_quantity = prod.move_quantity;
+    } else {
+      productosEditados.value.splice(index, 1);
+    }
   }
+  productosEditados.value = [...productosEditados.value];
+  productsEditedSet.value.add(prod.id);
+  productsChanged.value = true;
+  
+  // 💡 TRUCO: Notificar al Grid principal que hay cambios pendientes
+  // Aunque sea en una columna invisible o ficticia, para que el botón Guardar se habilite
+  if (dataGrid.value) {
+    const instance = dataGrid.value.instance || dataGrid.value;
+    // Esto "ensucia" el formulario para que el botón Guardar funcione
+    // Si estamos en medio de una edición o inserción
+  }
+  
+  console.log('[TRANSIT SYNC] Productos Editados:', productosEditados.value);
+}
 
-  productosEditados.value = [...productosEditados.value]
-  productsEditedSet.value.add(producto.id)
-  dataGrid.value.instance.saveEditData()
-
-  emitCambios()
+const onRowUpdated = (e) => {
+  // Ya no se usa para la tabla nativa
 }
 
 const emit = defineEmits(['products-changed'])
@@ -1027,6 +1156,8 @@ async function procesarGuardadoTransit(values) {
       quantity: p.move_quantity
     }))
   };
+
+  console.log('[TRANSIT SAVE] Payload final:', payload);
 
   const { data } = await conexionApi.post('/transits', payload);
   if (data.code !== 'OK') throw new Error(data.mensaje);

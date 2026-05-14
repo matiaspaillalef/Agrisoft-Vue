@@ -19,7 +19,7 @@
       </button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
       <LoadingOverlay :show="loading" />
       <!-- AREAS LIST -->
       <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6">
@@ -36,7 +36,7 @@
               ]">
                 <component :is="area.icon || 'BookOpenIcon'" class="w-4 h-4" />
               </div>
-              
+
               <div class="flex-1 flex flex-col justify-center min-w-0">
                 <p class="font-semibold text-slate-800 text-[13px] truncate leading-tight">{{ area.name }}</p>
                 <div class="mt-0.5">
@@ -54,7 +54,7 @@
                 <button @click.stop="handleDeleteArea(area)" class="action-btn delete" title="Eliminar">
                   <TrashIcon class="w-3.5 h-3.5" />
                 </button>
-                
+
                 <div class="h-4 w-[1px] bg-slate-200 mx-1"></div>
 
                 <label class="compact-switch" @click.stop>
@@ -89,7 +89,7 @@
           <div class="space-y-2">
             <div v-for="task in tasks" :key="task.id"
               class="agrisoft-item bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all group/task">
-              
+
               <div class="flex items-center gap-3 w-full">
                 <div :class="[
                   'p-2 rounded-full transition-all flex items-center justify-center bg-slate-100 text-slate-600',
@@ -132,13 +132,74 @@
           </div>
         </div>
       </div>
+
+      <!-- PHENOLOGICAL STATES LIST -->
+      <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6 relative">
+        <div class="flex items-center justify-between mb-6 px-2">
+          <div>
+            <h4 class="text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none">Global:</h4>
+            <p class="text-lg font-black text-slate-800 leading-tight">Estados Fenológicos</p>
+          </div>
+          <button @click="openPhenologicalModal()"
+            class="px-4 py-2 !bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md shadow-amber-200 hover:scale-105 transition-all w-fit!">
+            + Estado
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <div v-for="state in phenologicalStates" :key="state.id"
+            class="agrisoft-item bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all group/state">
+
+            <div class="flex items-center gap-3 w-full">
+              <div :class="[
+                'p-2 rounded-full transition-all flex items-center justify-center bg-amber-100 text-amber-600',
+                !state.status && 'opacity-50 grayscale'
+              ]">
+                <BeakerIcon class="w-4 h-4" />
+              </div>
+
+              <div class="flex-1 flex flex-col justify-center min-w-0">
+                <p class="font-semibold text-slate-800 text-[13px] truncate leading-tight">{{ state.name }}</p>
+                <div class="mt-0.5">
+                  <span :class="[
+                    'inline-block px-1.5 py-[2px] rounded text-[9px] font-bold uppercase tracking-wider',
+                    state.status ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'
+                  ]">{{ state.status ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button @click.stop="openPhenologicalModal(state)" class="action-btn" title="Editar">
+                  <PencilSquareIcon class="w-3.5 h-3.5" />
+                </button>
+                <button @click.stop="handleDeletePhenological(state)" class="action-btn delete" title="Eliminar">
+                  <TrashIcon class="w-3.5 h-3.5" />
+                </button>
+
+                <div class="h-4 w-[1px] bg-slate-200 mx-1"></div>
+
+                <label class="compact-switch" @click.stop>
+                  <input type="checkbox" :checked="!!state.status"
+                    @change="(e) => togglePhenologicalStatus(state, e.target.checked)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div v-if="phenologicalStates.length === 0"
+            class="p-8 text-center bg-slate-50/30 rounded-2xl border border-dashed border-slate-100 mt-4">
+            <p class="text-[10px] font-black text-slate-300 tracking-widest uppercase">Sin estados definidos</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- MODAL -->
     <DxPopup v-model:visible="showModal" :width="350" :height="'auto'" :show-title="false" class="premium-popup">
       <div class="p-6 space-y-6">
         <h3 class="text-lg font-black text-slate-800">
-          {{ isEditing ? 'Actualizar' : 'Añadir' }} {{ modalType === 'area' ? 'Área' : 'Tarea' }}
+          {{ isEditing ? 'Actualizar' : 'Añadir' }}
+          {{ modalType === 'area' ? 'Área' : (modalType === 'task' ? 'Tarea' : 'Estado Fenológico') }}
         </h3>
         <div class="space-y-4">
           <div class="space-y-1">
@@ -161,7 +222,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { AdjustmentsHorizontalIcon, PlusIcon, ChevronRightIcon, CursorArrowRippleIcon, BookOpenIcon, TrashIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
+import {
+  AdjustmentsHorizontalIcon, PlusIcon, ChevronRightIcon,
+  CursorArrowRippleIcon, BookOpenIcon, TrashIcon,
+  PencilSquareIcon, BeakerIcon
+} from '@heroicons/vue/24/outline'
 import { DxPopup } from 'devextreme-vue/popup'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import fieldBookService from '@/api/field-book.service.js'
@@ -169,6 +234,7 @@ import fieldBookService from '@/api/field-book.service.js'
 const loading = ref(false)
 const areas = ref([])
 const tasks = ref([])
+const phenologicalStates = ref([])
 const selectedArea = ref(null)
 const companyId = localStorage.getItem('userIdCompany')
 
@@ -178,7 +244,22 @@ const isEditing = ref(false)
 const editingItem = ref(null)
 const modalForm = ref({ name: '' })
 
-onMounted(fetchAreas)
+onMounted(() => {
+  fetchAreas()
+  fetchPhenologicalStates()
+})
+
+async function fetchPhenologicalStates() {
+  loading.value = true
+  try {
+    const res = await fieldBookService.getPhenologicalStates(companyId)
+    phenologicalStates.value = res.data.data || []
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
 
 async function fetchAreas() {
   loading.value = true
@@ -227,6 +308,15 @@ async function toggleTask(task, status) {
   }
 }
 
+async function togglePhenologicalStatus(state, status) {
+  try {
+    await fieldBookService.togglePhenologicalStateStatus(state.id, status ? 1 : 0)
+    state.status = status ? 1 : 0
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 function openAreaModal(item = null) {
   modalType.value = 'area'
   isEditing.value = !!item
@@ -237,6 +327,14 @@ function openAreaModal(item = null) {
 
 function openTaskModal(item = null) {
   modalType.value = 'task'
+  isEditing.value = !!item
+  editingItem.value = item
+  modalForm.value = { name: item ? item.name : '' }
+  showModal.value = true
+}
+
+function openPhenologicalModal(item = null) {
+  modalType.value = 'phenological'
   isEditing.value = !!item
   editingItem.value = item
   modalForm.value = { name: item ? item.name : '' }
@@ -254,13 +352,20 @@ async function handleSave() {
         await fieldBookService.saveArea({ id_company: companyId, name: modalForm.value.name })
       }
       fetchAreas()
-    } else {
+    } else if (modalType.value === 'task') {
       if (isEditing.value) {
         await fieldBookService.updateTask(editingItem.value.id, { name: modalForm.value.name })
       } else {
         await fieldBookService.saveTask({ id_area: selectedArea.value.id, name: modalForm.value.name })
       }
       fetchTasks(selectedArea.value.id)
+    } else if (modalType.value === 'phenological') {
+      if (isEditing.value) {
+        await fieldBookService.updatePhenologicalState(editingItem.value.id, { name: modalForm.value.name })
+      } else {
+        await fieldBookService.savePhenologicalState({ id_company: companyId, name: modalForm.value.name })
+      }
+      fetchPhenologicalStates()
     }
     showModal.value = false
   } catch (e) {
@@ -290,6 +395,19 @@ async function handleDeleteTask(task) {
   try {
     await fieldBookService.deleteTask(task.id)
     fetchTasks(selectedArea.value.id)
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleDeletePhenological(state) {
+  if (!confirm(`¿Estás seguro de eliminar el estado "${state.name}"?`)) return
+  loading.value = true
+  try {
+    await fieldBookService.deletePhenologicalState(state.id)
+    fetchPhenologicalStates()
   } catch (e) {
     console.error(e)
   } finally {
@@ -371,15 +489,15 @@ async function handleDeleteTask(task) {
   background-color: white;
   transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.compact-switch input:checked + .slider {
+.compact-switch input:checked+.slider {
   background-color: #2563eb;
   box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
 }
 
-.compact-switch input:checked + .slider:before {
+.compact-switch input:checked+.slider:before {
   transform: translateX(16px);
 }
 

@@ -40,6 +40,7 @@ import CreateQrPage from '@/pages/production/operations/CreateQrPage.vue'
 import PurchaseOrdersPage from '@/pages/operations/procurement/PurchaseOrdersPage.vue'
 import PurchaseRequestsPage from '@/pages/operations/procurement/PurchaseRequestPage.vue'
 import SuppliersPage from '@/pages/operations/procurement/SuppliersPage.vue'
+import TemporaryApproversPage from '@/pages/operations/procurement/TemporaryApproversPage.vue'
 import AlertsPage from '@/pages/operations/AlertsPage.vue'
 import FieldBookPage from '@/pages/operations/FieldBookPage.vue'
 import ForgotPassword from '@/pages/ForgotPassword.vue'
@@ -54,6 +55,7 @@ import MonthlyWorkerProductionPage from '@/pages/reports/MonthlyWorkerProduction
 
 import PurchaseOrderItemsPage from '@/pages/operations/procurement/orders/[id]/items/PurchaseOrderItemsPage.vue'
 import PurchaseReceiptNewPage from '@/pages/operations/procurement/orders/[id]/receipts/new/PurchaseReceiptNewPage.vue'
+import DirectReceiptNewPage from '@/pages/operations/procurement/receipts/DirectReceiptNewPage.vue'
 
 
 const routes = [
@@ -398,6 +400,32 @@ const routes = [
         component: SuppliersPage,
         meta: {
           roles: [1, 2, 7, 8, 10, 11],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/receipts/direct/new',
+        name: 'DirectReceiptNew',
+        component: DirectReceiptNewPage,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/temporary-approvers',
+        name: 'TemporaryApprovers',
+        component: TemporaryApproversPage,
+        meta: {
+          roles: [1, 2, 7, 8, 10, 11],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/product-config',
+        name: 'ProductConfig',
+        component: () => import('@/pages/operations/procurement/ProductConfigPage.vue'),
+        meta: {
+          title: 'Configuración de Productos',
+          requiresAuth: true,
+          roles: [1, 2, 10],
         },
       },
       {

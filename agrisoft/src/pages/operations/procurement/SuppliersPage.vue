@@ -31,8 +31,11 @@
                     css-class="!text-left font-black text-blue-600" />
                 <DxColumn data-field="name" caption="Razón Social"
                     css-class="!text-left font-bold text-slate-700 dark:!text-slate-200" />
+                <DxColumn data-field="contact_name" caption="Nombre de Contacto" alignment="left" css-class="!text-left" />
                 <DxColumn data-field="email" caption="Email de Contacto" alignment="right" css-class="!text-left" />
                 <DxColumn data-field="phone" caption="Teléfono" alignment="right" css-class="!text-left" />
+                <DxColumn data-field="address" caption="Dirección" alignment="left" css-class="!text-left" />
+                <DxColumn data-field="city" caption="Ciudad" alignment="left" css-class="!text-left" />
                 <DxColumn data-field="status" caption="Estado" :cell-template="statusTextCellTemplate" alignment="right"
                     css-class="!text-left" />
 
@@ -41,8 +44,8 @@
                 <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true"
                     :use-icons="true">
                     <DxPopup title="Gestión de Proveedor" :width="650" :height="500" />
-                    <DxForm>
-                        <DxItem data-field="rut" caption="RUT" editor-type="dxTextBox" :editor-options="{
+                    <DxForm :col-count="2" label-location="top">
+                        <DxItem data-field="rut" editor-type="dxTextBox" :editor-options="{
                             valueChangeEvent: 'input',
                             onValueChanged(e) {
                                 if (!e.value) return
@@ -56,15 +59,32 @@
                         }" :validation-rules="[
                             { type: 'required', message: 'El RUT es obligatorio' },
                             { type: 'custom', message: 'RUT chileno inválido', validationCallback: (e) => validarRutChileno(e.value) }
-                        ]" />
+                        ]">
+                            <DxLabel text="RUT" />
+                        </DxItem>
 
-                        <DxItem data-field="name" caption="Nombre / Razón Social" />
-                        <DxItem data-field="email" caption="E-mail" />
-                        <DxItem data-field="phone" caption="Teléfono" />
-                        <DxItem data-field="address" caption="Dirección Comercial" />
-                        <DxItem data-field="city" caption="Ciudad" />
-                        <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox"
-                            :editor-options="{ items: ['ACTIVE', 'INACTIVE'] }" />
+                        <DxItem data-field="name">
+                            <DxLabel text="Razón Social" />
+                        </DxItem>
+                        <DxItem data-field="contact_name">
+                            <DxLabel text="Nombre de Contacto" />
+                        </DxItem>
+                        <DxItem data-field="email">
+                            <DxLabel text="Email de Contacto" />
+                        </DxItem>
+                        <DxItem data-field="phone">
+                            <DxLabel text="Teléfono" />
+                        </DxItem>
+                        <DxItem data-field="address">
+                            <DxLabel text="Dirección Comercial" />
+                        </DxItem>
+                        <DxItem data-field="city">
+                            <DxLabel text="Ciudad" />
+                        </DxItem>
+                        <DxItem data-field="status" editor-type="dxSelectBox"
+                            :editor-options="{ items: ['ACTIVE', 'INACTIVE'] }">
+                            <DxLabel text="Estado" />
+                        </DxItem>
                     </DxForm>
                 </DxEditing>
             </DxDataGrid>
@@ -113,6 +133,20 @@
 
                     <div
                         class="bg-slate-50 dark:bg-navy-900/50 rounded-3xl p-6 border border-slate-100 dark:border-navy-700 space-y-4">
+                        <div
+                            class="flex items-center gap-5 p-4 bg-white dark:bg-navy-800 rounded-2xl shadow-sm border border-slate-50 dark:border-navy-700 transition-all hover:shadow-md">
+                            <div
+                                class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 transition-transform group-hover:scale-110">
+                                <IdentificationIcon class="w-6 h-6" />
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Nombre de Contacto</p>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-200">
+                                    {{ selectedItem?.contact_name || 'No registrado' }}
+                                </p>
+                            </div>
+                        </div>
+
                         <div
                             class="flex items-center gap-5 p-4 bg-white dark:bg-navy-800 rounded-2xl shadow-sm border border-slate-50 dark:border-navy-700 transition-all hover:shadow-md">
                             <div
@@ -179,9 +213,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { BuildingOfficeIcon, EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/vue/24/solid'
+import { BuildingOfficeIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, IdentificationIcon } from '@heroicons/vue/24/solid'
 import CustomStore from 'devextreme/data/custom_store'
-import { DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxItem, DxSearchPanel, DxPaging } from 'devextreme-vue/data-grid'
+import { DxDataGrid, DxColumn, DxEditing, DxPopup, DxForm, DxItem, DxSearchPanel, DxPaging, DxLabel } from 'devextreme-vue/data-grid'
 import conexionApi from '@/services/conexionApi'
 import { formatDate, statusTextCellTemplate, validarRutChileno, formatearRutConPuntos, getStatusMeta } from '@/utils/herlpers'
 import DxValidator, {

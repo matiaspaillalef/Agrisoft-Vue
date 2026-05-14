@@ -11,6 +11,12 @@
         </p>
       </div>
     </div>
+
+    <router-link to="/dashboard/operations/procurement/product-config"
+      class="px-6 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:scale-105 transition-all flex items-center gap-3">
+      <AdjustmentsHorizontalIcon class="w-5 h-5" />
+      Configurar Categorías
+    </router-link>
   </div>
 
   <!-- GRID -->
@@ -18,11 +24,13 @@
            bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative overflow-hidden">
     <LoadingOverlay :show="loading" />
     <DxDataGrid ref="mainGridRef" :data-source="dataSource" key-expr="id" :show-borders="true" :column-auto-width="true"
-      :width="'100%'" @editing-start="onEditingStart" @saving="onSaving" @exporting="onExporting">
+      :width="'100%'" @editing-start="onEditingStart" @init-new-row="onInitNewRow" @saving="onSaving"
+      @exporting="onExporting" @editor-preparing="onEditorPreparing">
       <DxExport :enabled="true" :allow-export-selected-data="false" />
       <!-- Panel adaptable -->
       <DxColumnChooser v-if="columnChooser" :enabled="true" mode="select" />
       <DxColumnFixing :enabled="true" />
+      <DxHeaderFilter :visible="true" :allow-search="true" />
       <DxScrolling column-rendering-mode="virtual" />
 
       <DxPaging :page-size="15" />
@@ -38,20 +46,25 @@
       <DxColumn data-field="active_ingredient" caption="Comp. Activo" css-class="!text-left" />
       <DxColumn data-field="composition" caption="Composición" css-class="!text-left" />
       <DxColumn data-field="objective" caption="Objetivo / Justificación" css-class="!text-left" />
+      <DxColumn caption="Categorías"
+        :calculate-cell-value="data => (data.category_links || []).map(cl => `${cl.category_name} > ${cl.subcategory_name}`).join(', ')"
+        css-class="!text-left" />
+      <DxColumn data-field="category_links" :visible="false" />
       <DxColumn data-field="description" caption="Descripción" css-class="!text-left" :visible="false" />
-      <DxColumn caption="Stock global" :calculate-cell-value="calculateTotalStock" css-class="!text-left" />
+      <DxColumn caption="Stock global" :calculate-cell-value="calculateTotalStock" css-class="!text-left"
+        :allow-editing="false" />
       <DxColumn data-field="status" caption="Estado" :cell-template="statusCellTemplate" css-class="!text-center" />
       <DxColumn type="buttons" width="140" :buttons="customButtons" />
+
       <DxEditing mode="popup" :allow-adding="true" :allow-updating="true" :allow-deleting="true" :use-icons="true"
         :texts="{
           confirmDeleteMessage: '¿Está seguro que desea eliminar este registro?',
         }">
-        <DxPopup title="Gestión de Productos" :show-title="true" :width="750" :height="480"
-          :toolbar-items="popupToolbar" />
-
+        <DxPopup title="Gestión de Productos" :show-title="true" :width="750" :height="480" />
         <DxForm :col-count="2" :label-location="'top'">
-          <DxItem data-field="name" caption="Nombre del Producto" :editor-options="{ readOnly: !canEdit }"
-            :width="'100%'" />
+          <DxItem data-field="category_links" template="classification-template" :col-span="2" />
+
+          <DxItem data-field="name" caption="Nombre del Producto" :editor-options="{ readOnly: !canEdit }" />
           <DxItem data-field="sku" caption="SKU / Código" :editor-options="{ readOnly: !canEdit }" />
 
           <DxItem data-field="active_ingredient" caption="Ingrediente Activo"
@@ -66,9 +79,41 @@
             :col-span="2"
             :editor-options="{ height: 80, readOnly: !canEdit, placeholder: 'Notas adicionales, recomendaciones de almacenamiento, etc.' }" />
 
+          <DxItem data-field="status" caption="Estado" editor-type="dxSelectBox" :editor-options="{
+            items: [{ id: 1, text: 'Activo' }, { id: 0, text: 'Inactivo' }],
+            displayExpr: 'text',
+            valueExpr: 'id'
+          }" />
+          <DxItem data-field="__categoryDirty" :visible="false" />
           <DxItem data-field="__usersDirty" :visible="false" />
         </DxForm>
       </DxEditing>
+
+      <template #classification-template="{ data, component }">
+        <div class="p-6 bg-slate-50 dark:bg-navy-900/50 rounded-3xl border border-slate-100 dark:border-navy-800">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Clasificaciones
+            (Categorías y Subcategorías)</label>
+
+          <DxDropDownBox v-model:value="selectedSubcategoryIds" value-expr="id" display-expr="id"
+            placeholder="Seleccione clasificaciones..." :show-clear-button="true" :data-source="classificationTree"
+            class="premium-selectbox h-14 !rounded-2xl !border-slate-100 dark:!bg-navy-900"
+            content-template="tree-template">
+            <template #tree-template>
+              <DxTreeView ref="treeViewRef" :data-source="classificationTree" :select-nodes-recursive="true"
+                :select-by-click="true" show-check-boxes-mode="normal" data-structure="tree" display-expr="text"
+                @selection-changed="(e) => onTreeViewSelectionChanged(e, component)"
+                @content-ready="onTreeViewContentReady" class="p-4" />
+            </template>
+          </DxDropDownBox>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span v-for="id in selectedSubcategoryIds" :key="id"
+              class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-black rounded-lg uppercase tracking-wider">
+              {{ getSubcategoryName(id) }}
+            </span>
+          </div>
+        </div>
+      </template>
 
 
     </DxDataGrid>
@@ -127,6 +172,20 @@
                 {{ selectedItem?.composition || 'N/A' }}
               </div>
             </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Proveedores</label>
+              <div class="flex flex-wrap gap-2 mt-1">
+                <template v-if="selectedItem?.supplier_ids?.length">
+                  <span v-for="sid in selectedItem.supplier_ids" :key="sid"
+                    class="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-xs font-bold">
+                    {{allSuppliers.find(s => s.id === sid)?.name || 'Cargando...'}}
+                  </span>
+                </template>
+                <span v-else
+                  class="text-xs text-slate-400 italic px-4 py-3 bg-slate-50 rounded-2xl w-full border border-slate-100/50">Sin
+                  proveedores vinculados</span>
+              </div>
+            </div>
           </div>
 
           <div class="space-y-6">
@@ -136,6 +195,20 @@
               <div
                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold text-slate-700 border border-slate-100/50 italic text-sm">
                 "{{ selectedItem?.objective || 'Sin objetivo definido' }}"
+              </div>
+            </div>
+            <div class="col-span-full space-y-1">
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Clasificaciones (Categorías y Subcategorías)</label>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <template v-if="selectedItem?.category_links?.length">
+                  <span v-for="(cl, idx) in selectedItem.category_links" :key="idx"
+                    class="px-3 py-2 bg-blue-50/50 text-blue-700 border border-blue-100/50 rounded-xl text-[11px] font-bold">
+                    {{ cl.category_name }} <span class="mx-1 opacity-40">/</span> {{ cl.subcategory_name }}
+                  </span>
+                </template>
+                <div v-else class="px-4 py-3 bg-slate-50 rounded-2xl font-bold text-slate-400 border border-slate-100/50 text-xs italic">
+                  Sin clasificaciones asignadas
+                </div>
               </div>
             </div>
             <div class="space-y-1">
@@ -164,6 +237,10 @@
                   <tr>
                     <th class="px-6 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-tighter">
                       Bodega / Almacén</th>
+                    <th class="px-6 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                      Stock Mín.</th>
+                    <th class="px-6 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                      Stock Máx.</th>
                     <th class="px-6 py-3 text-right text-[10px] font-black text-slate-400 uppercase tracking-tighter">
                       Stock Disponible</th>
                   </tr>
@@ -178,9 +255,19 @@
                         <span class="text-sm font-bold text-slate-700">{{ product.warehouse_name }}</span>
                       </div>
                     </td>
+                    <td class="px-6 py-4 text-center">
+                      <span class="text-xs font-bold text-slate-500">
+                        {{ product.min_stock ?? '—' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                      <span class="text-xs font-bold text-slate-500">
+                        {{ product.max_stock ?? '—' }}
+                      </span>
+                    </td>
                     <td class="px-6 py-4 text-right">
                       <span class="px-3 py-1 bg-slate-50 rounded-lg text-sm font-black"
-                        :class="product.quantity > 0 ? 'text-emerald-700' : 'text-rose-500'">
+                        :class="product.quantity > (product.min_stock || 0) ? 'text-emerald-700' : 'text-rose-500'">
                         {{ product.quantity }} <small
                           class="text-[10px] ml-1">{{ product.quantity === 1 ? 'UNIDAD' : 'UNIDADES' }}</small>
                       </span>
@@ -208,7 +295,8 @@
 
   <!-- ===================== MODAL TRAZABILIDAD ===================== -->
   <div v-if="showTraceModal" class="fixed inset-0 flex items-center justify-center z-[110] px-4">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="showTraceModal = false"></div>
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="showTraceModal = false">
+    </div>
     <div
       class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl relative z-10 overflow-hidden border border-slate-100 flex flex-col max-h-[92vh]">
 
@@ -253,14 +341,14 @@
         <div>
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ingresos</p>
           <p class="text-xl font-black text-emerald-600">
-            {{ traceMovements.filter(m => ['ingreso','ingreso_transito','recepcion_compra'].includes(m.movement_type)).length }}
+            {{traceMovements.filter(m => ['ingreso', 'ingreso_transito', 'recepcion_compra'].includes(m.movement_type)).length}}
           </p>
         </div>
         <div class="w-px h-8 bg-slate-100"></div>
         <div>
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Egresos</p>
           <p class="text-xl font-black text-rose-600">
-            {{ traceMovements.filter(m => ['egreso','egreso_transito','rebaja','cancelacion'].includes(m.movement_type)).length }}
+            {{traceMovements.filter(m => ['egreso', 'egreso_transito', 'rebaja', 'cancelacion'].includes(m.movement_type)).length}}
           </p>
         </div>
         <div class="w-px h-8 bg-slate-100"></div>
@@ -278,19 +366,12 @@
           class="flex flex-col items-center justify-center py-16 text-slate-400">
           <MapPinIcon class="w-12 h-12 mb-3 opacity-20" />
           <p class="text-sm font-bold uppercase tracking-widest">Sin movimientos registrados</p>
-          <p class="text-xs mt-1 text-slate-300">Los movimientos se generan automáticamente con tránsitos y ajustes de stock</p>
+          <p class="text-xs mt-1 text-slate-300">Los movimientos se generan automáticamente con tránsitos y ajustes de
+            stock</p>
         </div>
 
-        <DxDataGrid
-          v-else
-          ref="traceGridRef"
-          :data-source="traceMovements"
-          key-expr="id"
-          :show-borders="true"
-          :column-auto-width="true"
-          :width="'100%'"
-          :height="380"
-        >
+        <DxDataGrid v-else ref="traceGridRef" :data-source="traceMovements" key-expr="id" :show-borders="true"
+          :column-auto-width="true" :width="'100%'" :height="380">
           <DxColumnFixing :enabled="true" />
           <DxScrolling column-rendering-mode="virtual" />
           <DxPaging :page-size="20" />
@@ -299,8 +380,8 @@
             <DxToolbarItem name="searchPanel" location="after" />
           </DxToolbar>
           <DxColumn data-field="created_at_fmt" caption="Fecha / Hora" :width="150" css-class="!text-left" />
-          <DxColumn data-field="movement_type" caption="Tipo" :width="170"
-            :cell-template="traceBadgeTemplate" css-class="!text-left" />
+          <DxColumn data-field="movement_type" caption="Tipo" :width="170" :cell-template="traceBadgeTemplate"
+            css-class="!text-left" />
           <DxColumn caption="Bodega / Ruta" :calculate-cell-value="traceRouteValue" css-class="!text-left" />
           <DxColumn data-field="quantity" caption="Cantidad" alignment="right" :width="90" />
           <DxColumn data-field="stock_before" caption="Stock antes" alignment="right" :width="100" />
@@ -321,15 +402,56 @@
     </div>
   </div>
 
+  <!-- ===================== MODAL PROVEEDORES ===================== -->
+  <div v-if="showSuppliersModal" class="fixed inset-0 flex items-center justify-center z-[110] px-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="showSuppliersModal = false">
+    </div>
+    <div
+      class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg relative z-10 overflow-hidden border border-slate-100 flex flex-col animate-in zoom-in duration-300">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-4">
+        <div class="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
+          <BuildingOfficeIcon class="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h2 class="text-xl font-black text-slate-800 tracking-tight leading-none">Vincular Proveedores</h2>
+          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+            Producto: {{ selectedProductForSuppliers?.name }}
+          </p>
+        </div>
+      </div>
+      <div class="p-8 space-y-6">
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Seleccione los
+            proveedores asociados</label>
+          <DxTagBox v-model:value="productSuppliers" :data-source="allSuppliers" display-expr="name" value-expr="id"
+            placeholder="Seleccione uno o varios..." class="modern-tagbox" search-enabled="true" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button @click="showSuppliersModal = false"
+            class="px-8 py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">
+            Cancelar
+          </button>
+          <button @click="saveProductSuppliers"
+            class="px-10 py-3 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   CubeIcon, BeakerIcon, XMarkIcon, IdentificationIcon, MapPinIcon,
-  ArrowDownTrayIcon, DocumentArrowDownIcon
+  ArrowDownTrayIcon, DocumentArrowDownIcon, BuildingOfficeIcon, AdjustmentsHorizontalIcon,
+  PlusIcon, TrashIcon
 } from '@heroicons/vue/24/solid'
+import { DxTagBox } from 'devextreme-vue/tag-box'
+import { DxSelectBox } from 'devextreme-vue/select-box'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import CustomStore from 'devextreme/data/custom_store'
 
@@ -350,12 +472,15 @@ import {
   DxToolbar,
   DxItem as DxToolbarItem
 } from 'devextreme-vue/data-grid'
+import { DxDropDownBox } from 'devextreme-vue/drop-down-box'
+import { DxTreeView } from 'devextreme-vue/tree-view'
 import { exportDataGrid } from 'devextreme/excel_exporter'
 import { Workbook } from 'exceljs'
 import { saveAs } from 'file-saver'
 import { loadMessages, locale } from 'devextreme/localization'
 
 import conexionApi from '@/services/conexionApi.js'
+import productCategoriesService from '@/api/product-categories.service.js'
 import { formatDate, formatDateHrs, statusCellTemplate } from '@/utils/herlpers'
 
 /* ======================
@@ -375,13 +500,109 @@ const canEdit = [1, 8].includes(userRol)
 const showViewModal = ref(false)
 const selectedItem = ref(null)
 
+const categories = ref([])
+const allSubcategories = ref([])
+const selectedSubcategoryIds = ref([])
+const originalSubcategoryIds = ref([])
+const treeViewRef = ref(null)
+const editingKey = ref(null)
+
+const classificationTree = computed(() => {
+  return categories.value.map(cat => ({
+    id: `cat_${cat.id}`,
+    text: cat.name,
+    expanded: true,
+    items: allSubcategories.value
+      .filter(sub => sub.category_id === cat.id)
+      .map(sub => ({
+        id: sub.id,
+        text: sub.name,
+        category_id: cat.id
+      }))
+  }))
+})
+
+onMounted(async () => {
+  const currentCompanyId = Number(localStorage.getItem('userIdCompany')) || 0
+  try {
+    // Cargar categorías principales (opcional, si se usara en otro lado)
+    const catRes = await productCategoriesService.getCategories(currentCompanyId)
+    categories.value = catRes.data.data || []
+
+    // Cargar todas las subcategorías (plano para TagBox)
+    const subRes = await productCategoriesService.getAllSubcategories(currentCompanyId)
+    allSubcategories.value = (subRes.data.data || []).map(s => ({
+      ...s,
+      fullName: `${s.category_name} > ${s.name}`
+    }))
+  } catch (err) {
+    console.error('Error loading classification data:', err)
+  }
+})
+
 function verRegistro(data) {
   selectedItem.value = data
   showViewModal.value = true
+
+  // Asegurar que los proveedores estén cargados para el modal
+  if (allSuppliers.value.length === 0) {
+    loadAllSuppliers()
+  }
 }
 
 function closeModals() {
   showViewModal.value = false
+}
+
+// Multi-Supplier Management
+const showSuppliersModal = ref(false)
+const selectedProductForSuppliers = ref(null)
+const productSuppliers = ref([])
+const allSuppliers = ref([])
+
+async function openSuppliersModal(product) {
+  selectedProductForSuppliers.value = product
+  productSuppliers.value = []
+  showSuppliersModal.value = true
+
+  try {
+    // Load all suppliers if not loaded
+    if (allSuppliers.value.length === 0) {
+      const { data: supData } = await conexionApi.get('/suppliers', {
+        params: { company_id: companyID }
+      })
+      allSuppliers.value = supData.suppliers || []
+    }
+
+    // Load current product suppliers
+    const { data: prodSupData } = await conexionApi.get(`/products/${product.id}/suppliers`)
+    productSuppliers.value = prodSupData.suppliers || []
+  } catch (err) {
+    console.error('Error al cargar proveedores:', err)
+  }
+}
+
+async function loadAllSuppliers() {
+  try {
+    const { data: supData } = await conexionApi.get('/suppliers', { params: { company_id: companyID } })
+    allSuppliers.value = supData.suppliers || []
+  } catch (err) {
+    console.error('Error al cargar lista de proveedores:', err)
+  }
+}
+
+async function saveProductSuppliers() {
+  try {
+    await conexionApi.post(`/products/${selectedProductForSuppliers.value.id}/suppliers`, {
+      suppliers: productSuppliers.value,
+      company_id: companyID
+    })
+    showSuppliersModal.value = false
+    alert('Proveedores actualizados correctamente')
+  } catch (err) {
+    console.error('Error al guardar proveedores:', err)
+    alert('Error al guardar proveedores')
+  }
 }
 
 /* ======================
@@ -389,7 +610,6 @@ function closeModals() {
 ====================== */
 const dataSource = new CustomStore({
   key: 'id',
-
   load: async () => {
     loading.value = true
     try {
@@ -401,39 +621,8 @@ const dataSource = new CustomStore({
     } finally {
       loading.value = false
     }
-  },
-
-  insert: async (values) => {
-    loading.value = true
-    try {
-      await conexionApi.post('/products', {
-        ...values,
-        company_id: companyID
-      })
-    } finally {
-      loading.value = false
-    }
-  },
-
-  update: async (key, values) => {
-    loading.value = true
-    try {
-      await conexionApi.put(`/products/${key}`, values)
-    } finally {
-      loading.value = false
-    }
-  },
-
-  remove: async (key) => {
-    loading.value = true
-    try {
-      await conexionApi.delete(`/products/${key}`)
-    } finally {
-      loading.value = false
-    }
   }
 })
-
 
 /* ======================
    HELPERS
@@ -501,9 +690,26 @@ const saveStock = async () => {
   }
 }
 
-const onEditingStart = async (e) => {
-  const product = e.data
+function onInitNewRow(e) {
+  editingKey.value = null
+  e.data.status = 1
+  e.data.unit_of_measure = 'un'
+  e.data.currency = 'CLP'
+  selectedSubcategoryIds.value = []
+  originalSubcategoryIds.value = []
+}
 
+async function onEditingStart(e) {
+  editingKey.value = e.key
+  // Inicializar clasificaciones del producto para el TreeView
+  const ids = e.data.category_links ? e.data.category_links
+    .filter(cl => cl.subcategory_id)
+    .map(cl => cl.subcategory_id) : []
+
+  selectedSubcategoryIds.value = [...ids]
+  originalSubcategoryIds.value = [...ids]
+
+  const product = e.data
   if (!product?.id) {
     warehousesStock.value = []
     return
@@ -524,30 +730,72 @@ const onEditingStart = async (e) => {
       quantity: existing?.quantity ?? 0
     }
   })
+
+  // Load all suppliers if not already loaded (for the View modal or separate modal)
+  if (allSuppliers.value.length === 0) {
+    await loadAllSuppliers()
+  }
 }
+
+async function onEditorPreparing(e) {
+  // Ya no necesitamos la lógica de cascada SelectBox porque usamos TagBox
+}
+
 const onSaving = async (e) => {
-  if (!e.changes.length) return
+  //console.log('--- onSaving triggered ---', e.changes);
 
-  const change = e.changes[0]
+  const categoriesChanged = JSON.stringify(selectedSubcategoryIds.value) !== JSON.stringify(originalSubcategoryIds.value);
 
-  // 👉 SOLO PRODUCTO
-  if (change.type === 'insert') {
-    await conexionApi.post('/products', {
-      ...change.data,
-      company_id: companyID
-    })
+  if (!e.changes.length && !categoriesChanged) {
+    //console.log('No changes detected anywhere');
+    return;
   }
 
-  if (change.type === 'update') {
-    await conexionApi.put(`/products/${change.key}`, change.data)
-  }
+  e.cancel = true;
 
-  if (change.type === 'remove') {
-    await conexionApi.delete(`/products/${change.key}`)
-  }
+  const change = e.changes[0] || { type: 'update', key: editingKey.value, data: {} };
+  const newData = { ...change.data };
 
-  e.cancel = true
-  mainGridRef.value?.instance.refresh()
+  newData.category_links = selectedSubcategoryIds.value.map(sid => {
+    const sub = allSubcategories.value.find(s => s.id === sid);
+    return {
+      category_id: sub?.category_id,
+      subcategory_id: sid
+    };
+  }).filter(cl => cl.category_id);
+
+  //console.log('Final data to save:', newData);
+
+  try {
+    if (change.type === 'insert') {
+      await conexionApi.post('/products', {
+        ...newData,
+        company_id: companyID
+      })
+    }
+
+    if (change.type === 'update') {
+      await conexionApi.put(`/products/${change.key}`, newData)
+    }
+
+    if (change.type === 'remove') {
+      await conexionApi.delete(`/products/${change.key}`)
+    }
+
+    // Notificar éxito
+    import('devextreme/ui/notify').then(notify => {
+      notify.default('Producto guardado correctamente', 'success', 2000);
+    });
+
+  } catch (err) {
+    console.error('Error saving product:', err);
+    import('devextreme/ui/notify').then(notify => {
+      notify.default('Error al guardar el producto: ' + err.message, 'error', 5000);
+    });
+  } finally {
+    e.component.cancelEditData();
+    e.component.refresh();
+  }
 }
 
 
@@ -560,7 +808,7 @@ function traceBadgeTemplate(cellElement, cellInfo) {
 }
 
 function traceRouteValue(rowData) {
-  const origin  = rowData.origin_warehouse_name  || ''
+  const origin = rowData.origin_warehouse_name || ''
   const destiny = rowData.destiny_warehouse_name || ''
   if (origin && destiny) return `${origin} → ${destiny}`
   return origin || destiny || '—'
@@ -574,9 +822,10 @@ const customButtons = [
     onClick: (e) => verRegistro(e.row.data),
   },
   {
-    hint: 'Trazabilidad',
-    icon: 'custom-truck',
-    onClick: (e) => openTraceModal(e.row.data),
+    hint: 'Proveedores',
+    icon: 'user',
+    cssClass: 'w-[25px]! h-[25px]! bg-indigo-100 text-indigo-600 rounded-full p-[4px]!',
+    onClick: (e) => openSuppliersModal(e.row.data),
   },
   'edit',
   'delete',
@@ -643,14 +892,14 @@ async function openTraceModal(data) {
 
 function traceTypeMeta(type) {
   const map = {
-    ingreso:          { label: 'Ingreso manual',      cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: '+' },
-    egreso:           { label: 'Egreso manual',       cls: 'bg-red-100    text-red-700    border-red-200',     icon: '-' },
-    ajuste:           { label: 'Ajuste inventario',   cls: 'bg-sky-100    text-sky-700    border-sky-200',     icon: '≈' },
-    rebaja:           { label: 'Rebaja / consumo',    cls: 'bg-orange-100 text-orange-700 border-orange-200', icon: '↓' },
-    egreso_transito:  { label: 'Salida tránsito',    cls: 'bg-violet-100 text-violet-700 border-violet-200', icon: '→' },
-    ingreso_transito: { label: 'Entrada tránsito',   cls: 'bg-teal-100   text-teal-700   border-teal-200',   icon: '←' },
-    cancelacion:      { label: 'Cancelación',         cls: 'bg-rose-100   text-rose-700   border-rose-200',   icon: '✕' },
-    recepcion_compra: { label: 'Recepción de compra', cls: 'bg-blue-100   text-blue-700   border-blue-200',   icon: '📦' },
+    ingreso: { label: 'Ingreso manual', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: '+' },
+    egreso: { label: 'Egreso manual', cls: 'bg-red-100    text-red-700    border-red-200', icon: '-' },
+    ajuste: { label: 'Ajuste inventario', cls: 'bg-sky-100    text-sky-700    border-sky-200', icon: '≈' },
+    rebaja: { label: 'Rebaja / consumo', cls: 'bg-orange-100 text-orange-700 border-orange-200', icon: '↓' },
+    egreso_transito: { label: 'Salida tránsito', cls: 'bg-violet-100 text-violet-700 border-violet-200', icon: '→' },
+    ingreso_transito: { label: 'Entrada tránsito', cls: 'bg-teal-100   text-teal-700   border-teal-200', icon: '←' },
+    cancelacion: { label: 'Cancelación', cls: 'bg-rose-100   text-rose-700   border-rose-200', icon: '✕' },
+    recepcion_compra: { label: 'Recepción de compra', cls: 'bg-blue-100   text-blue-700   border-blue-200', icon: '📦' },
   }
   return map[type] || { label: type, cls: 'bg-slate-100 text-slate-600 border-slate-200', icon: '·' }
 }
@@ -676,7 +925,7 @@ function onTraceExportExcel() {
         }).then(() => {
           workbook.xlsx.writeBuffer().then(buffer => {
             const date = new Date().toISOString().split('T')[0]
-            const sku  = (selectedTraceProduct.value?.sku || 'producto').replace(/\s+/g, '_').toLowerCase()
+            const sku = (selectedTraceProduct.value?.sku || 'producto').replace(/\s+/g, '_').toLowerCase()
             saveAs(new Blob([buffer], { type: 'application/octet-stream' }),
               `trazabilidad_${sku}_${date}.xlsx`)
           })
@@ -722,11 +971,11 @@ async function onTracePrintPDF() {
 
   const { jsPDF } = window.jspdf
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
-  const pageW  = doc.internal.pageSize.getWidth()
-  const pageH  = doc.internal.pageSize.getHeight()
-  const now    = new Date()
-  const dateStr = now.toLocaleDateString('es-CL', { day:'2-digit', month:'long', year:'numeric' })
-  const timeStr = now.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' })
+  const pageW = doc.internal.pageSize.getWidth()
+  const pageH = doc.internal.pageSize.getHeight()
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+  const timeStr = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
 
   // ══════════════════════════════════════════════════
   //  HEADER — fondo blanco + barra lateral azul
@@ -768,9 +1017,9 @@ async function onTracePrintPDF() {
 
   // Componente activo si existe
   if (prod?.active_ingredient) {
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(100,116,139)
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 116, 139)
     doc.text(`Comp. activo: `, 10, 39)
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(30,41,59)
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 41, 59)
     doc.text(prod.active_ingredient, 36, 39)
   }
 
@@ -779,7 +1028,7 @@ async function onTracePrintPDF() {
     try {
       const logoH = 20, logoW = 35
       doc.addImage(logoBase64, 'PNG', pageW - logoW - 10, 11, logoW, logoH)
-    } catch (_) {}
+    } catch (_) { }
   } else {
     // Fallback: texto "AGRISOFT" como marca
     doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(37, 99, 235)
@@ -791,16 +1040,18 @@ async function onTracePrintPDF() {
   // ══════════════════════════════════════════════════
   //  KPI CARDS
   // ══════════════════════════════════════════════════
-  const ingresos = movements.filter(m => ['ingreso','ingreso_transito','recepcion_compra'].includes(m.movement_type)).length
-  const egresos  = movements.filter(m => ['egreso','egreso_transito','rebaja','cancelacion'].includes(m.movement_type)).length
-  const total    = movements.length
+  const ingresos = movements.filter(m => ['ingreso', 'ingreso_transito', 'recepcion_compra'].includes(m.movement_type)).length
+  const egresos = movements.filter(m => ['egreso', 'egreso_transito', 'rebaja', 'cancelacion'].includes(m.movement_type)).length
+  const total = movements.length
 
   const kpis = [
-    { label: 'TOTAL MOVIMIENTOS', value: total,    fill: [241,245,249], text: [30,41,59],     accent: [100,116,139] },
-    { label: 'INGRESOS',          value: ingresos, fill: [240,253,244], text: [5,150,105],    accent: [5,150,105] },
-    { label: 'EGRESOS',           value: egresos,  fill: [255,241,242], text: [225,29,72],    accent: [225,29,72] },
-    { label: 'ÚLTIMO MOVIMIENTO', value: movements[0]?.created_at_fmt?.split(',')[0] || '—',
-      fill: [239,246,255], text: [37,99,235], accent: [37,99,235], small: true },
+    { label: 'TOTAL MOVIMIENTOS', value: total, fill: [241, 245, 249], text: [30, 41, 59], accent: [100, 116, 139] },
+    { label: 'INGRESOS', value: ingresos, fill: [240, 253, 244], text: [5, 150, 105], accent: [5, 150, 105] },
+    { label: 'EGRESOS', value: egresos, fill: [255, 241, 242], text: [225, 29, 72], accent: [225, 29, 72] },
+    {
+      label: 'ÚLTIMO MOVIMIENTO', value: movements[0]?.created_at_fmt?.split(',')[0] || '—',
+      fill: [239, 246, 255], text: [37, 99, 235], accent: [37, 99, 235], small: true
+    },
   ]
 
   let kx = 10
@@ -808,9 +1059,9 @@ async function onTracePrintPDF() {
     const kw = 58
     doc.setFillColor(...k.fill)
     doc.roundedRect(kx, 46, kw, 14, 2, 2, 'F')
-    doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...k.accent)
+    doc.setFontSize(5.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...k.accent)
     doc.text(k.label, kx + 3, 51)
-    doc.setFontSize(k.small ? 8 : 11); doc.setFont('helvetica','bold'); doc.setTextColor(...k.text)
+    doc.setFontSize(k.small ? 8 : 11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...k.text)
     doc.text(String(k.value), kx + 3, 58)
     kx += kw + 3
   })
@@ -819,23 +1070,23 @@ async function onTracePrintPDF() {
   //  TABLA DE MOVIMIENTOS
   // ══════════════════════════════════════════════════
   const typeLabels = {
-    ingreso: 'Ingreso manual',  egreso: 'Egreso manual',
+    ingreso: 'Ingreso manual', egreso: 'Egreso manual',
     ajuste: 'Ajuste inventario', rebaja: 'Rebaja/consumo',
     egreso_transito: 'Salida tránsito', ingreso_transito: 'Entrada tránsito',
-    cancelacion: 'Cancelación',  recepcion_compra: 'Recepción compra',
+    cancelacion: 'Cancelación', recepcion_compra: 'Recepción compra',
   }
   const typeColors = {
-    ingreso: [209,250,229], egreso: [254,226,226], ajuste: [224,242,254],
-    rebaja: [255,237,213],  egreso_transito: [237,233,254],
-    ingreso_transito: [204,251,241], cancelacion: [255,228,230],
-    recepcion_compra: [219,234,254],
+    ingreso: [209, 250, 229], egreso: [254, 226, 226], ajuste: [224, 242, 254],
+    rebaja: [255, 237, 213], egreso_transito: [237, 233, 254],
+    ingreso_transito: [204, 251, 241], cancelacion: [255, 228, 230],
+    recepcion_compra: [219, 234, 254],
   }
 
   doc.autoTable({
     startY: 64,
-    head: [['Fecha / Hora','Tipo de movimiento','Bodega / Ruta','Cant.','Antes','Después','Responsable','Referencia','Notas']],
+    head: [['Fecha / Hora', 'Tipo de movimiento', 'Bodega / Ruta', 'Cant.', 'Antes', 'Después', 'Responsable', 'Referencia', 'Notas']],
     body: movements.map(m => {
-      const origin  = m.origin_warehouse_name  || '—'
+      const origin = m.origin_warehouse_name || '—'
       const destiny = m.destiny_warehouse_name || '—'
       return [
         m.created_at_fmt,
@@ -843,10 +1094,10 @@ async function onTracePrintPDF() {
         m.destiny_warehouse_name ? `${origin} → ${destiny}` : origin,
         m.quantity ?? '—',
         m.stock_before ?? '—',
-        m.stock_after  ?? '—',
-        m.user_name    || '—',
+        m.stock_after ?? '—',
+        m.user_name || '—',
         m.reference_code || '—',
-        m.notes         || '—',
+        m.notes || '—',
       ]
     }),
     styles: {
@@ -870,7 +1121,7 @@ async function onTracePrintPDF() {
         const c = typeColors[movements[data.row.index]?.movement_type]
         if (c) data.cell.styles.fillColor = c
         data.cell.styles.fontStyle = 'bold'
-        data.cell.styles.fontSize  = 6.5
+        data.cell.styles.fontSize = 6.5
       }
     },
     margin: { left: 10, right: 10 },
@@ -899,9 +1150,70 @@ async function onTracePrintPDF() {
 
   // ── Descarga ───────────────────────────────────────────────
   const fileDateStr = now.toISOString().split('T')[0]
-  const skuSlug = (prod?.sku || 'producto').replace(/\s+/g,'_').toLowerCase()
+  const skuSlug = (prod?.sku || 'producto').replace(/\s+/g, '_').toLowerCase()
   doc.save(`trazabilidad_${skuSlug}_${fileDateStr}.pdf`)
 }
+
+// --- Clasificaciones Jerárquicas (TreeView) ---
+let isSyncingTree = false;
+
+function onTreeViewSelectionChanged(e, formComponent) {
+  if (isSyncingTree) return;
+  const nodes = e.component.getSelectedNodes();
+  const newIds = nodes
+    .filter(node => !node.itemData.items) // Solo subcategorías (hojas)
+    .map(node => node.itemData.id);
+
+  console.log('TreeView Selection Changed. New IDs:', newIds);
+
+  if (JSON.stringify(newIds) !== JSON.stringify(selectedSubcategoryIds.value)) {
+    selectedSubcategoryIds.value = newIds;
+
+    const links = newIds.map(sid => {
+      const sub = allSubcategories.value.find(s => s.id === sid);
+      return {
+        category_id: sub?.category_id,
+        subcategory_id: sid
+      };
+    }).filter(cl => cl.category_id);
+
+    // Notificar al componente del formulario sobre el cambio
+    if (formComponent) {
+      console.log('Updating formComponent data for category_links:', links);
+      formComponent.updateData('category_links', links);
+    } else {
+      console.warn('formComponent not provided to onTreeViewSelectionChanged');
+    }
+  }
+}
+
+function onTreeViewContentReady(e) {
+  syncTreeViewSelection(e.component);
+}
+
+function syncTreeViewSelection(treeView) {
+  if (!treeView) return;
+  isSyncingTree = true;
+  treeView.unselectAll();
+  selectedSubcategoryIds.value.forEach(id => {
+    treeView.selectItem(id);
+  });
+  isSyncingTree = false;
+}
+
+function getSubcategoryName(id) {
+  const sub = allSubcategories.value.find(s => s.id === id);
+  return sub ? sub.name : id;
+}
+
+watch(selectedSubcategoryIds, (newVal, oldVal) => {
+  if (isSyncingTree) return;
+  if (JSON.stringify(newVal) === JSON.stringify(oldVal)) return;
+
+  if (treeViewRef.value) {
+    syncTreeViewSelection(treeViewRef.value.instance);
+  }
+});
 
 </script>
 

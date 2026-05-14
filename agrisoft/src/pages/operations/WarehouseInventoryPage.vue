@@ -27,16 +27,12 @@
 
   <!-- Selector de Bodega (tabs) -->
   <div class="mb-6 flex flex-wrap gap-2">
-    <button
-      v-for="wh in warehouses" :key="wh.id"
-      @click="selectWarehouse(wh)"
-      :class="[
-        'px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border',
-        selectedWarehouse?.id === wh.id
-          ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200'
-          : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-600'
-      ]"
-    >
+    <button v-for="wh in warehouses" :key="wh.id" @click="selectWarehouse(wh)" :class="[
+      'px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border !w-fit',
+      selectedWarehouse?.id === wh.id
+        ? '!bg-emerald-600 !text-white !border-emerald-600 shadow-lg !shadow-emerald-200'
+        : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-600'
+    ]">
       {{ wh.name }}
       <span :class="[
         'ml-2 px-2 py-0.5 rounded-lg text-[9px]',
@@ -48,7 +44,8 @@
   </div>
 
   <!-- Grid de inventario -->
-  <div class="mt-[3px] flex w-full flex-grow flex-col rounded-2xl bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative overflow-hidden">
+  <div
+    class="mt-[3px] flex w-full flex-grow flex-col rounded-2xl bg-white py-6 shadow-xl px-2 md:px-10 max-w-full mx-auto relative overflow-hidden">
     <LoadingOverlay :show="loading" />
 
     <!-- Header de bodega seleccionada -->
@@ -71,16 +68,8 @@
       <p class="text-sm font-bold uppercase tracking-widest">Selecciona una bodega para ver su inventario</p>
     </div>
 
-    <DxDataGrid
-      v-if="selectedWarehouse"
-      :data-source="inventarioActual"
-      key-expr="product_id"
-      :show-borders="true"
-      :column-auto-width="true"
-      :width="'100%'"
-      @exporting="onExporting"
-      ref="gridRef"
-    >
+    <DxDataGrid v-if="selectedWarehouse" :data-source="inventarioActual" key-expr="product_id" :show-borders="true"
+      :column-auto-width="true" :width="'100%'" @exporting="onExporting" @saving="onSaving" ref="gridRef">
       <DxExport :enabled="true" :allow-export-selected-data="false" />
       <DxColumnFixing :enabled="true" />
       <DxScrolling column-rendering-mode="virtual" />
@@ -104,25 +93,101 @@
         <DxToolbarItem name="searchPanel" location="after" />
       </DxToolbar>
 
-      <DxColumn data-field="sku" caption="SKU" css-class="!text-left" :width="120" />
-      <DxColumn data-field="name" caption="Producto" css-class="!text-left" />
-      <DxColumn data-field="active_ingredient" caption="Comp. Activo" css-class="!text-left" />
-      <DxColumn data-field="quantity" caption="Stock" css-class="!text-right" :width="100" alignment="right" />
+      <DxEditing mode="popup" :allow-updating="true" :use-icons="true">
+        <DxPopup title="Configuración de Alertas de Stock" :show-title="true" :width="500" :height="350" />
+        <DxForm :col-count="1" :label-location="'top'">
+          <DxItem data-field="name" :editor-options="{ readOnly: true }" caption="Producto" />
+          <DxItem item-type="group" :col-count="2" caption="Umbrales de Control">
+            <DxItem data-field="min_stock" caption="Stock Mínimo (Alerta)" editor-type="dxNumberBox" />
+            <DxItem data-field="max_stock" caption="Stock Máximo (Capacidad)" editor-type="dxNumberBox" />
+          </DxItem>
+        </DxForm>
+      </DxEditing>
+
+      <DxColumn data-field="sku" caption="SKU" css-class="!text-left" :width="120" :allow-editing="false" />
+      <DxColumn data-field="name" caption="Producto" css-class="!text-left" :allow-editing="false" />
+      <DxColumn data-field="active_ingredient" caption="Comp. Activo" css-class="!text-left" :allow-editing="false" />
+      <DxColumn data-field="quantity" caption="Stock" css-class="!text-right" :width="100" alignment="right"
+        :allow-editing="false" />
       <DxColumn data-field="min_stock" caption="Stock Mín." css-class="!text-right" :width="110" alignment="right"
         :cell-template="minStockTemplate" />
       <DxColumn data-field="max_stock" caption="Stock Máx." css-class="!text-right" :width="110" alignment="right" />
       <DxColumn caption="Estado" :calculate-cell-value="calcEstado" :cell-template="estadoCellTemplate"
-        css-class="!text-center" :width="130" />
+        css-class="!text-center" :width="130" :allow-editing="false" />
+
+      <DxColumn type="buttons" :width="110">
+        <DxButton name="edit" icon="preferences" hint="Configurar límites" />
+        <DxButton icon="box" hint="Movimiento manual" @click="openAdjustmentModal" />
+      </DxColumn>
     </DxDataGrid>
+
+    <!-- Modal de Ajuste Manual -->
+    <div v-if="showAdjustmentModal" class="fixed inset-0 flex items-center justify-center z-[100] px-4">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" @click="closeAdjustmentModal"></div>
+      <div
+        class="bg-white dark:bg-navy-700 rounded-[2.5rem] shadow-2xl w-full max-w-lg relative z-10 overflow-hidden border border-slate-100">
+        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="p-3 bg-amber-500 rounded-2xl shadow-lg shadow-amber-100">
+              <ArrowsRightLeftIcon class="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 class="text-xl font-black text-slate-800 tracking-tight">Ajuste de Stock</h2>
+              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ adjustmentItem?.name }}</p>
+            </div>
+          </div>
+          <button @click="closeAdjustmentModal"
+            class="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 w-fit!">
+            <XMarkIcon class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div class="p-8 space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo de
+                Movimiento</label>
+              <DxSelectBox v-model:value="adjustmentType"
+                :items="[{ id: 'ingreso', text: '(+) Ingreso / Ajuste' }, { id: 'egreso', text: '(-) Egreso / Rebaja' }]"
+                display-expr="text" value-expr="id" class="premium-selectbox h-12 !rounded-xl" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Cantidad</label>
+              <DxNumberBox v-model:value="adjustmentQuantity" :min="0.01" class="premium-selectbox h-12 !rounded-xl" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Motivo /
+              Observación</label>
+            <textarea v-model="adjustmentNotes" rows="3"
+              placeholder="Ej: Ajuste por merma, hallazgo de inventario, etc..."
+              class="w-full rounded-2xl border-slate-100 bg-slate-50/50 p-4 text-sm focus:ring-2 focus:ring-amber-500 outline-none border transition-all resize-none"></textarea>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button @click="closeAdjustmentModal"
+              class="flex-1 px-6 py-4 !bg-slate-100 !text-slate-600 !font-black rounded-2xl !hover:bg-slate-200 transition-all uppercase tracking-widest text-xs">
+              Cancelar
+            </button>
+            <button @click="saveAdjustment" :disabled="!adjustmentQuantity || !adjustmentNotes"
+              class="flex-1 px-6 py-4 !bg-amber-500 text-white font-black rounded-2xl !hover:bg-amber-600 shadow-lg shadow-amber-100 transition-all uppercase tracking-widest text-xs disabled:opacity-50">
+              Confirmar Ajuste
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, computed } from 'vue'
 import {
   ClipboardDocumentListIcon,
   BuildingStorefrontIcon,
+  ArrowsRightLeftIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/solid'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import {
@@ -136,10 +201,17 @@ import {
   DxScrolling,
   DxToolbar,
   DxItem as DxToolbarItem,
+  DxEditing,
+  DxPopup,
+  DxForm,
+  DxItem,
+  DxButton,
 } from 'devextreme-vue/data-grid'
 import { exportDataGrid } from 'devextreme/excel_exporter'
 import { Workbook } from 'exceljs'
 import { saveAs } from 'file-saver'
+import DxSelectBox from 'devextreme-vue/select-box'
+import DxNumberBox from 'devextreme-vue/number-box'
 import conexionApi from '@/services/conexionApi.js'
 
 /* ============================================================
@@ -152,6 +224,56 @@ const selectedWarehouse = ref(null)
 const gridRef = ref(null)
 
 const companyID = Number(localStorage.getItem('userIdCompany')) || 0
+
+// Ajuste Manual
+const showAdjustmentModal = ref(false)
+const adjustmentItem = ref(null)
+const adjustmentType = ref('egreso')
+const adjustmentQuantity = ref(0)
+const adjustmentNotes = ref('')
+
+/* ============================================================
+   AJUSTE MANUAL LÓGICA
+============================================================ */
+function openAdjustmentModal(e) {
+  adjustmentItem.value = e.row.data
+  adjustmentType.value = 'egreso'
+  adjustmentQuantity.value = 0
+  adjustmentNotes.value = ''
+  showAdjustmentModal.value = true
+}
+
+function closeAdjustmentModal() {
+  showAdjustmentModal.value = false
+  adjustmentItem.value = null
+}
+
+async function saveAdjustment() {
+  if (!adjustmentItem.value || !adjustmentQuantity.value || !adjustmentNotes.value) return
+
+  try {
+    loading.value = true
+    const productId = adjustmentItem.value.product_id
+    const warehouseId = selectedWarehouse.value?.id
+
+    await conexionApi.post(`/products/${productId}/movements`, {
+      company_id: companyID,
+      warehouse_id: warehouseId,
+      movement_type: adjustmentType.value,
+      quantity: adjustmentQuantity.value,
+      notes: adjustmentNotes.value
+    })
+
+    alert('Movimiento registrado correctamente')
+    closeAdjustmentModal()
+    await loadData()
+  } catch (err) {
+    console.error('Error al registrar movimiento:', err)
+    alert('Error al procesar el ajuste de stock')
+  } finally {
+    loading.value = false
+  }
+}
 
 /* ============================================================
    COMPUTED
@@ -244,6 +366,39 @@ function estadoCellTemplate(cellElement, cellInfo) {
 /* ============================================================
    CARGA DE DATOS
 ============================================================ */
+async function onSaving(e) {
+  e.cancel = true
+  const changes = e.changes[0]
+  if (!changes || changes.type !== 'update') return
+
+  const productId = changes.key
+  const warehouseId = selectedWarehouse.value?.id
+
+  // En modo popup, newData solo trae lo que cambió. 
+  // Combinamos con los valores actuales para no enviar undefined.
+  const currentItem = inventarioActual.value.find(p => p.product_id === productId)
+  const finalData = {
+    warehouse_id: warehouseId,
+    company_id: companyID,
+    min_stock: changes.data.min_stock !== undefined ? changes.data.min_stock : currentItem?.min_stock,
+    max_stock: changes.data.max_stock !== undefined ? changes.data.max_stock : currentItem?.max_stock,
+  }
+
+  try {
+    loading.value = true
+    await conexionApi.put(`/products/${productId}/warehouse-stock-limits`, finalData)
+
+    // Recargar datos para ver cambios reflejados
+    await loadData()
+    e.component.cancelEditData()
+  } catch (err) {
+    console.error('Error guardando límites:', err)
+    alert('Error al guardar los límites de stock')
+  } finally {
+    loading.value = false
+  }
+}
+
 async function loadData() {
   loading.value = true
   try {
@@ -297,7 +452,7 @@ function onExporting(e) {
         if (gridCell.column.caption === 'Estado') {
           excelCell.value =
             gridCell.value === 'sinstock' ? 'Sin stock' :
-            gridCell.value === 'bajo' ? 'Stock bajo' : 'Disponible'
+              gridCell.value === 'bajo' ? 'Stock bajo' : 'Disponible'
         }
         if (gridCell.column.dataField === 'quantity') {
           const qty = gridCell.data?.quantity

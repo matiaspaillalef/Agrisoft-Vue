@@ -92,5 +92,22 @@ export default {
   },
   updateRequirementStatus(id, status) {
     return conexionApi.put(`/field-book/requirements/${id}/status`, { status })
+  },
+
+  // --- PHENOLOGICAL STATES ---
+  getPhenologicalStates(companyId) {
+    return conexionApi.get(`/field-book/config/phenological/${companyId}`)
+  },
+  savePhenologicalState(data) {
+    return conexionApi.post('/field-book/config/phenological', data)
+  },
+  updatePhenologicalState(id, data) {
+    return conexionApi.put(`/field-book/config/phenological/${id}`, data)
+  },
+  deletePhenologicalState(id) {
+    return conexionApi.delete(`/field-book/config/phenological/${id}`)
+  },
+  togglePhenologicalStateStatus(id, status) {
+    return conexionApi.put('/field-book/config/phenological/status', { id, status })
   }
 }

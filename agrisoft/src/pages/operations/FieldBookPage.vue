@@ -442,15 +442,6 @@
                       "{{ form.observations || 'Sin instrucciones adicionales' }}"
                     </p>
                   </div>
-                  <div class="bg-amber-600/5 p-5 rounded-[1rem] border border-amber-100/50">
-                    <p
-                      class="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2 leading-none flex items-center gap-2">
-                      <BeakerIcon class="w-3 h-3" /> Obs. Fenológicas
-                    </p>
-                    <p class="text-sm font-bold text-slate-700 leading-relaxed italic">
-                      "{{ form.phenological_stage || 'Sin observaciones' }}"
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -505,48 +496,42 @@
                 <table class="w-full text-left min-w-[1000px]">
                   <thead>
                     <tr class="bg-slate-50/50">
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo /
-                        Ingrediente
-                      </th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Plan
-                        (L-Kg/Ha)</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Aguas
-                        100/L
-                      </th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
-                        Reingreso
-                      </th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
-                        Carencia
-                        (E/A)</th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
-                        Intervalo
-                      </th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Nº App
-                      </th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Mezcla
-                      </th>
-                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">
-                        Restante
-                        (L-Kg)</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Grupo / Subgrupo</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo / Ingrediente</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Plan (Dosis/Unidad)</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Aguas 100/L</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Reingreso</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Carencia (E/A)</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Intervalo / Nº App</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Mezcla</th>
+                      <th class="p-4 text-[9px] font-black text-amber-500 uppercase tracking-widest text-center italic bg-amber-50/30">Est. Fenológico</th>
+                      <th class="p-4 text-[9px] font-black text-emerald-600 uppercase tracking-widest text-center">Restante</th>
+                      <th class="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Justificación</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-50">
                     <tr v-for="(p, i) in form.products" :key="i" class="hover:bg-slate-50/30 transition-all group">
                       <td class="p-5">
-                        <p
-                          class="text-sm font-black text-slate-700 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">
-                          {{ p.brand_name }}
+                        <div class="flex flex-col gap-1">
+                          <span class="text-[10px] font-black text-blue-600 uppercase tracking-tighter">{{ getCategoryName(p.id_category) }}</span>
+                          <span class="text-[9px] font-bold text-slate-400 uppercase">{{ getSubcategoryName(p.id_subcategory) }}</span>
+                        </div>
+                      </td>
+                      <td class="p-5">
+                        <p class="text-sm font-black text-slate-700 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">
+                          {{ p.brand_name || 'MATERIAL NO ESPECIFICADO' }}
                         </p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
-                          {{ p.active_ingredient || 'Sin Ingrediente' }}
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tight leading-tight">
+                          <span class="text-blue-500/50 mr-1 font-black">INGR:</span> {{ p.active_ingredient || 'NO ESPECIFICADO' }}
                         </p>
                       </td>
                       <td class="p-5 text-center">
-                        <span
-                          class="inline-flex items-center px-4 py-1.5 bg-blue-600/5 text-blue-600 rounded-xl text-[13px] font-black shadow-sm shadow-blue-100/20">
-                          {{ p.dosage }}
-                        </span>
+                        <div class="flex flex-col items-center gap-1">
+                          <span class="inline-flex items-center px-4 py-1.5 bg-blue-600/5 text-blue-600 rounded-xl text-[13px] font-black shadow-sm shadow-blue-100/20">
+                            {{ p.dosage }}
+                          </span>
+                          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ p.dosage_unit || 'L/HA' }}</span>
+                        </div>
                       </td>
                       <td class="p-5 text-center text-xs font-bold text-slate-500">{{ p.water_volume || '-' }}</td>
                       <td class="p-5 text-center">
@@ -560,8 +545,11 @@
                         {{ p.withholding_label || '-' }} <span class="text-slate-300 mx-1">|</span>
                         {{ p.withholding_asoex || '-' }}
                       </td>
-                      <td class="p-5 text-center text-xs font-bold text-slate-500">{{ p.app_interval || '-' }}</td>
-                      <td class="p-5 text-center text-xs font-black text-slate-600">{{ p.season_app_number || '-' }}
+                      <td class="p-5 text-center">
+                        <div class="flex flex-col items-center gap-1">
+                          <span class="text-xs font-bold text-slate-500">{{ p.app_interval || '-' }}</span>
+                          <span class="text-[9px] font-black text-slate-400 uppercase">App: {{ p.season_app_number || '-' }}</span>
+                        </div>
                       </td>
                       <td class="p-5 text-center">
                         <span
@@ -570,10 +558,25 @@
                         </span>
                       </td>
                       <td class="p-5 text-center">
+                        <span v-if="p.phenological_stage"
+                          class="inline-flex items-center px-3 py-1 bg-amber-50 text-amber-600 rounded-xl text-[10px] font-black border border-amber-100 italic">
+                          {{ p.phenological_stage }}
+                        </span>
+                        <span v-else class="text-slate-300">-</span>
+                      </td>
+                      <td class="p-5 text-center">
                         <span
-                          class="inline-flex items-center px-3 py-1 bg-rose-50 text-rose-600 rounded-xl text-[11px] font-black border border-rose-100 shadow-sm shadow-rose-100/20">
+                          class="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-600 rounded-xl text-[11px] font-black border border-emerald-100 shadow-sm shadow-emerald-100/20">
                           {{ (parseFloat(p.dosage) - parseFloat(p.applied_quantity || 0)).toFixed(2) }}
                         </span>
+                      </td>
+                      <td class="p-5 max-w-[200px]">
+                         <div v-if="p.justification" class="bg-blue-50/30 p-2.5 rounded-xl border border-blue-100/20">
+                             <p class="text-[10px] text-blue-700 font-medium leading-tight line-clamp-3 group-hover:line-clamp-none transition-all">
+                               {{ p.justification }}
+                             </p>
+                          </div>
+                          <span v-else class="text-slate-300 text-[10px] font-bold italic ml-2">Sin justificación</span>
                       </td>
                     </tr>
                   </tbody>
@@ -698,6 +701,15 @@
               </p>
             </div>
             <div class="col-span-2 space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Superficie Total
+                (Ha)</label>
+              <div
+                class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">
+                <MapPinIcon class="w-4 h-4" />
+                <span class="text-base font-black tracking-tight">{{ totalSurface.toFixed(2) }} Ha</span>
+              </div>
+            </div>
+            <div class="col-span-2 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Fecha
                 Programación</label>
               <input type="date" v-model="form.issue_date"
@@ -738,16 +750,16 @@
               <DxSelectBox v-model:value="form.id_task" :data-source="configTasks" display-expr="name" value-expr="id"
                 class="premium-select shadow-sm" :disabled="!form.id_area" />
             </div>
-            <!-- Se ocultan especie y variedad ya que ahora se derivan automáticamente de los sectores -->
-            <div class="hidden">
-              <DxSelectBox v-model:value="form.id_specie" :data-source="species" display-expr="name" value-expr="id" />
-              <DxSelectBox v-model:value="form.id_variety" :data-source="filteredVarieties" display-expr="name"
-                value-expr="id" />
+            <div class="col-span-2 space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Especie</label>
+              <DxSelectBox v-model:value="form.id_specie" :data-source="species" display-expr="name" value-expr="id"
+                class="premium-select shadow-sm" placeholder="Opcional..." />
             </div>
-            <div class="col-span-3 space-y-1">
-              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Est. Fenológico</label>
-              <input v-model="form.phenological_stage" placeholder="..."
-                class="w-full px-4 py-[11px] bg-slate-50 rounded-xl font-bold text-sm border-none shadow-sm outline-none focus:ring-1 focus:ring-blue-100" />
+            <div class="col-span-2 space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Variedad</label>
+              <DxSelectBox v-model:value="form.id_variety" :data-source="filteredVarieties" display-expr="name"
+                value-expr="id" class="premium-select shadow-sm" placeholder="Opcional..."
+                :disabled="!form.id_specie" />
             </div>
             <div class="col-span-full space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Instrucciones Generales
@@ -765,167 +777,222 @@
             </div>
 
             <div v-for="product in form.products" :key="product._uId"
-              class="col-span-full relative grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/20 p-5 pt-10 rounded-3xl border border-slate-100 border-dashed">
-              <!-- Trash button moved to top-right -->
+              class="col-span-full relative flex flex-col gap-6 bg-slate-50/40 p-8 pt-12 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group/product mb-6">
+
+              <!-- Trash button -->
               <button @click="removeProductByUid(product._uId)"
-                class="absolute top-4 right-4 p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all border-none w-fit!">
-                <TrashIcon class="w-4.5 h-4.5" />
+                class="absolute top-6 right-6 p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-100/50 rounded-2xl transition-all border-none w-fit! group-hover/product:text-slate-400">
+                <TrashIcon class="w-5 h-5" />
               </button>
 
-              <div class="col-span-2 space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Insumo (Nombre o Comp.
-                  Activo)</label>
-                <DxSelectBox v-model:value="product.id_product" :data-source="companyProducts" display-expr="name"
-                  value-expr="id" :search-enabled="true" :search-expr="['name', 'active_ingredient']"
-                  @value-changed="(e) => onProductNameChange(e, product)"
-                  @on-selection-changed="(e) => onProductNameChange(e, product)" class="premium-select"
-                  item-template="productItem">
-                  <template #productItem="{ data }">
-                    <div class="flex flex-col py-1">
-                      <span class="font-bold text-slate-900 text-xs">{{ data.name }}</span>
-                      <span
-                        class="text-[9px] text-slate-400 font-bold uppercase tracking-tight">{{ data.active_ingredient || 'Sin Ing. Activo' }}</span>
-                    </div>
-                  </template>
-                </DxSelectBox>
-              </div>
-              <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Dosis
-                  (L-Kg/Ha)</label>
-                <input v-model="product.dosage"
-                  class="w-full px-4 py-[11px] bg-white rounded-xl font-bold text-sm border-none shadow-sm outline-none" />
-              </div>
-              <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Aguas
-                  100/L</label>
-                <input v-model="product.water_volume"
-                  class="w-full px-4 py-[11px] bg-white rounded-xl font-bold text-sm border-none shadow-sm outline-none" />
+              <!-- ROW 1: CATEGORIZATION -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-1.5">
+                  <label
+                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div> Grupo de materiales
+                  </label>
+                  <DxSelectBox v-model:value="product.id_category" :data-source="categories" display-expr="name"
+                    value-expr="id" :search-enabled="true" class="premium-select shadow-sm bg-white"
+                    placeholder="Seleccionar grupo..." @on-value-changed="() => onCategoryChange(product)" />
+                </div>
+                <div class="space-y-1.5">
+                  <label
+                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div> Subgrupo de materiales
+                  </label>
+                  <DxSelectBox v-model:value="product.id_subcategory" :data-source="getFilteredSubcategories(product)"
+                    display-expr="name" value-expr="id" :search-enabled="true" class="premium-select shadow-sm bg-white"
+                    placeholder="Seleccionar subgrupo..." :disabled="!product.id_category"
+                    @on-value-changed="() => product.id_product = null" />
+                </div>
               </div>
 
-              <!-- STOCK & WAREHOUSE RESERVATION -->
-              <div v-if="product.id_product"
-                class="col-span-full grid grid-cols-1 md:grid-cols-4 gap-6 mt-2 p-4 bg-blue-50/30 rounded-2xl border border-blue-100 border-dashed">
-                <div class="col-span-2 space-y-1">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Disponibilidad en
-                    Bodegas</label>
-                  <div class="flex flex-wrap gap-2 pt-1">
-                    <div v-for="(s, sIdx) in (product.stock_info || [])" :key="sIdx"
-                      class="px-3 py-1.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[70px]">
-                      <span
-                        class="text-[7px] font-black text-slate-400 truncate uppercase tracking-tighter">{{ s.warehouse_name || getWarehouseName(s.id_warehouse || s.warehouse_id) }}</span>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span class="text-[10px] font-bold text-blue-600 leading-none" title="Disponible">
-                          {{ s.quantity || s.stock || 0 }}
-                        </span>
-                        <span v-if="s.reserved_quantity > 0" class="text-[9px] font-black text-amber-500 bg-amber-50 px-1 rounded-md" title="Reservado">
-                          R: {{ s.reserved_quantity }}
-                        </span>
+              <!-- ROW 2: PRODUCT & PHENO -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 space-y-1.5">
+                  <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nombre
+                    material</label>
+                  <DxSelectBox v-model:value="product.id_product" :data-source="getFilteredProducts(product)"
+                    display-expr="name" value-expr="id" :search-enabled="true"
+                    :search-expr="['name', 'active_ingredient']"
+                    @on-value-changed="(e) => onProductNameChange(e, product)" class="premium-select shadow-sm bg-white"
+                    item-template="productItem" placeholder="Buscar material o ingrediente activo...">
+                    <template #productItem="{ data }">
+                      <div class="flex flex-col py-1">
+                        <span class="font-bold text-slate-900 text-xs">{{ data.name }}</span>
+                        <span
+                          class="text-[9px] text-slate-400 font-bold uppercase tracking-tight">{{ data.active_ingredient || 'Sin Ing. Activo' }}</span>
                       </div>
-                    </div>
-                    <div v-if="product.id_product && (!product.stock_info || product.stock_info.length === 0)"
-                      class="text-[9px] text-amber-500 font-bold py-1 flex items-center gap-1">
-                      <ExclamationTriangleIcon class="w-3 h-3" /> Sin stock informado
-                    </div>
+                    </template>
+                  </DxSelectBox>
+                </div>
+                <div class="space-y-1.5">
+                  <label
+                    class="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 italic flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div> Est. Fenológico
+                  </label>
+                  <DxSelectBox v-model:value="product.phenological_stage" :data-source="phenoStatesList"
+                    display-expr="name" value-expr="name" class="premium-select shadow-sm bg-white"
+                    placeholder="Seleccionar..." />
+                </div>
+              </div>
+
+              <!-- ROW 3: CALCULATIONS (TWO LEVELS) -->
+              <div
+                class="bg-white/80 backdrop-blur-sm p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-6">
+                <!-- Top Level: Inputs -->
+                <div class="flex flex-wrap md:flex-nowrap items-end gap-4">
+                  <div class="flex-1 min-w-[100px] space-y-2">
+                    <label
+                      class="text-[8px] font-black text-slate-400 uppercase tracking-tight text-center block h-4">Dosis
+                      100l</label>
+                    <input v-model="product.dosage_100l" type="number" step="0.01" placeholder="0.00"
+                      class="w-full h-[44px]! px-3 bg-slate-50/50 rounded-xl font-bold text-xs border border-slate-100 outline-none focus:ring-2! focus:ring-blue-100! focus:bg-white! transition-all text-center !mb-0" />
+                  </div>
+                  <div class="flex-1 min-w-[100px] space-y-2">
+                    <label
+                      class="text-[8px] font-black text-slate-400 uppercase tracking-tight text-center block h-4">Mojamiento
+                      (l)</label>
+                    <input v-model="product.water_volume" type="number" step="1" placeholder="0"
+                      class="w-full h-[44px]! px-3 bg-slate-50/50 rounded-xl font-bold text-xs border border-slate-100 outline-none focus:ring-2! focus:ring-blue-100! focus:bg-white! transition-all text-center !mb-0" />
+                  </div>
+                  <div class="flex-1 min-w-[100px] space-y-2">
+                    <label
+                      class="text-[8px] font-black text-blue-600 uppercase tracking-tight text-center block leading-tight h-4">Dosis
+                      x ha <span class="bg-blue-50 px-1 rounded ml-1">(A)</span></label>
+                    <input v-model="product.dosage" type="number" step="0.01" @input="updateProductQuantity(product)"
+                      placeholder="0.00"
+                      class="w-full h-[44px]! px-3 bg-blue-50/30 rounded-xl font-black text-xs border border-blue-100 outline-none focus:ring-2! focus:ring-blue-200! focus:bg-white! transition-all text-center text-blue-700 !mb-0" />
+                  </div>
+                  <div class="w-[100px] shrink-0">
+                    <DxSelectBox v-model:value="product.dosage_unit" :items="['L/HA', 'KG/HA']"
+                      class="premium-select-compact !h-[44px] shadow-sm" />
                   </div>
                 </div>
 
-                <div class="space-y-1">
-                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Bodega
-                    Origen</label>
-                  <DxSelectBox v-model:value="product.id_warehouse" :data-source="warehouses" value-expr="id"
-                    display-expr="name" :search-enabled="true" search-mode="contains"
-                    class="premium-select-small shadow-sm" placeholder="Seleccionar..."
-                    @on-value-changed="(e) => onWarehouseChange(e, product)" />
-                </div>
-
-                <div class="flex items-center gap-3 self-center pl-2">
-                  <div class="flex flex-col">
-                    <label class="text-[9px] font-black text-slate-800 uppercase tracking-widest leading-none">Reservar
-                      Stock</label>
-                    <p class="text-[7px] text-slate-400 font-bold mt-1 uppercase">Notifica retiro a bodega</p>
-                    <div v-if="product.id_warehouse"
-                      class="mt-1 px-2 py-0.5 bg-blue-600/10 rounded-md border border-blue-600/20 w-fit!">
-                      <span class="text-[8px] font-black text-blue-700 uppercase">Stock Disp:
-                        {{ getSelectedWarehouseStock(product) }} | Res: {{ getSelectedWarehouseReserved(product) }}</span>
+                <!-- Bottom Level: Results -->
+                <div class="flex flex-wrap md:flex-nowrap items-end gap-4 pt-4 border-t border-slate-50 border-dashed">
+                  <div class="w-[140px] shrink-0 space-y-2">
+                    <label
+                      class="text-[8px] font-black text-slate-400 uppercase tracking-tight text-center block leading-tight h-4">Superficie
+                      <span class="bg-slate-100 px-1 rounded ml-1 text-slate-500">(B)</span></label>
+                    <div
+                      class="w-full h-[44px]! flex items-center justify-center bg-slate-50 rounded-xl font-black text-sm text-slate-600 border border-slate-100 shadow-inner">
+                      {{ totalSurface }} <span class="text-[8px] ml-1 opacity-50">HA</span>
                     </div>
                   </div>
-                  <button @click="product.reserve_stock = !product.reserve_stock" type="button" :class="[
-                    'relative! inline-flex! h-[20px]! w-[36px]! shrink-0 cursor-pointer! rounded-full! border-none! p-0! transition-colors duration-200 ease-in-out focus:outline-none! ring-0!',
-                    product.reserve_stock ? 'bg-emerald-500!' : 'bg-slate-200!'
-                  ]">
+                  <div class="flex-1 space-y-2">
+                    <label
+                      class="text-[8px] font-black text-emerald-600 uppercase tracking-tight text-center block leading-tight h-4">Cantidad
+                      total requerida <span
+                        class="bg-emerald-50 px-1 rounded ml-1 text-emerald-600">(AxB)</span></label>
+                    <div
+                      class="w-full h-[44px]! flex items-center justify-center bg-emerald-50/50 rounded-xl font-black text-sm text-emerald-700 border border-emerald-100 shadow-inner">
+                      {{ (parseFloat(product.dosage || 0) * totalSurface).toFixed(2) }}
+                      <span
+                        class="text-[9px] ml-2 text-emerald-500 uppercase">{{ product.dosage_unit === 'KG/HA' ? 'KG' : 'L' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ROW 4: SAFETY & MIX -->
+              <div
+                class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white/40 p-4 rounded-3xl border border-slate-50 items-end">
+                <div class="space-y-2">
+                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 block h-4">Reingreso
+                    (Hrs)</label>
+                  <input v-model="product.reentry_period" type="number" placeholder="--"
+                    class="w-full h-[44px]! px-4 bg-white rounded-xl font-bold text-xs border border-slate-100 outline-none focus:ring-1! focus:ring-blue-100! transition-all shadow-sm !mb-0" />
+                </div>
+                <div class="space-y-2">
+                  <label
+                    class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block h-4">Carencia
+                    (Etiq | Asoex)</label>
+                  <div class="flex gap-2">
+                    <input v-model="product.withholding_label" placeholder="Etiq"
+                      class="w-1/2 h-[44px]! px-3 bg-white rounded-xl font-bold text-xs border border-slate-100 outline-none text-center shadow-sm !mb-0" />
+                    <input v-model="product.withholding_asoex" placeholder="Asoex"
+                      class="w-1/2 h-[44px]! px-3 bg-white rounded-xl font-bold text-xs border border-slate-100 outline-none text-center shadow-sm !mb-0" />
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label
+                    class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block h-4">Intervalo
+                    / N° App</label>
+                  <div class="flex gap-2">
+                    <input v-model="product.app_interval" placeholder="Int"
+                      class="w-1/2 h-[44px]! px-3 bg-white rounded-xl font-bold text-xs border border-slate-100 outline-none text-center shadow-sm!mb-0 !mb-0" />
+                    <input v-model="product.season_app_number" placeholder="N°"
+                      class="w-1/2 h-[44px]! px-3 bg-white rounded-xl font-bold text-xs border border-slate-100 outline-none text-center shadow-sm !mb-0" />
+                  </div>
+                </div>
+                <div class="flex flex-col items-center justify-center pb-1">
+                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block h-4">¿Es
+                    mezcla?</label>
+                  <button @click="product.is_mix = !product.is_mix" type="button"
+                    :style="{ width: '44px !important', minWidth: '44px !important', height: '24px !important' }"
+                    :class="[
+                      'relative inline-flex shrink-0 cursor-pointer !rounded-full border-none p-0 transition-colors duration-200 ease-in-out focus:outline-none ring-0 !p-0',
+                      product.is_mix ? 'bg-blue-600' : 'bg-slate-200'
+                    ]">
                     <span :class="[
-                      'pointer-events-none! inline-block! h-[16px]! w-[16px]! transform rounded-full! bg-white! shadow-sm transition duration-200 ease-in-out mt-[2px] ml-[2px]',
-                      product.reserve_stock ? 'translate-x-[16px]!' : 'translate-x-0!'
+                      'pointer-events-none inline-block h-[20px] w-[20px] transform rounded-full bg-white shadow-md transition duration-200 ease-in-out mt-[2px] ml-[2px]',
+                      product.is_mix ? 'translate-x-[20px]' : 'translate-x-0'
                     ]"></span>
                   </button>
                 </div>
-
-                <!-- STOCK WARNINGS -->
-                <div
-                  v-if="product.id_warehouse && (parseFloat(calculateProductNeeded(product)) > parseFloat(getSelectedWarehouseStock(product)))"
-                  class="col-span-full">
-                  <div v-if="!product.reserve_stock"
-                    class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 animate-pulse mt-2">
-                    <ExclamationTriangleIcon class="w-5 h-5 text-rose-500" />
-                    <div class="flex flex-col">
-                      <p class="text-[10px] font-black text-rose-700 uppercase tracking-tighter">Stock Insuficiente en
-                        Bodega</p>
-                      <p class="text-[8px] font-bold text-rose-600">Requieres {{ calculateProductNeeded(product) }} L-Kg
-                        para la superficie actual, pero solo hay {{ getSelectedWarehouseStock(product) }} disponibles.
-                      </p>
-                    </div>
-                  </div>
-                  <div v-else class="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 mt-2">
-                    <InformationCircleIcon class="w-5 h-5 text-blue-500" />
-                    <div class="flex flex-col">
-                      <p class="text-[10px] font-black text-blue-700 uppercase tracking-tighter">Reserva de Stock
-                        Activada
-                      </p>
-                      <p class="text-[8px] font-bold text-blue-600">Con esta opción se mandará con productos que aún no
-                        tienes en bodega {{ getWarehouseName(product.id_warehouse) }}.</p>
-                    </div>
-                  </div>
-                </div>
               </div>
 
-              <div
-                class="col-span-full grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 p-3 bg-white/50 rounded-2xl border border-slate-100">
-                <div class="space-y-1">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Reingreso (Hrs)</label>
-                  <input v-model="product.reentry_period" placeholder="12"
-                    class="w-full px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
+              <!-- ROW 5: JUSTIFICATION -->
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Justificación
+                  técnica de
+                  la aplicación</label>
+                <textarea v-model="product.justification"
+                  placeholder="Describa el motivo fitosanitario o nutricional de este insumo..."
+                  class="w-full px-5 py-4 bg-white rounded-[1.5rem] font-medium text-xs border border-slate-100 outline-none focus:ring-2 focus:ring-blue-50/50 focus:border-blue-100 transition-all min-h-[80px] resize-none shadow-sm"></textarea>
+              </div>
+
+              <!-- BODEGA Y RESERVA (FOOTER) -->
+              <div v-if="product.id_product"
+                class="mt-2 p-6 bg-blue-600/5 rounded-[2rem] border border-blue-600/10 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="col-span-1 space-y-1.5">
+                  <label class="text-[9px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
+                    <MapPinIcon class="w-3 h-3" /> Bodega Origen
+                  </label>
+                  <DxSelectBox v-model:value="product.id_warehouse" :data-source="warehouses" value-expr="id"
+                    display-expr="name" :search-enabled="true" class="premium-select-small shadow-sm bg-white"
+                    placeholder="Elegir bodega..." @on-value-changed="(e) => onWarehouseChange(e, product)" />
                 </div>
-                <div class="space-y-1">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Carencia
-                    (Etiq
-                    | ASOEX)</label>
-                  <div class="flex gap-1">
-                    <input v-model="product.withholding_label" placeholder="7"
-                      class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
-                    <input v-model="product.withholding_asoex" placeholder="4"
-                      class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
+                <div
+                  class="col-span-2 flex items-center justify-between bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-blue-100/50 shadow-sm">
+                  <div class="flex items-center gap-4">
+                    <div class="p-3 bg-blue-100/50 rounded-xl text-blue-600">
+                      <ShieldCheckIcon class="w-5 h-5" />
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Reserva de
+                        Stock</span>
+                      <p class="text-[8px] text-slate-400 font-bold mt-0.5 uppercase">Bloquea unidades para esta labor
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div class="space-y-1">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Intervalo / Nº
-                    App</label>
-                  <div class="flex gap-1">
-                    <input v-model="product.app_interval" placeholder="20"
-                      class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
-                    <input v-model="product.season_app_number" placeholder="4"
-                      class="w-1/2 px-3 py-2 bg-white rounded-xl font-bold text-xs border-none shadow-sm outline-none" />
-                  </div>
-                </div>
-                <div class="space-y-1 flex flex-col">
-                  <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest">¿Es Mezcla?</label>
-                  <div class="flex-1 flex items-center pt-1">
-                    <button @click="product.is_mix = !product.is_mix" type="button" :class="[
-                      'relative! inline-flex! h-[24px]! w-[44px]! shrink-0 cursor-pointer! rounded-full! border-none! p-0! transition-colors duration-200 ease-in-out focus:outline-none! ring-0!',
-                      product.is_mix ? 'bg-indigo-600!' : 'bg-slate-200!'
+                  <div class="flex items-center gap-6">
+                    <div v-if="product.id_warehouse" class="px-3 py-1.5 bg-blue-50 rounded-xl border border-blue-100">
+                      <span class="text-[9px] font-black text-blue-700 uppercase flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                        Disp: {{ getSelectedWarehouseStock(product) }}
+                      </span>
+                    </div>
+                    <button @click="product.reserve_stock = !product.reserve_stock" type="button" :class="[
+                      'relative inline-flex h-[26px] w-[48px] cursor-pointer rounded-full border-none p-0 transition-colors duration-200 ease-in-out focus:outline-none',
+                      product.reserve_stock ? 'bg-emerald-500' : 'bg-slate-200'
                     ]">
                       <span :class="[
-                        'pointer-events-none! inline-block! h-[20px]! w-[20px]! transform rounded-full! bg-white! shadow-sm transition duration-200 ease-in-out mt-[2px] ml-[2px]',
-                        product.is_mix ? 'translate-x-[20px]!' : 'translate-x-0!'
+                        'pointer-events-none inline-block h-[22px] w-[22px] transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out mt-[2px] ml-[2px]',
+                        product.reserve_stock ? 'translate-x-[22px]' : 'translate-x-0'
                       ]"></span>
                     </button>
                   </div>
@@ -1795,6 +1862,8 @@ const companyProducts = ref([])
 const configAreas = ref([])
 const configTasks = ref([])
 const warehouses = ref([])
+const categories = ref([])
+const allSubcategories = ref([])
 
 const filterFrom = ref('')
 const filterTo = ref('')
@@ -1855,10 +1924,34 @@ const confirmForm = ref({
 })
 
 const allQuarters = ref([])
-const filteredQuarters = ref([])
 const allVarieties = ref([])
 const filteredVarieties = ref([])
 const sectorAttributes = ref([])
+
+const filteredQuarters = computed(() => {
+  if (!form.value.id_ground) return []
+  return allQuarters.value.filter(q => {
+    const belongsToGround = Number(q.ground) === Number(form.value.id_ground)
+    const attr = sectorAttributes.value.find(a => Number(a.sector) === Number(q.id))
+    if (!belongsToGround || !attr) return false
+
+    // Si hay filtros de especie/variedad seleccionados, aplicar
+    if (form.value.id_specie && Number(attr.specie) !== Number(form.value.id_specie)) return false
+    if (form.value.id_variety && Number(attr.variety) !== Number(form.value.id_variety)) return false
+
+    return true
+  })
+})
+
+const totalSurface = computed(() => {
+  if (!form.value.quarters) return 0
+  return form.value.quarters.reduce((acc, id) => {
+    const q = allQuarters.value.find(base => Number(base.id) === Number(id))
+    const attr = sectorAttributes.value.find(a => Number(a.sector) === Number(id))
+    const surface = parseFloat(q?.ha_productivas || q?.surface || attr?.ha_productivas || 0)
+    return acc + surface
+  }, 0)
+})
 
 const companyId = localStorage.getItem('userIdCompany')
 const currentUserId = Number(localStorage.getItem('userId'))
@@ -1883,7 +1976,19 @@ const form = ref({
   status: 'PENDING',
   quarters: [],
   quartersDetail: [],
-  products: [{ brand_name: '', dosage: '', water_volume: '' }]
+  products: [{
+    _uId: Date.now(),
+    brand_name: '', id_product: null,
+    id_category: null, id_subcategory: null,
+    active_ingredient: '', composition: '', objective: '',
+    dosage: '', water_volume: '', dosage_100l: '',
+    dosage_unit: 'L/HA', total_quantity: 0,
+    phenological_stage: '', justification: '',
+    is_mix: false, reentry_period: '',
+    withholding_label: '', withholding_asoex: '',
+    app_interval: '', season_app_number: '',
+    id_warehouse: null, reserve_stock: false, stock_info: []
+  }]
 })
 
 onMounted(fetchData)
@@ -1898,10 +2003,28 @@ const getWarehouseName = (id) => {
   return w ? w.name : `BOD-${id}`
 }
 
+function getCategoryName(id) {
+  if (!id) return '-'
+  const cat = categories.value.find(c => Number(c.id) === Number(id))
+  return cat ? cat.name : `CAT-${id}`
+}
+
+function getSubcategoryName(id) {
+  if (!id) return '-'
+  const sub = allSubcategories.value.find(s => Number(s.id) === Number(id))
+  return sub ? sub.name : `SUB-${id}`
+}
+
+const phenoStatesList = ref([])
+
 async function fetchData() {
   loading.value = true
   try {
-    const [ordersRes, usersRes, groundsRes, speciesRes, productsRes, areasRes, quartersRes, varietiesRes, attributesRes, warehousesRes] = await Promise.all([
+    const [
+      ordersRes, usersRes, groundsRes, speciesRes, productsRes,
+      areasRes, quartersRes, varietiesRes, attributesRes,
+      warehousesRes, phenoRes, categoriesRes, subcategoriesRes
+    ] = await Promise.all([
       fieldBookService.getOrders(companyId),
       conexionApi.get(`/configuracion/usuarios/${companyId}`),
       conexionApi.get(`/configuracion/production/getGround/${companyId}`),
@@ -1911,7 +2034,10 @@ async function fetchData() {
       conexionApi.get(`/configuracion/production/getSectorsBarracks/${companyId}`),
       conexionApi.get(`/configuracion/production/getVarieties/${companyId}`),
       conexionApi.get(`/configuracion/production/getAttributesSector/${companyId}`),
-      conexionApi.get(`/warehouses/getWarehouses/${companyId}`)
+      conexionApi.get(`/warehouses/getWarehouses/${companyId}`),
+      fieldBookService.getPhenologicalStates(companyId),
+      conexionApi.get(`/product-categories/${companyId}`),
+      conexionApi.get(`/all-subcategories/${companyId}`)
     ])
 
     orders.value = ordersRes.data.orders || []
@@ -1927,6 +2053,16 @@ async function fetchData() {
     allVarieties.value = varietiesRes.data.varieties || []
     sectorAttributes.value = attributesRes.data.attributes || []
     warehouses.value = warehousesRes.data.warehouses || []
+    categories.value = categoriesRes.data?.data || []
+    allSubcategories.value = subcategoriesRes.data?.data || []
+
+    // Asignación ultra-robusta de estados fenológicos (solo activos)
+    const rawPheno = phenoRes.data?.data || phenoRes.data || []
+    phenoStatesList.value = Array.isArray(rawPheno)
+      ? rawPheno.filter(s => s && (Number(s.status) === 1))
+      : []
+
+    console.log("🌱 [FIELD BOOK] Estados Fenológicos Activos Cargados:", phenoStatesList.value.length)
 
     companyProducts.value = (productsRes.data.products || []).map(p => {
       const si = p.warehouses || p.stocks || p.Stocks || [];
@@ -1969,7 +2105,8 @@ const resetForm = () => {
       dosage_100l: '', is_mix: false, reentry_period: '',
       withholding_label: '', withholding_asoex: '',
       app_interval: '', season_app_number: '',
-      id_warehouse: null, reserve_stock: false, stock_info: []
+      id_warehouse: null, reserve_stock: false, stock_info: [],
+      phenological_stage: ''
     }]
   }
 }
@@ -2056,38 +2193,96 @@ function onWarehouseChange(e, productRow) {
 
 function onProductNameChange(e, productRow) {
   const newVal = e.value
-  if (!newVal) return
+  // Capturar el texto mostrado si es posible
+  if (e.component && e.component.option('text')) {
+    productRow.brand_name = e.component.option('text')
+  }
 
-  productRow.stock_info = []
-  productRow.brand_name = ''
+  if (!newVal) {
+    productRow.id_product = null
+    return
+  }
+
   productRow.id_product = Number(newVal)
-
   const found = companyProducts.value.find(p => Number(p.id) === Number(newVal))
+  
   if (found) {
+    if (!productRow.id_category) productRow.id_category = found.category_id
+    if (!productRow.id_subcategory) productRow.id_subcategory = found.subcategory_id
+
     Object.assign(productRow, {
       brand_name: found.name,
       active_ingredient: found.active_ingredient ?? '',
       composition: found.composition ?? '',
       objective: found.objective ?? '',
-      justification: found.justification ?? '',
+      justification: found.justification ?? productRow.justification,
       stock_info: [...(found.stock_info || [])]
     })
     fetchProductStock(found.id, productRow)
   } else {
+    // Si no es un ID (es texto personalizado)
+    if (isNaN(productRow.id_product)) {
+       productRow.id_product = null
+       productRow.brand_name = newVal
+    }
     fetchProductStock(newVal, productRow)
   }
 }
 
+const getFilteredSubcategories = (product) => {
+  if (!product.id_category) return []
+  return allSubcategories.value.filter(s => Number(s.category_id) === Number(product.id_category))
+}
+
+const getFilteredProducts = (product) => {
+  let list = [...companyProducts.value]
+  if (product.id_category) {
+    list = list.filter(p => {
+      const hasDirect = Number(p.category_id) === Number(product.id_category)
+      const hasLink = p.category_links?.some(cl => Number(cl.category_id) === Number(product.id_category))
+      return hasDirect || hasLink
+    })
+  }
+  if (product.id_subcategory) {
+    list = list.filter(p => {
+      const hasDirect = Number(p.subcategory_id) === Number(product.id_subcategory)
+      const hasLink = p.category_links?.some(cl => Number(cl.subcategory_id) === Number(product.id_subcategory))
+      return hasDirect || hasLink
+    })
+  }
+  return list
+}
+
+const onCategoryChange = (product) => {
+  product.id_subcategory = null
+  product.id_product = null
+}
+
+const updateProductQuantity = (product) => {
+  const dosage = parseFloat(product.dosage || 0)
+  const surface = totalSurface.value || 0
+  product.total_quantity = (dosage * surface).toFixed(2)
+}
+
+watch(totalSurface, (newVal) => {
+  form.value.products.forEach(p => {
+    updateProductQuantity(p)
+  })
+})
+
 function addProduct() {
   form.value.products.push({
     _uId: Date.now() + Math.random(),
-    brand_name: '', id_product: null, dosage: '', water_volume: '',
-    active_ingredient: '', composition: '',
-    objective: '', justification: '',
+    brand_name: '', id_product: null, 
+    id_category: null, id_subcategory: null,
+    active_ingredient: '', composition: '', objective: '',
+    dosage: '', water_volume: '', dosage_unit: 'L/HA',
+    justification: '',
     dosage_100l: '', is_mix: false, reentry_period: '',
     withholding_label: '', withholding_asoex: '',
     app_interval: '', season_app_number: '',
-    id_warehouse: null, reserve_stock: false, stock_info: []
+    id_warehouse: null, reserve_stock: false, stock_info: [],
+    phenological_stage: ''
   })
 }
 
@@ -2224,14 +2419,29 @@ async function handleSaveOrder() {
       }
     })
 
-    const cleanedProducts = form.value.products.filter(p => (p.brand_name && p.brand_name.trim() !== '') || p.id_product);
+    const cleanedProducts = form.value.products
+      .filter(p => (p.brand_name && p.brand_name.trim() !== '') || p.id_product)
+      .map(p => {
+        let finalBrandName = p.brand_name;
+        // Si no hay nombre pero hay ID, buscarlo
+        if ((!finalBrandName || finalBrandName.trim() === '') && p.id_product) {
+          const master = companyProducts.value.find(m => Number(m.id) === Number(p.id_product))
+          if (master) finalBrandName = master.name
+        }
+        return {
+          ...p,
+          brand_name: finalBrandName,
+          phenological_stage: p.phenological_stage || null, // Asegurar persistencia
+          dosage_unit: p.dosage_unit || 'L/HA'
+        }
+      });
 
     const payload = {
       ...form.value,
       id_company: companyId,
       quarters: mappedQuarters,
       products: cleanedProducts,
-      executor_id: form.value.applicator_id // Sync executor with applicator as they are the same
+      executor_id: form.value.applicator_id
     }
 
     // VALIDACIÓN ESTRICTA DE DISPONIBILIDAD DE STOCK
@@ -2481,12 +2691,7 @@ function formatDate(dateStr) {
 }
 
 // Watchers
-watch(() => form.value.id_ground, (newVal) => {
-  filteredQuarters.value = allQuarters.value.filter(q =>
-    Number(q.ground) === Number(newVal) &&
-    sectorAttributes.value.some(attr => Number(attr.sector) === Number(q.id))
-  )
-})
+// filteredQuarters ya es computed
 
 watch(() => form.value.id_specie, (newVal) => {
   filteredVarieties.value = allVarieties.value.filter(v => Number(v.species_id) === Number(newVal))

@@ -8,8 +8,7 @@
           isCollapsed ? 'justify-center !px-0' : ''
         ]">
         <component :is="iconComponent" class="h-5.5 w-5.5 flex-shrink-0 transition-colors" v-if="iconComponent" />
-        <span v-if="!isCollapsed"
-          class="text-[14px] truncate flex-1 text-left tracking-tight font-normal">{{ item.name }}</span>
+        <span v-if="!isCollapsed" class="text-[14px] flex-1 text-left tracking-tight font-normal">{{ item.name }}</span>
         <ChevronDownIcon v-if="!isCollapsed" class="h-4 w-4 transition-transform duration-400"
           :class="{ 'rotate-180': isOpen }" />
       </button>
@@ -26,8 +25,9 @@
     <!-- Ítem sin hijos -->
     <div v-else>
       <router-link :to="item.url || '#'"
-        class="flex items-center gap-3 px-4 py-1 group transition-all duration-300 rounded-full mb-1 mt-1 bg-transparent!"
+        class="flex items-center gap-3 px-2 py-1 group transition-all duration-300 rounded-full mb-1 mt-1 bg-transparent!"
         active-class="!text-blue-600 font-normal" :class="[
+          level !== 1 ? 'pl-0' : '',
           !isExactActive ? 'text-slate-800! hover:text-blue-600!' : '',
           isCollapsed ? 'justify-center !px-0' : ''
         ]">

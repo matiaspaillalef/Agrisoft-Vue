@@ -149,6 +149,19 @@
             </div>
           </div>
         </div>
+
+        <!-- Rejection block -->
+        <div v-if="selectedItem?.status === 'REJECTED' && selectedItem?.rejection_reason"
+          class="bg-red-50 dark:bg-red-900/20 rounded-[1.5rem] p-6 border border-red-100 dark:border-red-900/30 space-y-3">
+          <h4
+            class="text-red-800 dark:text-red-400 font-black flex items-center gap-2 text-xs uppercase tracking-widest">
+            <InformationCircleIcon class="w-5 h-5" />
+            Motivo de Rechazo
+          </h4>
+          <div class="text-sm text-red-700 dark:text-red-300/80">
+            <p class="italic">"{{ selectedItem.rejection_reason }}"</p>
+          </div>
+        </div>
       </div>
 
       <!-- Footer -->
@@ -181,12 +194,33 @@
 
       <div class="p-8 text-left!">
         <div class="mb-10 text-left!">
-          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-left!">
-            Proveedor Asignado
-          </label>
           <DxSelectBox v-model:value="selectedSupplier" :items="suppliers" display-expr="fullName" value-expr="id"
             :search-enabled="true" placeholder="Buscar proveedor..."
             class="premium-selectbox h-14 !rounded-2xl !border-slate-100 !bg-slate-50/50" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Condición de Pago</label>
+            <DxSelectBox v-model:value="newOrderPaymentCondition" :items="['Contado', 'Crédito']"
+              class="premium-selectbox h-12 !rounded-2xl !border-slate-100 !bg-slate-50/50" />
+          </div>
+          <div class="space-y-2 flex flex-col justify-end">
+            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Impuesto IVA</label>
+            <div @click="newOrderIncludeIva = !newOrderIncludeIva" 
+              :class="`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all border ${newOrderIncludeIva ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50/50 border-slate-100'}`">
+              <div :class="`w-10 h-5 rounded-full relative transition-all ${newOrderIncludeIva ? 'bg-blue-600' : 'bg-slate-300'}`">
+                <div :class="`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-all ${newOrderIncludeIva ? 'translate-x-5' : 'translate-x-0'}`"></div>
+              </div>
+              <span class="text-[10px] font-bold text-slate-600">{{ newOrderIncludeIva ? '19%' : 'Exenta' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Condiciones Especiales</label>
+          <textarea v-model="newOrderSpecialConditions" rows="3" placeholder="Acuerdos especiales, despacho..."
+            class="w-full rounded-2xl border-slate-100 bg-slate-50/50 dark:bg-navy-900/50 p-4 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none border dark:border-navy-700"></textarea>
         </div>
 
         <div class="flex flex-col gap-3">
@@ -241,6 +275,9 @@ const selectedItem = ref(null)
 const showCreateOCModal = ref(false)
 const selectedRequestForOC = ref(null)
 const selectedSupplier = ref(null)
+const newOrderIncludeIva = ref(true)
+const newOrderPaymentCondition = ref('Contado')
+const newOrderSpecialConditions = ref('')
 const suppliers = ref([])
 const users = ref([])
 
@@ -357,6 +394,9 @@ onMounted(async () => {
 function abrirModalCrearOC(request) {
   selectedRequestForOC.value = request
   selectedSupplier.value = null
+  newOrderIncludeIva.value = true
+  newOrderPaymentCondition.value = 'Contado'
+  newOrderSpecialConditions.value = ''
   showCreateOCModal.value = true
 }
 
@@ -376,7 +416,10 @@ async function confirmarCrearOC() {
       {
         supplier_id: selectedSupplier.value,
         company_id: companyId,
-        user_id: userId
+        user_id: userId,
+        include_iva: newOrderIncludeIva.value ? 1 : 0,
+        payment_condition: newOrderPaymentCondition.value,
+        special_conditions: newOrderSpecialConditions.value
       }
     )
 
@@ -436,21 +479,24 @@ async function aprobarSolicitud(request) {
 }
 
 async function rechazarSolicitud(request) {
-  if (!confirm(`¿Quieres rechazar la solicitud #${request.tracking_code}?`)) return
+  const reason = prompt(`¿Motivo del rechazo para la solicitud #${request.tracking_code}?`)
+  if (reason === null) return // Cancelado
 
   try {
-    await conexionApi.put(`/purchase-requests/${request.id}/reject`, {}, {
-      params: { company_id: companyId }
+    await conexionApi.put(`/purchase-requests/${request.id}/reject`, {
+      company_id: companyId,
+      rejection_reason: reason
     })
 
     request.status = 'REJECTED'
+    request.rejection_reason = reason
 
-    dxGrid.value?.instance.refresh()
+    mainGridRef.value?.instance.refresh()
 
     alert(`Solicitud #${request.tracking_code} rechazada`)
   } catch (err) {
     console.error(err)
-    alert('Error al rechazar la solicitud')
+    alert(err.response?.data?.mensaje || 'Error al rechazar la solicitud')
   }
 }
 

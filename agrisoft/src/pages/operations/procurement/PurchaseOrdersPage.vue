@@ -15,8 +15,13 @@
     </div>
 
     <div class="flex items-center gap-3">
+      <button v-if="[1, 2].includes(userRole)" @click="abrirModalNuevaOC"
+        class="flex items-center gap-2 px-6 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-[1.5rem] transition-all shadow-lg shadow-blue-200 active:scale-95 uppercase tracking-widest text-xs !w-fit h-[50px]">
+        <PlusIcon class="w-5 h-5" />
+        Nueva Orden
+      </button>
       <button
-        class="p-4 bg-slate-50 dark:bg-navy-900 text-slate-400 hover:text-blue-600 rounded-2xl transition-all duration-300 shadow-inner"
+        class="p-4 bg-slate-50 dark:bg-navy-900 text-slate-400 hover:text-blue-600 rounded-2xl transition-all duration-300 shadow-inner !w-fit"
         @click="showHelp = true" title="¿Qué hace cada acción?">
         <InformationCircleIcon class="w-7 h-7" />
       </button>
@@ -47,8 +52,8 @@
         <DxColumn data-field="order_code" caption="Folio OC" alignment="right"
           css-class="!font-black text-blue-600 dark:text-blue-400 !text-left" />
 
-        <DxColumn data-field="tracking_code" caption="Ref. Solicitud" alignment="right"
-          css-class="text-slate-500 !text-left" />
+        <DxColumn data-field="tracking_code" caption="Ref. Solicitud" alignment="right" css-class="!text-left"
+          :cell-template="trackingCodeTemplate" />
 
         <DxColumn data-field="supplier_name" caption="Proveedor" alignment="right"
           css-class="!text-left font-bold !text-left" />
@@ -103,13 +108,17 @@
             </h3>
             <div
               class="bg-slate-50 dark:bg-navy-900/30 rounded-2xl p-6 space-y-4 border border-slate-100 dark:border-navy-700">
-              <div class="flex justify-between items-center text-sm">
+              <div v-if="selectedItem?.tracking_code" class="flex justify-between items-center text-sm">
                 <span class="text-slate-500">Ref. Solicitud:</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedItem?.tracking_code }}</span>
               </div>
-              <div class="flex justify-between items-center text-sm">
+              <div v-if="selectedItem?.requester_name" class="flex justify-between items-center text-sm">
                 <span class="text-slate-500">Solicitante:</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedItem?.requester_name }}</span>
+              </div>
+              <div v-if="!selectedItem?.tracking_code" class="flex justify-between items-center text-sm">
+                <span class="text-slate-500 italic">Tipo de Origen:</span>
+                <span class="font-black text-amber-600 uppercase text-[10px]">Creación Directa</span>
               </div>
               <div class="flex justify-between items-center text-sm">
                 <span class="text-slate-500">Emitida por:</span>
@@ -120,6 +129,24 @@
                 <span class="text-slate-500">Fecha Sistema:</span>
                 <span
                   class="font-bold text-slate-800 dark:text-slate-200">{{ formatDateHrs(selectedItem?.created_at) }}</span>
+              </div>
+              <div
+                class="flex justify-between items-center text-sm pt-2 border-t border-slate-100 dark:border-navy-700">
+                <span class="text-slate-500">Impuestos:</span>
+                <span
+                  :class="`font-black uppercase text-[10px] ${selectedItem?.include_iva ? 'text-blue-600' : 'text-amber-600'}`">
+                  {{ selectedItem?.include_iva ? 'Afecta a IVA (19%)' : 'Exenta de IVA' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-slate-500">Condición de Pago:</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedItem?.payment_condition }}</span>
+              </div>
+              <div v-if="selectedItem?.special_conditions" class="pt-2 border-t border-slate-100 dark:border-navy-700">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Condiciones
+                  Especiales:</span>
+                <p class="text-sm text-slate-700 dark:text-slate-300 italic">"{{ selectedItem?.special_conditions }}"
+                </p>
               </div>
             </div>
           </div>
@@ -166,9 +193,99 @@
                 :format="{ type: 'currency', currency: 'USD', precision: 0, formatter: priceFormatter }"
                 alignment="right" css-class="!font-black text-blue-600 dark:text-blue-400" />
               <DxColumn data-field="received_quantity" caption="Recibido" alignment="center"
-                css-class="text-emerald-600" />
+                css-class="text-emerald-600 font-bold" />
+              <DxColumn caption="Faltante" alignment="center"
+                :calculate-cell-value="data => Math.max(0, data.quantity - (data.received_quantity || 0))"
+                css-class="text-amber-600 font-bold" />
               <DxScrolling mode="virtual" />
             </DxDataGrid>
+          </div>
+        </div>
+
+        <!-- NEW: Receipts History Section -->
+        <div v-if="orderReceipts && orderReceipts.length > 0" class="space-y-4 pt-4 animate-in fade-in duration-500">
+          <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <div class="w-1 h-4 bg-blue-500 rounded-full"></div>
+            Historial de Entregas (Recepciones)
+          </h3>
+          <div class="grid grid-cols-1 gap-4">
+            <div v-for="receipt in orderReceipts" :key="receipt.id" :class="[
+              'p-6 rounded-3xl border transition-all group',
+              !receipt.warehouse_id
+                ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30'
+                : 'bg-slate-50 dark:bg-navy-900/30 border-slate-100 dark:border-navy-700 hover:border-blue-200'
+            ]">
+              <div class="flex flex-col md:flex-row justify-between gap-4">
+                <div class="flex gap-4">
+                  <!-- Icono condicional -->
+                  <div :class="[
+                    'p-3 rounded-2xl shadow-sm border',
+                    !receipt.warehouse_id
+                      ? 'bg-white dark:bg-navy-800 text-amber-600 border-amber-100 dark:border-amber-800'
+                      : 'bg-white dark:bg-navy-800 text-blue-600 border-slate-100 dark:border-navy-700'
+                  ]">
+                    <XCircleIcon v-if="!receipt.warehouse_id" class="w-6 h-6" />
+                    <DocumentCheckIcon v-else class="w-6 h-6" />
+                  </div>
+
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">
+                        {{ !receipt.warehouse_id ? 'Evento:' : 'Documento:' }}
+                      </span>
+                      <span
+                        :class="['font-bold', !receipt.warehouse_id ? 'text-amber-700 dark:text-amber-400' : 'text-slate-800 dark:text-slate-200']">
+                        {{ !receipt.warehouse_id ? 'CIERRE MANUAL DE ORDEN' : (receipt.invoice_number ? 'Factura/Guía #' + receipt.invoice_number : 'Sin número') }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs text-slate-500 font-medium">
+                      <span class="flex items-center gap-1">
+                        <CalendarIcon class="w-3.5 h-3.5" />
+                        {{ formatDate(receipt.document_date || receipt.received_at) }}
+                      </span>
+                      <span class="flex items-center gap-1">
+                        <UserIcon class="w-3.5 h-3.5" />
+                        {{ receipt.received_by_name }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Badge de pago solo si hay bodega (es recepción real) -->
+                <div v-if="receipt.warehouse_id" class="text-right">
+                  <span
+                    class="px-3 py-1 bg-white dark:bg-navy-800 rounded-full text-[10px] font-black text-blue-600 border border-blue-50 dark:border-blue-900 shadow-sm">
+                    {{ receipt.payment_method }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Comentario con estilo condicional -->
+              <div v-if="receipt.notes" :class="[
+                'mt-4 p-4 rounded-2xl border',
+                !receipt.warehouse_id
+                  ? 'bg-white/50 dark:bg-navy-800/50 border-amber-100/50 dark:border-amber-900/20'
+                  : 'bg-white dark:bg-navy-800/50 border-slate-50 dark:border-navy-700'
+              ]">
+                <p
+                  :class="['text-xs italic', !receipt.warehouse_id ? 'text-amber-800 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400']">
+                  "{{ receipt.notes }}"
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rejection/Cancellation info -->
+        <div v-if="selectedItem?.status === 'CANCELLED' && selectedItem?.rejection_reason"
+          class="bg-red-50 dark:bg-red-900/20 rounded-[1.5rem] p-6 border border-red-100 dark:border-red-900/30 space-y-3">
+          <h4
+            class="text-red-800 dark:text-red-400 font-black flex items-center gap-2 text-xs uppercase tracking-widest">
+            <InformationCircleIcon class="w-5 h-5" />
+            Motivo de Cancelación
+          </h4>
+          <div class="text-sm text-red-700 dark:text-red-300/80 italic">
+            "{{ selectedItem.rejection_reason }}"
           </div>
         </div>
       </div>
@@ -180,6 +297,109 @@
           class="px-10 py-3 bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-sm">
           Cerrar
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVA OC (DIRECTA) -->
+  <div v-if="showNewOCModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="cerrarModalNuevaOC"></div>
+
+    <div
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-[480px] z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in zoom-in duration-300">
+      <div class="p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden group">
+        <div class="relative z-10">
+          <h2 class="text-2xl font-black tracking-tight mb-1 text-white!">Nueva Orden de Compra</h2>
+          <p class="text-blue-100/80 text-[10px] font-black uppercase tracking-widest">Creación Directa</p>
+        </div>
+        <PlusCircleIcon
+          class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12 transition-transform group-hover:scale-110" />
+      </div>
+
+      <div class="p-8 space-y-8">
+        <div>
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
+            Seleccionar Proveedor
+          </label>
+          <DxSelectBox v-model:value="newOrderSupplier" :items="suppliers" display-expr="display" value-expr="id"
+            :search-enabled="true" placeholder="Buscar proveedor..."
+            class="premium-selectbox h-14 !rounded-2xl !border-slate-100 !bg-slate-50/50" />
+        </div>
+
+        <div
+          class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-navy-900/50 rounded-2xl border border-slate-100 dark:border-navy-700">
+          <input type="checkbox" v-model="newOrderIncludeIva" id="includeIvaCheckbox"
+            class="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 !w-fit !mt-3">
+          <label for="includeIvaCheckbox"
+            class="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">Incluir impuesto IVA
+            (19%)</label>
+        </div>
+
+        <div class="space-y-3">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Condición de
+            Pago</label>
+          <DxSelectBox v-model:value="newOrderPaymentCondition" :items="['Contado', 'Crédito']"
+            class="premium-selectbox h-14 !rounded-2xl !border-slate-100 !bg-slate-50/50" />
+        </div>
+
+        <div class="space-y-3">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Condiciones
+            Especiales</label>
+          <textarea v-model="newOrderSpecialConditions" rows="3"
+            placeholder="Ej: Entrega en bodega sur, pactar despacho..."
+            class="w-full rounded-2xl border-slate-100 bg-slate-50/50 dark:bg-navy-900/50 p-4 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none border dark:border-navy-700"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <button @click="confirmarNuevaOC"
+            class="w-full py-4.5 bg-blue-600 text-white rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all uppercase">
+            Crear Orden
+          </button>
+          <button @click="cerrarModalNuevaOC"
+            class="w-full py-4.5 bg-white text-slate-400 rounded-2xl font-black text-sm tracking-widest hover:bg-slate-50 hover:text-slate-600 active:scale-95 transition-all uppercase">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CANCELACIÓN (PREMIUM) -->
+  <div v-if="showCancelModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="cerrarModalCancel"></div>
+
+    <div
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-[480px] z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in zoom-in duration-300">
+      <div class="p-8 bg-red-500 text-white relative overflow-hidden group">
+        <div class="relative z-10">
+          <h2 class="text-2xl font-black tracking-tight mb-1 text-white!">Cancelar Orden</h2>
+          <p class="text-red-100/80 text-[10px] font-black uppercase tracking-widest">OC:
+            {{ orderToCancel?.order_code }}
+          </p>
+        </div>
+        <XCircleIcon
+          class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12 transition-transform group-hover:scale-110" />
+      </div>
+
+      <div class="p-8 space-y-6">
+        <div class="space-y-3">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            Indique el motivo de la cancelación
+          </label>
+          <textarea v-model="cancelReason" rows="4" placeholder="Escriba aquí el motivo..."
+            class="w-full rounded-2xl border-slate-100 bg-slate-50/50 dark:bg-navy-900/50 p-4 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none transition-all resize-none border dark:border-navy-700"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <button @click="confirmarCancelacion"
+            class="w-full py-4.5 bg-red-500 text-white rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-red-200 hover:bg-red-600 hover:scale-[1.02] active:scale-95 transition-all uppercase">
+            Confirmar Anulación
+          </button>
+          <button @click="cerrarModalCancel"
+            class="w-full py-4.5 bg-white text-slate-400 rounded-2xl font-black text-sm tracking-widest hover:bg-slate-50 hover:text-slate-600 active:scale-95 transition-all uppercase">
+            Cerrar
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -236,11 +456,12 @@ import {
 import { useRouter } from 'vue-router'
 import { DxRequiredRule } from 'devextreme-vue/validator'
 import conexionApi from '@/services/conexionApi'
-import { formatDateHrs, formatStatusText, statusTextCellTemplate, getStatusMeta } from '@/utils/herlpers'
+import { formatDateHrs, formatStatusText, statusTextCellTemplate, getStatusMeta, formatDate } from '@/utils/herlpers'
 import { priceFormatter } from '@/utils/herlpers'
-import { ShoppingCartIcon, BuildingOfficeIcon } from '@heroicons/vue/24/solid'
+import { ShoppingCartIcon, BuildingOfficeIcon, PlusIcon, PlusCircleIcon, CalendarIcon, UserIcon } from '@heroicons/vue/24/solid'
 import { InformationCircleIcon, EyeIcon, DocumentCheckIcon, XCircleIcon, ArchiveBoxArrowDownIcon, DocumentArrowDownIcon } from '@heroicons/vue/24/outline'
 import DxPopup from 'devextreme-vue/popup'
+import DxSelectBox from 'devextreme-vue/select-box'
 import { DxScrolling } from 'devextreme-vue/data-grid'
 
 const companyId = localStorage.getItem('userIdCompany') || '1'
@@ -252,6 +473,15 @@ const showHelp = ref(false)
 const showNewProductPopup = ref(false)
 const selectedItem = ref(null)
 const modalItemsDataSource = ref(null)
+const showNewOCModal = ref(false)
+const newOrderSupplier = ref(null)
+const newOrderIncludeIva = ref(true)
+const newOrderPaymentCondition = ref('Contado')
+const newOrderSpecialConditions = ref('')
+const showCancelModal = ref(false)
+const cancelReason = ref('')
+const orderToCancel = ref(null)
+const orderReceipts = ref([])
 
 const approvedRequests = ref([])
 const suppliers = ref([])
@@ -347,12 +577,48 @@ onMounted(async () => {
   ])
 
   approvedRequests.value = req.data.requests || []
-  suppliers.value = sup.data.suppliers || []
-
-  approvedRequestsEditorOptions.value.items = approvedRequests.value
-  suppliersEditorOptions.value.items = suppliers.value
-
+  suppliers.value = (sup.data.suppliers || []).map(s => ({
+    ...s,
+    display: `${s.name} (${s.rut})`
+  }))
 })
+
+function abrirModalNuevaOC() {
+  newOrderSupplier.value = null
+  showNewOCModal.value = true
+}
+
+function cerrarModalNuevaOC() {
+  showNewOCModal.value = false
+}
+
+async function confirmarNuevaOC() {
+  if (!newOrderSupplier.value) {
+    alert('Debe seleccionar un proveedor')
+    return
+  }
+
+  try {
+    const { data } = await conexionApi.post('/purchase-orders', {
+      supplier_id: newOrderSupplier.value,
+      company_id: companyId,
+      user_id: Number(localStorage.getItem('userId')),
+      include_iva: newOrderIncludeIva.value ? 1 : 0,
+      payment_condition: newOrderPaymentCondition.value,
+      special_conditions: newOrderSpecialConditions.value
+    })
+
+    showNewOCModal.value = false
+    dxGrid.value?.instance.refresh()
+
+    alert(`Orden de compra #${data.order_code} creada correctamente`)
+
+    // Redirigir a items de la nueva OC
+    router.push(`/dashboard/operations/procurement/orders/${data.purchase_order_id}/items`)
+  } catch (err) {
+    alert(err.response?.data?.mensaje || 'Error al crear la orden')
+  }
+}
 
 /* =========================
    DATA SOURCE
@@ -384,7 +650,10 @@ const dataSource = new CustomStore({
 async function verRegistro(data) {
   selectedItem.value = data
   showViewModal.value = true
-  await loadModalItems(data.id) // <- carga los items de la OC
+  await Promise.all([
+    loadModalItems(data.id),
+    loadModalReceipts(data.id)
+  ])
 }
 
 function closeModals() {
@@ -489,26 +758,10 @@ const customButtons = [
         (status === 'DRAFT' || status === 'APPROVED')
       )
     },
-    onClick: async (e) => {
-      const order = e.row.data
-
-      const ok = confirm(
-        `¿Seguro que deseas cancelar la OC ${order.order_code}?\nEsta acción no se puede deshacer.`
-      )
-      if (!ok) return
-
-      try {
-        await conexionApi.put(`/purchase-orders/${order.id}/cancel`, {
-          user_id: Number(localStorage.getItem('userId')),
-          company_id: Number(localStorage.getItem('userIdCompany'))
-        })
-
-        dxGrid.value?.instance.refresh()
-        alert('Orden cancelada correctamente ❌')
-      } catch (err) {
-        console.error('Error al cancelar la orden:', err)
-        alert('No se pudo cancelar la orden 😬')
-      }
+    onClick: (e) => {
+      orderToCancel.value = e.row.data
+      cancelReason.value = ''
+      showCancelModal.value = true
     }
   },
   {
@@ -530,7 +783,43 @@ const customButtons = [
 
 ]
 
+function cerrarModalCancel() {
+  showCancelModal.value = false
+  orderToCancel.value = null
+}
 
+async function confirmarCancelacion() {
+  if (!cancelReason.value.trim()) {
+    alert('Debe indicar un motivo')
+    return
+  }
+
+  try {
+    await conexionApi.put(`/purchase-orders/${orderToCancel.value.id}/cancel`, {
+      user_id: Number(localStorage.getItem('userId')),
+      company_id: Number(localStorage.getItem('userIdCompany')),
+      rejection_reason: cancelReason.value
+    })
+
+    showCancelModal.value = false
+    dxGrid.value?.instance.refresh()
+    alert('Orden cancelada correctamente ❌')
+  } catch (err) {
+    console.error('Error al cancelar la orden:', err)
+    alert(err.response?.data?.mensaje || 'No se pudo cancelar la orden 😬')
+  }
+}
+
+
+
+function trackingCodeTemplate(container, options) {
+  const code = options.data.tracking_code
+  if (!code) {
+    container.innerHTML = `<span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-wider border border-amber-200/50 dark:border-amber-800/50">Orden sin solicitud</span>`
+  } else {
+    container.innerHTML = `<span class="text-slate-500 font-medium">${code}</span>`
+  }
+}
 
 async function loadModalItems(orderId) {
   const { data } = await conexionApi.get(`/purchase-orders/${orderId}/items`)
@@ -540,6 +829,15 @@ async function loadModalItems(orderId) {
     product_name: item.product_name || item.name
 
   }))
+}
+async function loadModalReceipts(orderId) {
+  try {
+    const { data } = await conexionApi.get(`/purchase-orders/${orderId}/receipts`)
+    orderReceipts.value = data.receipts || []
+  } catch (err) {
+    console.error('Error cargando recepciones:', err)
+    orderReceipts.value = []
+  }
 }
 
 </script>
