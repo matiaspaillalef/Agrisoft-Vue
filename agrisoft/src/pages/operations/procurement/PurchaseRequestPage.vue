@@ -236,6 +236,46 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL RECHAZAR SOLICITUD (PREMIUM) -->
+  <div v-if="showRejectModal" class="fixed inset-0 flex items-center justify-center z-[999] p-4">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="closeRejectModal"></div>
+
+    <div
+      class="bg-white dark:bg-navy-800 rounded-[2.5rem] shadow-2xl w-full max-w-[480px] z-10 overflow-hidden border border-slate-100 dark:border-navy-700 animate-in zoom-in duration-300">
+      <div class="p-8 bg-gradient-to-br from-red-600 to-pink-700 text-white relative overflow-hidden group">
+        <div class="relative z-10">
+          <h2 class="text-2xl font-black tracking-tight mb-1 text-white!">Rechazar Solicitud</h2>
+          <p class="text-red-100/80 text-[10px] font-black uppercase tracking-widest">
+            SOLICITUD #{{ selectedRequestForReject?.tracking_code }}
+          </p>
+        </div>
+        <InformationCircleIcon
+          class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12 transition-transform group-hover:scale-110" />
+      </div>
+
+      <div class="p-8 text-left! space-y-6">
+        <div class="space-y-3">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+            ¿Motivo del rechazo para la solicitud #{{ selectedRequestForReject?.tracking_code }}?
+          </label>
+          <textarea v-model="rejectionReasonText" rows="4" placeholder="Escriba aquí el motivo del rechazo..."
+            class="w-full rounded-2xl border-slate-100 bg-slate-50/50 dark:bg-navy-900/50 p-4 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none transition-all resize-none border dark:border-navy-700"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <button @click="confirmarRechazo"
+            class="w-full py-4.5 bg-red-600 text-white rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-red-200 hover:bg-red-700 hover:scale-[1.02] active:scale-95 transition-all uppercase">
+            Confirmar Rechazo
+          </button>
+          <button @click="closeRejectModal"
+            class="w-full py-4.5 bg-white text-slate-400 rounded-2xl font-black text-sm tracking-widest hover:bg-slate-50 hover:text-slate-600 active:scale-95 transition-all uppercase">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -260,6 +300,7 @@ import { DxRequiredRule } from 'devextreme-vue/validator'
 import conexionApi from '@/services/conexionApi'
 import { ref, onMounted } from 'vue'
 import { formatDate, formatDateHrs, formatStatusText, statusTextCellTemplate, getStatusMeta } from '@/utils/herlpers'
+import notify from 'devextreme/ui/notify'
 
 // Simulación de usuario logueado
 const userId = localStorage.getItem('userId') || '1'
@@ -280,6 +321,10 @@ const newOrderPaymentCondition = ref('Contado')
 const newOrderSpecialConditions = ref('')
 const suppliers = ref([])
 const users = ref([])
+
+const showRejectModal = ref(false)
+const selectedRequestForReject = ref(null)
+const rejectionReasonText = ref('')
 
 function onInitNewRow(e) {
   e.data.requester_id = Number(localStorage.getItem('userId'))
@@ -406,7 +451,7 @@ function cerrarModalOC() {
 
 async function confirmarCrearOC() {
   if (!selectedSupplier.value) {
-    alert('Debe seleccionar un proveedor')
+    notify('Debe seleccionar un proveedor', 'warning', 3000)
     return
   }
 
@@ -433,9 +478,9 @@ async function confirmarCrearOC() {
     showCreateOCModal.value = false
     mainGridRef.value?.instance.refresh()
 
-    alert(`Orden de compra creada correctamente (ID: ${data.purchase_order_id} - Código: ${data.order_code})`)
+    notify(`Orden de compra creada correctamente (Código: ${data.order_code})`, 'success', 3000)
   } catch (err) {
-    alert(err.response?.data?.mensaje || 'Error al crear la orden')
+    notify(err.response?.data?.mensaje || 'Error al crear la orden', 'error', 3000)
   }
 }
 
@@ -471,32 +516,46 @@ async function aprobarSolicitud(request) {
 
     mainGridRef.value?.instance.refresh()
 
-    alert(`Solicitud #${request.tracking_code} aprobada por ${data.approver_name}`)
+    notify(`Solicitud #${request.tracking_code} aprobada por ${data.approver_name}`, 'success', 3000)
   } catch (err) {
     console.error(err)
-    alert('Error al aprobar la solicitud')
+    notify('Error al aprobar la solicitud', 'error', 3000)
   }
 }
 
 async function rechazarSolicitud(request) {
-  const reason = prompt(`¿Motivo del rechazo para la solicitud #${request.tracking_code}?`)
-  if (reason === null) return // Cancelado
+  selectedRequestForReject.value = request
+  rejectionReasonText.value = ''
+  showRejectModal.value = true
+}
+
+function closeRejectModal() {
+  showRejectModal.value = false
+}
+
+async function confirmarRechazo() {
+  const reason = rejectionReasonText.value.trim()
+  if (!reason) {
+    notify('Debe ingresar el motivo del rechazo', 'warning', 3000)
+    return
+  }
 
   try {
-    await conexionApi.put(`/purchase-requests/${request.id}/reject`, {
+    await conexionApi.put(`/purchase-requests/${selectedRequestForReject.value.id}/reject`, {
       company_id: companyId,
       rejection_reason: reason
     })
 
-    request.status = 'REJECTED'
-    request.rejection_reason = reason
+    selectedRequestForReject.value.status = 'REJECTED'
+    selectedRequestForReject.value.rejection_reason = reason
 
     mainGridRef.value?.instance.refresh()
+    showRejectModal.value = false
 
-    alert(`Solicitud #${request.tracking_code} rechazada`)
+    notify(`Solicitud #${selectedRequestForReject.value.tracking_code} rechazada`, 'success', 3000)
   } catch (err) {
     console.error(err)
-    alert(err.response?.data?.mensaje || 'Error al rechazar la solicitud')
+    notify(err.response?.data?.mensaje || 'Error al rechazar la solicitud', 'error', 3000)
   }
 }
 
@@ -545,7 +604,9 @@ const customButtons = [
     cssClass: 'w-[25px]! h-[25px]! bg-red-400 rounded-full animate-pulse p-[4px]!',
     visible: (e) => {
       const status = e.row.data.status
-      return (userRole === 1 || userRole === 2) && e.row.data.has_purchase_order !== 1
+      return (userRole === 1 || userRole === 2) && 
+             (status === 'REQUESTED' || status === 'APPROVED') && 
+             e.row.data.has_purchase_order !== 1
     },
     onClick: (e) => rechazarSolicitud(e.row.data)
   },

@@ -56,6 +56,7 @@ import MonthlyWorkerProductionPage from '@/pages/reports/MonthlyWorkerProduction
 import PurchaseOrderItemsPage from '@/pages/operations/procurement/orders/[id]/items/PurchaseOrderItemsPage.vue'
 import PurchaseReceiptNewPage from '@/pages/operations/procurement/orders/[id]/receipts/new/PurchaseReceiptNewPage.vue'
 import DirectReceiptNewPage from '@/pages/operations/procurement/receipts/DirectReceiptNewPage.vue'
+import ReceiptWithOCPage from '@/pages/operations/procurement/receipts/ReceiptWithOCPage.vue'
 
 
 const routes = [
@@ -406,6 +407,14 @@ const routes = [
         path: 'dashboard/operations/procurement/receipts/direct/new',
         name: 'DirectReceiptNew',
         component: DirectReceiptNewPage,
+        meta: {
+          roles: [1, 2, 7, 8],
+        },
+      },
+      {
+        path: 'dashboard/operations/procurement/receipts/oc/new',
+        name: 'ReceiptWithOC',
+        component: ReceiptWithOCPage,
         meta: {
           roles: [1, 2, 7, 8],
         },

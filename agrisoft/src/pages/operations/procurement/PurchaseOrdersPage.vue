@@ -343,6 +343,26 @@
         </div>
 
         <div class="space-y-3">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Forma de
+            Pago</label>
+          <DxSelectBox v-model:value="newOrderPaymentMethod" :items="newOrderPaymentMethodsList"
+            class="premium-selectbox h-14 !rounded-2xl !border-slate-100 !bg-slate-50/50" />
+        </div>
+
+        <div v-if="newOrderPaymentMethod === 'Cheque'" class="space-y-3 animate-in fade-in duration-300">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">N° de Cheque</label>
+          <input type="text" v-model="newOrderChequeNumber"
+            class="w-full h-14 rounded-2xl border border-slate-100 dark:border-navy-700 bg-slate-50/50 dark:bg-navy-900/50 px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+            placeholder="Ej: 123456" />
+        </div>
+
+        <div v-if="newOrderPaymentCondition === 'Crédito'" class="space-y-3 animate-in fade-in duration-300">
+          <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fecha de Cobro</label>
+          <input type="date" v-model="newOrderCobroDate"
+            class="w-full h-14 rounded-2xl border border-slate-100 dark:border-navy-700 bg-slate-50/50 dark:bg-navy-900/50 px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+        </div>
+
+        <div class="space-y-3">
           <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Condiciones
             Especiales</label>
           <textarea v-model="newOrderSpecialConditions" rows="3"
@@ -440,7 +460,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, shallowRef, computed } from 'vue'
+import { ref, onMounted, shallowRef, computed, watch } from 'vue'
 import CustomStore from 'devextreme/data/custom_store'
 import {
   DxDataGrid,
@@ -458,7 +478,7 @@ import { DxRequiredRule } from 'devextreme-vue/validator'
 import conexionApi from '@/services/conexionApi'
 import { formatDateHrs, formatStatusText, statusTextCellTemplate, getStatusMeta, formatDate } from '@/utils/herlpers'
 import { priceFormatter } from '@/utils/herlpers'
-import { ShoppingCartIcon, BuildingOfficeIcon, PlusIcon, PlusCircleIcon, CalendarIcon, UserIcon } from '@heroicons/vue/24/solid'
+import { ShoppingCartIcon, BuildingOfficeIcon, PlusIcon, PlusCircleIcon, CalendarIcon, UserIcon, CubeIcon } from '@heroicons/vue/24/solid'
 import { InformationCircleIcon, EyeIcon, DocumentCheckIcon, XCircleIcon, ArchiveBoxArrowDownIcon, DocumentArrowDownIcon } from '@heroicons/vue/24/outline'
 import DxPopup from 'devextreme-vue/popup'
 import DxSelectBox from 'devextreme-vue/select-box'
@@ -477,7 +497,43 @@ const showNewOCModal = ref(false)
 const newOrderSupplier = ref(null)
 const newOrderIncludeIva = ref(true)
 const newOrderPaymentCondition = ref('Contado')
+const newOrderPaymentMethod = ref('Efectivo')
+const newOrderChequeNumber = ref('')
+const newOrderCobroDate = ref('')
 const newOrderSpecialConditions = ref('')
+
+const newOrderPaymentMethodsList = computed(() => {
+  if (newOrderPaymentCondition.value === 'Contado') {
+    return ['Efectivo', 'Transferencia', 'Cheque']
+  } else {
+    return ['Cheque', 'Cuenta Corriente', 'Transferencia']
+  }
+})
+
+watch(newOrderPaymentCondition, (newVal) => {
+  const list = newVal === 'Contado' 
+    ? ['Efectivo', 'Transferencia', 'Cheque'] 
+    : ['Cheque', 'Cuenta Corriente', 'Transferencia']
+  if (!list.includes(newOrderPaymentMethod.value)) {
+    newOrderPaymentMethod.value = list[0]
+  }
+})
+
+function serializeNewOrderPaymentCondition() {
+  let cond = newOrderPaymentCondition.value || 'Contado'
+  let method = newOrderPaymentMethod.value
+  let detail = ''
+  
+  if (method === 'Cheque' && newOrderChequeNumber.value) {
+    detail += ` N° ${newOrderChequeNumber.value}`
+  }
+  
+  if (cond === 'Crédito' && newOrderCobroDate.value) {
+    detail += ` (F. Cobro: ${newOrderCobroDate.value})`
+  }
+  
+  return `${cond} - ${method}${detail}`
+}
 const showCancelModal = ref(false)
 const cancelReason = ref('')
 const orderToCancel = ref(null)
@@ -585,6 +641,12 @@ onMounted(async () => {
 
 function abrirModalNuevaOC() {
   newOrderSupplier.value = null
+  newOrderIncludeIva.value = true
+  newOrderPaymentCondition.value = 'Contado'
+  newOrderPaymentMethod.value = 'Efectivo'
+  newOrderChequeNumber.value = ''
+  newOrderCobroDate.value = ''
+  newOrderSpecialConditions.value = ''
   showNewOCModal.value = true
 }
 
@@ -594,29 +656,45 @@ function cerrarModalNuevaOC() {
 
 async function confirmarNuevaOC() {
   if (!newOrderSupplier.value) {
-    alert('Debe seleccionar un proveedor')
+    notify({
+      message: 'Debe seleccionar un proveedor ⚠️',
+      type: 'warning',
+      displayTime: 3000,
+      position: 'top center'
+    })
     return
   }
 
   try {
+    const serializedPayment = serializeNewOrderPaymentCondition()
     const { data } = await conexionApi.post('/purchase-orders', {
       supplier_id: newOrderSupplier.value,
       company_id: companyId,
       user_id: Number(localStorage.getItem('userId')),
       include_iva: newOrderIncludeIva.value ? 1 : 0,
-      payment_condition: newOrderPaymentCondition.value,
+      payment_condition: serializedPayment,
       special_conditions: newOrderSpecialConditions.value
     })
 
     showNewOCModal.value = false
     dxGrid.value?.instance.refresh()
 
-    alert(`Orden de compra #${data.order_code} creada correctamente`)
+    notify({
+      message: `Orden de compra #${data.order_code} creada correctamente ✅`,
+      type: 'success',
+      displayTime: 3000,
+      position: 'top center'
+    })
 
     // Redirigir a items de la nueva OC
     router.push(`/dashboard/operations/procurement/orders/${data.purchase_order_id}/items`)
   } catch (err) {
-    alert(err.response?.data?.mensaje || 'Error al crear la orden')
+    notify({
+      message: err.response?.data?.mensaje || 'Error al crear la orden 😬',
+      type: 'error',
+      displayTime: 3000,
+      position: 'top center'
+    })
   }
 }
 
@@ -765,9 +843,9 @@ const customButtons = [
     }
   },
   {
-    hint: 'Registrar recepción',
+    hint: 'Ingreso con OC',
     icon: 'custom-box',
-    cssClass: 'w-[25px]! h-[25px]! bg-indigo-400 rounded-full p-[4px]!',
+    cssClass: 'w-[25px]! h-[25px]! bg-indigo-500 rounded-full p-[4px]!',
     visible: (e) => {
       return (
         (userRole === 1 || userRole === 2) &&
@@ -775,9 +853,19 @@ const customButtons = [
       )
     },
     onClick: e => {
-      router.push(
-        `/dashboard/operations/procurement/orders/${e.row.data.id}/receipts/new`
-      )
+      router.push(`/dashboard/operations/procurement/receipts/oc/new?oc=${e.row.data.id}`)
+    }
+  },
+  {
+    hint: 'Ingreso sin OC',
+    icon: 'product',
+    cssClass: 'w-[25px]! h-[25px]! bg-purple-500 rounded-full p-[4px]!',
+    visible: (e) => {
+      return (userRole === 1 || userRole === 2) &&
+        ['APPROVED', 'PARTIAL_RECEIVED'].includes(e.row.data.status)
+    },
+    onClick: () => {
+      router.push('/dashboard/operations/procurement/receipts/direct/new')
     }
   }
 

@@ -245,20 +245,52 @@ onMounted(async () => {
     menuLoading.value = true
     const rawMenu = await MenuService.getMenuByRol(rolId)
 
-    // Inyectar Ingreso de Materiales si existe la sección de Recepción
-    /*const recepcionSec = rawMenu.find(m => m.name.includes('Recepción de Materiales'))
-    if (recepcionSec) {
-      if (!recepcionSec.children) recepcionSec.children = []
-      // Solo añadir si no existe ya (para evitar duplicados si el backend lo añade luego)
-      if (!recepcionSec.children.find(c => c.name === 'Ingreso de Materiales')) {
-        recepcionSec.children.push({
-          id: 'manual-entry-id',
+    // Inyectar items de Ingreso de Materiales en la sección correcta del menú
+    const keywords = ['compra', 'recepci', 'ingreso', 'material', 'procurement']
+
+    // Buscar la sección en top-level O como hijo de cualquier sección
+    let targetSection = null
+    for (const section of rawMenu) {
+      if (keywords.some(k => (section.name || '').toLowerCase().includes(k))) {
+        targetSection = section
+        break
+      }
+      // Buscar en children de esta sección
+      if (section.children) {
+        for (const child of section.children) {
+          if (keywords.some(k => (child.name || '').toLowerCase().includes(k))) {
+            targetSection = child
+            break
+          }
+        }
+        if (targetSection) break
+      }
+    }
+
+    if (targetSection) {
+      if (!targetSection.children) targetSection.children = []
+
+      /* Ingreso con OC
+      if (!targetSection.children.find(c => c.name === 'Ingreso de Materiales')) {
+        targetSection.children.push({
+          id: 'manual-entry-con-oc',
           name: 'Ingreso de Materiales',
-          url: '/dashboard/operations/procurement/receipts/direct/new',
-          icon: 'PlusCircleIcon'
+          url: '/dashboard/operations/procurement/receipts/oc/new',
+          icon: 'CubeIcon'
         })
       }
-    }*/
+
+      // Ingreso sin OC
+      if (!targetSection.children.find(c => c.name === 'Ingreso sin OC')) {
+        targetSection.children.push({
+          id: 'manual-entry-sin-oc',
+          name: 'Ingreso sin OC',
+          url: '/dashboard/operations/procurement/receipts/direct/new',
+          icon: 'ArchiveBoxArrowDownIcon'
+        })
+      }
+        */
+    }
 
     // Reordenar: Configuración siempre al final
     menu.value = rawMenu.sort((a, b) => {

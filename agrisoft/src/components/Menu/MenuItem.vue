@@ -1,5 +1,5 @@
 <template>
-  <li v-if="isVisible" :class="levelClass">
+  <li v-if="isVisible" :class="[levelClass, isHorizontal ? 'relative' : '']">
     <div v-if="hasChildren">
       <button @click="toggleOpen"
         class="flex items-center gap-3 px-4 py-3 cursor-pointer w-full group transition-all duration-300 rounded-2xl mb-1 mt-1 bg-transparent!"
@@ -15,9 +15,14 @@
 
       <!-- Submenú -->
       <Transition name="expand">
-        <ul v-show="isOpen && !isCollapsed" class="pl-4 flex flex-col gap-1 overflow-hidden mt-1">
+        <ul v-show="isOpen && !isCollapsed" 
+            :class="isHorizontal 
+              ? (level === 1 
+                  ? 'absolute left-0 top-[100%] mt-4 bg-white dark:bg-navy-800 shadow-xl rounded-2xl p-2 min-w-[220px] z-[100] flex flex-col gap-1 border border-slate-100 dark:border-navy-700' 
+                  : 'absolute left-[100%] top-0 ml-2 bg-white dark:bg-navy-800 shadow-xl rounded-2xl p-2 min-w-[220px] z-[100] flex flex-col gap-1 border border-slate-100 dark:border-navy-700')
+              : 'pl-4 flex flex-col gap-1 overflow-hidden mt-1'">
           <MenuItem v-for="child in item.children" :key="child.id" :item="child" :level="level + 1"
-            :isCollapsed="isCollapsed" />
+            :isCollapsed="isCollapsed" :isHorizontal="isHorizontal" />
         </ul>
       </Transition>
     </div>
@@ -53,6 +58,10 @@ const props = defineProps({
     default: 1,
   },
   isCollapsed: {
+    type: Boolean,
+    default: false
+  },
+  isHorizontal: {
     type: Boolean,
     default: false
   }

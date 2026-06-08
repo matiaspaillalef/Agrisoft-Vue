@@ -679,6 +679,17 @@
               <DxSelectBox v-model:value="form.id_ground" :data-source="grounds" display-expr="name" value-expr="id"
                 class="premium-select shadow-sm" />
             </div>
+
+            <div class="col-span-2 space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Especie</label>
+              <DxSelectBox v-if="!form.id_specie" v-model:value="form.id_specie" :data-source="species" display-expr="name" value-expr="id"
+                class="premium-select shadow-sm" placeholder="Opcional..." />
+              <div v-else class="flex items-center justify-between gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 h-[44px] cursor-pointer hover:bg-blue-700 transition-colors" @click="form.id_specie = null; form.id_variety = null; form.quarters = []" title="Click para quitar especie">
+                <span class="text-base font-black tracking-tight">{{ species.find(s => s.id === form.id_specie)?.name || 'Especie' }}</span>
+                <XMarkIcon class="w-4 h-4 text-white/70 hover:text-white" />
+              </div>
+            </div>
+
             <div v-if="filteredQuarters.length > 0" class="col-span-2 space-y-1">
               <label
                 class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest flex items-center justify-between">
@@ -690,7 +701,7 @@
               <DxTagBox v-model:value="form.quarters" :data-source="filteredQuarters" display-expr="name"
                 value-expr="id" class="premium-select shadow-sm" placeholder="Seleccionar..." />
               <p class="text-[8px] text-slate-400 font-medium italic mt-1 ml-1">
-                * Mostrando solo cuarteles con atributos de sector definidos.
+                * Mostrando solo cuarteles compatibles.
               </p>
             </div>
             <div v-else-if="form.id_ground"
@@ -700,20 +711,22 @@
                 <span class="text-[7px] font-bold text-slate-400">Verifica los atributos de sector.</span>
               </p>
             </div>
-            <div class="col-span-2 space-y-1">
-              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Superficie Total
-                (Ha)</label>
-              <div
-                class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">
-                <MapPinIcon class="w-4 h-4" />
-                <span class="text-base font-black tracking-tight">{{ totalSurface.toFixed(2) }} Ha</span>
-              </div>
-            </div>
-            <div class="col-span-2 space-y-1">
+
+            <div class="col-span-3 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Fecha
                 Programación</label>
               <input type="date" v-model="form.issue_date"
                 class="w-full px-4 py-[11px] bg-slate-50 rounded-xl font-bold text-sm border border-transparent outline-none focus:ring-1 focus:ring-blue-100 shadow-sm transition-all" />
+            </div>
+
+            <div class="col-span-3 space-y-1">
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Superficie Total
+                (Ha)</label>
+              <div
+                class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200 h-[44px]">
+                <MapPinIcon class="w-4 h-4" />
+                <span class="text-base font-black tracking-tight">{{ totalSurface.toFixed(2) }} Ha</span>
+              </div>
             </div>
 
             <div class="col-span-full border-b border-slate-50 pb-2 mt-4 flex items-center gap-2 font-black">
@@ -739,21 +752,16 @@
                 Labor</span>
               <div class="flex-1 h-[1px] bg-slate-50"></div>
             </div>
-            <div class="col-span-2 space-y-1">
+            <div class="col-span-3 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Área Operativa</label>
               <DxSelectBox v-model:value="form.id_area" :data-source="configAreas" display-expr="name" value-expr="id"
                 class="premium-select shadow-sm" />
             </div>
-            <div class="col-span-2 space-y-1">
+            <div class="col-span-3 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Labor
                 Específica</label>
               <DxSelectBox v-model:value="form.id_task" :data-source="configTasks" display-expr="name" value-expr="id"
                 class="premium-select shadow-sm" :disabled="!form.id_area" />
-            </div>
-            <div class="col-span-2 space-y-1">
-              <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Especie</label>
-              <DxSelectBox v-model:value="form.id_specie" :data-source="species" display-expr="name" value-expr="id"
-                class="premium-select shadow-sm" placeholder="Opcional..." />
             </div>
             <div class="col-span-2 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Variedad</label>
@@ -2694,8 +2702,22 @@ function formatDate(dateStr) {
 // Watchers
 // filteredQuarters ya es computed
 
-watch(() => form.value.id_specie, (newVal) => {
+watch(() => form.value.id_specie, (newVal, oldVal) => {
   filteredVarieties.value = allVarieties.value.filter(v => Number(v.species_id) === Number(newVal))
+
+  if (newVal && form.value.id_ground) {
+    // Si cambio manual o la lista de cuarteles esta vacia, auto-completamos todos los cuarteles de esa especie
+    if (!oldVal && form.value.quarters && form.value.quarters.length > 0) {
+      // Ignoramos auto-llenado porque esto fue gatillado por seleccionar un cuartel primero
+    } else {
+      const specieQuarters = allQuarters.value.filter(q => {
+        const belongsToGround = Number(q.ground) === Number(form.value.id_ground)
+        const attr = sectorAttributes.value.find(a => Number(a.sector) === Number(q.id))
+        return belongsToGround && attr && Number(attr.specie) === Number(newVal)
+      })
+      form.value.quarters = specieQuarters.map(q => q.id)
+    }
+  }
 }, { immediate: true })
 
 watch(() => form.value.id_area, async (newVal) => {

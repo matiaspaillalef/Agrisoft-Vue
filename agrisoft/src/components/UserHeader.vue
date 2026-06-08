@@ -15,7 +15,7 @@
           class="nevmenu-top relative mt-[3px] flex h-[61px] w-full flex-grow items-center justify-around gap-2 rounded-full bg-white py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:gap-2 dark:bg-blue-950 px-5 md:px-10"
           v-if="[7, 8, 10, 11].includes(Number(computedRolId))">
           <ul class="flex items-center gap-2 dark:text-white md:gap-4">
-            <MenuItem v-for="item in filteredChildren" :key="item.id" :item="item" />
+            <MenuItem v-for="item in filteredChildren" :key="item.id" :item="item" :isHorizontal="true" />
             <li>
               <button @click="logout"
                 class="relative !p-0 text-sm !bg-transparent !text-inherit flex items-center group">

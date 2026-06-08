@@ -424,6 +424,7 @@ import {
 } from '@heroicons/vue/24/solid'
 import conexionApi from '@/services/conexionApi.js'
 import { statusCellTemplatev2 } from '@/utils/herlpers.js'
+import notify from 'devextreme/ui/notify'
 
 const loading = ref(false)
 
@@ -959,10 +960,10 @@ async function cancelarTransito(rowData) {
     if (data.code !== 'OK') throw new Error(data.mensaje)
     rowData.status = 0
     dataGrid.value.instance.refresh()
-    alert('Tránsito cancelado y stock liberado')
+    notify('Tránsito cancelado y stock liberado', 'success', 3000)
   } catch (err) {
     console.error(err)
-    alert(err.message || 'Error al cancelar tránsito')
+    notify(err.message || 'Error al cancelar tránsito', 'error', 3000)
   } finally {
     loading.value = false
   }
@@ -998,10 +999,10 @@ async function confirmarRecepcion() {
 
     showReceiptModal.value = false
     dataGrid.value.instance.refresh()
-    alert('Tránsito recibido y stock actualizado correctamente')
+    notify('Tránsito recibido y stock actualizado correctamente', 'success', 4000)
   } catch (err) {
     console.error(err)
-    alert(err.message || 'Error al confirmar recepción')
+    notify(err.message || 'Error al confirmar recepción', 'error', 4000)
   } finally {
     loading.value = false
   }
@@ -1014,9 +1015,10 @@ async function procesarTransito(rowData) {
     if (data.code !== 'OK') throw new Error(data.mensaje)
     rowData.status = 2
     dataGrid.value.instance.refresh()
+    notify('Tránsito procesado correctamente', 'success', 3000)
   } catch (err) {
     console.error(err)
-    alert('Error al procesar el tránsito')
+    notify('Error al procesar el tránsito', 'error', 3000)
   } finally {
     loading.value = false
   }
